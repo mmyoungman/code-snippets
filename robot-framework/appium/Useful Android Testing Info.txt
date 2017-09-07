@@ -1,0 +1,49 @@
+sdkmanager --licenses
+
+WORKS
+sdkmanager --list --verbose  #verbose required because package names are shortened otherwise
+WORKS
+sdkmanager "system-images;android-25;google_apis;x86_64"  #and then wait as sdkmanager downloads gigs of sys-img goodness
+
+avdmanager list avd
+avdmanager list devices
+
+adb devices
+
+emulator -avd Nexus_5X_API_25_x86
+
+SEEMS TO WORK
+avdmanager create avd --name testAVD --package "system-images;android-25;google_apis;x86_64" --tag "google_apis"
+BUT THEN
+emulator -avd testAVD
+[140256023930688]:ERROR:./android/qt/qt_setup.cpp:28:Qt library not found at ../emulator/lib64/qt/lib
+Could not launch '../emulator/qemu/linux-x86_64/qemu-system-x86_64': No such file or directory
+BUG
+https://issuetracker.google.com/issues/37137213
+SOLUTION
+cd ~/Android/Sdk/tools
+./emulator -avd testAVD
+
+avdmanager create avd --force --name testAVD --package "system-images;android-25;google_apis;x86_64" --tag "google_apis" --device "Nexus 5" --abi google_apis/x86_64
+
+-----
+
+-Install Android SDK
+sudo apt install android-sdk
+-Set $ANDROID_HOME and $PATH
+export ANDROID_HOME=~/Android/Sdk
+export PATH=${PATH}:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+-Download zip of AVD folder/ini and place in ~/.android/avd
+-Open terminal, navigate to ~/Android/Sdk/tools (i.e. where "emulator" is -- at time of writing, this has to be done due to this bug https://issuetracker.google.com/issues/37137213)
+-Run in terminal, "./emulator -avd name" so "./emulator -avd Nexus_5X_API_25_x86"
+
+To create an AVD:
+-Install Android Studio
+--https://developer.android.com/studio/index.html#downloads
+Current linux version (will quickly be out of date): https://dl.google.com/dl/android/studio/ide-zips/2.3.1.0/android-studio-ide-162.3871768-linux.zip
+-Tools -> Android -> AVD Manager
+-Click "+ Create Virtual Device..."
+-Follow the instructions to create the virtual device you want. Details: https://developer.android.com/studio/run/managing-avds.html
+-AVD will be created in ~/.android/avd as a folder and ini file. Need both to run the AVD
+
+

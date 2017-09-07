@@ -1,0 +1,19 @@
+From: sender@example.com
+To: recipient@example.com
+Date: $DATE
+Subject: Put Subject Here
+Mime-Version: 1.0
+Content-Type: Multipart/Mixed; boundary="ATTACHMENT-BOUNDARY"
+Return-Receipt-To: sender@example.com
+
+Put message body here.
+
+--ATTACHMENT-BOUNDARY
+Content-Disposition: attachment;
+  filename="file.txt";
+Content-Type: text/plain;
+  charset=US-ASCII;
+  name="file.txt";
+Content-Transfer-Encoding: quoted-printable
+
+The attachment message goes here? How to send a zip file?

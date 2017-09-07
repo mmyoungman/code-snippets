@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Acceptance Tests Report</title>
+
+  <style type="text/css">
+	* { 
+		font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	}
+	#row-title {
+		font-style: italic;
+		float: left;
+		width: 200px;
+	}
+	#row-elem {
+		float: left;
+		width: 200px;
+	}
+	#col-title {
+		font-weight: bold;
+		float: left;
+		width: 200px;
+	}
+	#folder-title {
+		font-weight: bold;
+		text-decoration: underline;
+		float: left;
+		width: 200px;
+	}
+	#folder-end {
+		font-weight: bold;
+		float: left;
+	}
+	legend {
+		background-color: #E8E8EE;
+		border: 1px black solid;
+		margin-left: 1em;
+		padding: 0.2em 0.8em;
+	}
+	table, th, td {
+		border: 1px solid #ddd;
+		border-collapse: collapse;
+		padding: 5px;
+	}
+	th, td {
+		border-bottom: 1px solid #ddd;
+	}
+	thead {
+		background-color: #E8E8EE;
+	}
+  </style>
+
+</head>
+<body>
+	<fieldset style="border: 1px black solid">
+	<center>
+	<br>
+	&nbsp;<img src="src/main/resources/banner.png">
+	<h2 style="font-size: 250%">&nbsp;&nbsp;&nbsp;Acceptance Tests Report</h2>
+	</center>
+	</fieldset>
+
+	<br>
+
+	<fieldset style="border: 1px black solid">
+	<strong>NOTE:</strong> To find failures, search for "FAILURE!"
+	</fieldset>
+
+	<br>
+
+	<fieldset style="border: 1px black solid">
+
+	{{#with summary}}
+	<legend style="font-size: 150%"><strong>Summary</strong></legend>
+
+	<div id="row-title">Collection name</div>{{collection.name}}<br>
+	{{/with}}
+	<div id="row-title">Time</div>{{timestamp}}<br>
+	<div id="row-title">Produced by</div>Newman v{{version}}<br>
+
+	<br>
+
+	<div id="col-title">&nbsp;</div><div id="col-title">Total</div><div id="col-title">Failed</div><br>
+	{{#with summary}}
+	{{#with stats}}
+	<div id="row-title">Iterations</div><div id="row-elem">{{iterations.total}}</div><div id="row-elem">{{iterations.failed}}</div><br>
+	<div id="row-title">Requests</div><div id="row-elem">{{requests.total}}</div><div id="row-elem">{{requests.failed}}</div><br>
+	<div id="row-title">Prerequest scripts</div><div id="row-elem">{{prerequestScripts.total}}</div><div id="row-elem">{{prerequestScripts.failed}}</div><br>
+	<div id="row-title">Test Scripts</div><div id="row-elem">{{testScripts.total}}</div><div id="row-elem">{{testScripts.failed}}</div><br>
+	<div id="row-title">Assertions</div><div id="row-elem">{{assertions.total}}</div><div id="row-elem">{{assertions.failed}}</div><br>
+	{{/with}}
+
+	<br>
+
+	<div id="row-title">Total run duration</div>{{duration}}<br>
+	<div id="row-title">Total data received</div>{{responseTotal}} (approx)<br>
+	<div id="row-title">Average response time</div>{{responseAverage}}<br>
+
+	<br>
+
+  <div id="col-title">Total failures</div><strong>{{failures}}</strong><br>
+	
+	</fieldset>
+
+	<br><br>
+
+	<fieldset style="border: 1px black solid">
+
+	{{/with}}
+	<legend style="font-size: 150%"><strong>Requests</strong></legend>
+
+  {{#each aggregations}}
+  {{#if parent.name}}
+	<hr />
+	<div id="folder-title">Folder:</div><div id="folder-end">{{parent.name}}</div><br>
+	<hr />
+
+	<br>
+
+  {{> aggregations}}
+  {{else}}
+  {{> aggregations}}
+  {{/if}}
+  {{/each}}
+
+	</fieldset>
+
+</body>
+</html>
+
+{{#*inline "aggregations"}}
+{{#each executions}}
+<fieldset style="border: 1px black solid">
+<legend>{{item.name}}</legend>
+{{#with request}}
+<div id="row-title">Method</div>{{method}}<br>
+<div id="row-title">URL</div>{{url}}<br>
+{{/with}}
+
+<div id="row-title">Mean time per request</div>{{mean.time}}<br>
+<div id="row-title">Mean size per request</div>{{mean.size}}<br>
+
+<br>
+
+<div id="row-title">Total passed tests</div>{{cumulativeTests.passed}}<br>
+<div id="row-title">Total failed tests</div>{{cumulativeTests.failed}}<br>
+
+<br>
+
+<div id="row-title">Status code</div>{{response.code}}<br>
+
+<br>
+
+{{#if assertions.length}}
+<table class="table table-responsive table-condensed">
+<thead><tr><th align="left">Test</th><th>Pass</th><th>Fail</th></tr></thead>
+<tbody>
+<script type="text/javascript">var printed = false;</script>
+{{#each assertions}}
+<script type="text/javascript">
+	if({{this.failed}} > 0 && !printed) {
+		document.write("FAILURE!");
+		printed = true;
+	}
+</script>
+<tr><td>{{this.name}}</td><td>{{this.passed}}</td><td>{{this.failed}}</td></tr>
+{{/each}}
+</tbody>
+</table>
+</fieldset>
+<br><br>
+{{/if}}
+{{/each}}
+
+{{/inline}}
