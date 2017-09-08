@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 13 Aug 2017
+   Last change: 8 Sep 2017
 
    Possible Additions:  Vectors and associated functions?
                         Image loading?
@@ -22,11 +22,12 @@
    (b) returns a random number between 0 and ULONG_MAX. 
    (c) returns a random number between 0 and 1. 
 
-   002. (a) float mmy_sqrt(float input)
-        (b) double mmy_sqrt(double input)
-        (c) int mmy_min(int a, int b)
-        (d) int mmy_max(int a, int b)
-        (e) int mmy_abs(int a)
+   002. (a) float mathSqrt(float input)
+        (b) double mathSqrt(double input)
+        (c) int mathMin(int a, int b)
+        (d) int mathMax(int a, int b)
+        (e) int mathAbs(int a)
+        (f) int mathPower(int num, int pow)
    Math operations. a,b use intrinsics. c,d,e: 
    https://graphics.stanford.edu/%7Eseander/bithacks.html
 
@@ -40,6 +41,7 @@
         (h) void stringLowerCase(char* str)
         (i) void stringUpperCase(char* str)
         (j) char** stringSplit(char* str, char c, int* size)
+        (k) int stringToInt(char* str)
    ANSI string operations.
 
 */
@@ -231,7 +233,7 @@ double stb_frand(void) {
 
 #include <emmintrin.h>
 
-float mmy_sqrt(float input) {
+float mathSqrt(float input) {
     float result = 0.0f;
     __m128 one = _mm_set_ss(input);
     __m128 two = _mm_sqrt_ss(one); // SSE
@@ -240,7 +242,7 @@ float mmy_sqrt(float input) {
     return result;
 }
 
-double mmy_sqrt(double input) {
+double mathSqrt(double input) {
     double result = 0.0f;
     __m128d one = _mm_set_sd(input);
     __m128d two = _mm_sqrt_pd(one); // SSE2
@@ -249,23 +251,31 @@ double mmy_sqrt(double input) {
      return result;
 }
 
-int mmy_min(int a, int b) {
+int mathMin(int a, int b) {
     int result = b ^ ((a ^ b) & -(a < b));
 
     return result;
 }
 
-int mmy_max(int a, int b) {
+int mathMax(int a, int b) {
     int result = a ^ ((a ^ b) & -(a < b));
 
     return result;
 }
 
-int mmy_abs(int a) {
+int mathAbs(int a) {
      unsigned int result;
      int const mask = a >> sizeof(int) * 8 - 1;
      result = (a + mask) ^ mask;
 
+    return result;
+}
+
+int mathPower(int num, int pow) {
+    int result = 1;
+    for(int i = 0; i < pow; i++) {
+        result *= num;
+    }
     return result;
 }
 
@@ -317,40 +327,32 @@ int stringBeginsWith(char* a, char *str) {
   return *a == '\0';
 }
 
-int stringEndsWith(char *end, char *str) {
-  int endLen = 0;
-  char* endPtr = end;
-  while(*endPtr != '\0') {
-    endPtr++, endLen++;
-  }
+int stringEndsWith(char* str, char* end) {
+    char* strPtr = str;
+    int endLength = stringLength(end);
+    while(*end != '\0') { end++; }
+    while(*strPtr != '\0') { strPtr++; }
 
-  int strLen = 0;
-  char* strPtr = str;
-  while(*strPtr != '\0') {
-    strPtr++, strLen++;
-  }
-  
-  while((*endPtr == *strPtr) && (endLen > 0) && (strLen > 0)) {
-    strPtr--, endPtr--;
-    strLen--, endLen--;
-  }
-
-  return (endLen == 0);
+    while(*strPtr == *end && endLength > 0) {
+        strPtr--, end--;
+        endLength--;
+    }
+    return *strPtr == *end;
 }
 
-// UNTESTED!!!
 void stringConcat(char* str, char* addition) {
-  int newLength = stringLength(str) + stringLength(addition) + 1;
-  str = (char*)realloc(sizeof(char)*newLength);
-  char* strPtr = str;
-  while(*strPtr != '\0') { strPtr++; }
-  char* addPtr = addition;
-  while(*addPtr != '\0') {
-    *strPtr = *addPtr;
-    strPtr++, addPtr++;
-  }
-  *strPtr = '\0';
+    int newLength = stringLength(str) + stringLength(addition) + 1;
+    str = (char*)realloc(str, sizeof(char) * newLength);
+    char* strPtr = str;
+    while(*strPtr != '\0') { strPtr++; }
+    char* addPtr = addition;
+    while(*addPtr != '\0') {
+        *strPtr = *addPtr;
+        strPtr++, addPtr++;
+    }
+    *strPtr = '\0';
 }
+
 
 void stringLowerCase(char* str) {
   char* strPtr = str;
@@ -400,6 +402,16 @@ char** stringSplit(char* str, char c, int* size) {
 }
 
 int stringToInt(char* str) {
+  int result = 0;
+  char* strPtr = str;
+
+  int length = stringLength(str);
+  while(length > 0) {
+    length--;
+    result += (*strPtr - 48) * mathPower(10, length);
+    strPtr++;
+  }
+  return result;
 }
 
 #endif
