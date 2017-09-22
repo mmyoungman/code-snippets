@@ -16,7 +16,7 @@ int main() {
     int fd = open("data.txt", flags);
     if(fd < 0) {
         // an error occurred
-        return -1;
+        return 1;
     }
 
     char string[13]; // read the file in 13 character chunks
@@ -26,7 +26,7 @@ int main() {
         bytesRead = read(fd, &string, 13);
         if(bytesRead < 0) {
             // an error occurred with read
-            return -1;
+            return 1;
         }
         if(bytesRead == 0) {
             break;
@@ -43,7 +43,7 @@ int main() {
     int result = close(fd); // close file
     if(result < 0) {
         // an error occurred with close
-        return -1;
+        return 1;
     }
 
     //unlink("data"); // unlink deletes a file

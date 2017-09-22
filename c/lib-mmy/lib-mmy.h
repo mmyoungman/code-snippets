@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 8 Sep 2017
+   Last change: 21 Sep 2017
 
    Possible Additions:  Vectors and associated functions?
                         Image loading?
@@ -63,6 +63,10 @@ typedef int64_t s64;
 
 typedef float f32;
 typedef double f64;
+
+#define Kilobytes(Value) ((Value)*1024)
+#define Megabytes(Value) (Kilobytes(Value)*1024)
+#define Gigabytes(Value) (Megabytes(Value)*1024)
 
 #if DEBUG
 #define assert(expression) if(!(expression)) { *(int*)0 = 0; }
