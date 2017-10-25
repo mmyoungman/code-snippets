@@ -11,7 +11,7 @@ int main() {
     handle = dlopen("./hello.so", RTLD_LAZY);
     if(handle == NULL) { printf("dlopen returned NULL!\n"); }
 
-    dlerror();
+    dlerror(); // Is this necessary?
     
     hello = (void (*)()) dlsym(handle, "hello");
     if(hello == NULL) { printf("dlsym returned NULL!\n"); }

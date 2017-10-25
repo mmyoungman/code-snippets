@@ -25,7 +25,24 @@ int main() {
             continue;
         }
 
+        int yes = 1;
+        int result;
 
+        result = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+        if(result < 0) {
+            // error with setsockopt
+            return -1;
+        }
+
+        result = bind(sockfd, p->ai_addr, p->ai_addrlen);
+        if(result < 0) {
+            close(sockfd);
+            continue;
+        }
+
+        break;
     }
+
+    freeaddrinfo(servinfo);
 
 }

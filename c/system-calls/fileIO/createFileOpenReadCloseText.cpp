@@ -12,7 +12,7 @@ int main() {
 
     // open opens file, in an access mode: O_RDONLY, O_WRONLY or O_RDWR
     flags = O_RDONLY;
-    mode  = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // u+rw, g+r, o+r
+    mode  = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // permissions u+rw, g+r, o+r
     int fd = open("data.txt", flags);
     if(fd < 0) {
         // an error occurred
