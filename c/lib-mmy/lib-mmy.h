@@ -2,13 +2,6 @@
    lib-mmy.h
    Last change: 21 Sep 2017
 
-   Possible Additions:  Vectors and associated functions?
-                        Image loading?
-                        Sorting?
-                        Add more maths?
-                        Debug functions?
-                        Ideas from: http://gamepipeline.org/ or STB libraries
-
    000. (a) Type defines
         (b) Assert macro
 
@@ -356,7 +349,6 @@ void stringConcat(char* str, char* addition) {
     }
     *strPtr = '\0';
 }
-
 
 void stringLowerCase(char* str) {
   char* strPtr = str;
