@@ -7,4 +7,5 @@ c/lib-mmy/lib-mmy.files
 c/lib-mmy/lib-mmy.includes
 c/lib-mmy/test
 
-c/system-calls/threading/fork
+c/system-calls/threading/fork/fork
+c/system-calls/networking/open-socket/open-socket
