@@ -9,6 +9,8 @@ int main() {
 
     pid_t pid;
     int status = 0;
+
+    // signal(SIGCHLD, SIG_IGN);
     switch(pid = fork()) {
         case -1:
             perror("fork");
@@ -19,7 +21,7 @@ int main() {
         default:
             printf("This is the parent process! My PID: %d! Fork returned PID: %d! Parent PID: %d!\n", getpid(), pid, getppid());
             printf("Parent process waiting for child %d to exit...\n", pid);
-            waitpid(pid, &status, 0);
+            while(pid != waitpid(pid, &status, WNOHANG)); // while the child process hasn't exited, wait to reap it
             printf("Parent process exiting...\n");
             return 0;
     }
