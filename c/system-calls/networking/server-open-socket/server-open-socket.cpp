@@ -61,23 +61,36 @@ int main() {
     }
     printf("Waiting for incoming connections...\n");
 
+    label:
     newfd = accept(sockfd, (struct sockaddr*)&clientaddr, &clientaddrsize); 
     if(newfd < 0) {
         perror("accept");
         return 1;
     }
+    pid_t pid = fork();
+    if(pid < 0 ) {
+        perror("fork");
+        return 1;
+    }
+    if(pid != 0) {
+        // save child pid
+        printf("This the parent process!\n");
+        goto label;
+        // clean up zombie processes
+    }
     printf("Connection accepted!\n");
 
     int bufferLen = 256;
     char buffer[bufferLen];
-    //status = recv(newfd, &buffer, bufferLen, 0);
-    while(status = recv(newfd, &buffer, bufferLen, 0) != 0) {
+    while( (status = recv(newfd, &buffer, bufferLen, 0)) != 0) {
         if (status < 0) {
             perror("recv");
             return 1;
         }
         buffer[255] = '\0'; // Prevent buffer overflow
+        printf("recv status: %d\n", status);
         printf("Recieved: %s\n", buffer);
+        status = send(newfd, &buffer, status, 0);
         memset(buffer, 0, sizeof(char)*256);
     }
 
