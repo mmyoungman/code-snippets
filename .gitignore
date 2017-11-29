@@ -8,4 +8,4 @@ c/lib-mmy/lib-mmy.includes
 c/lib-mmy/test
 
 c/system-calls/threading/fork/fork
-c/system-calls/networking/open-socket/open-socket
+c/system-calls/networking/server-open-socket/server-open-socket

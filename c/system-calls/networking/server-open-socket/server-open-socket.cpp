@@ -30,25 +30,23 @@ int main() {
 
     status = getaddrinfo(NULL, MYPORT, &hints, &servinfo);
     if(status != 0) {
-        printf("getaddrinfo() error\n");
         printf("%s\n", gai_strerror(status));
         return 1;
     }
 
     sockfd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
     if(sockfd < 0) {
-        printf("socket() error\n");
         perror("socket");
         return 1;
     }
 
     // use setsockopt() here to handle "Address already in use" case when bind() is called
-    // int yes = 1;
-    // status = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    // if(status < 0) {
-    //     printf("setsockopt() error\n");
-    //     return 1;
-    // }
+    int yes = 1;
+    status = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    if(status < 0) {
+        perror("setsockopt");
+        return 1;
+    }
 
     status = bind(sockfd, servinfo->ai_addr, servinfo->ai_addrlen);
     if(status < 0) {
@@ -58,7 +56,6 @@ int main() {
 
     status = listen(sockfd, BACKLOG);
     if(status < 0) {
-        printf("listen() error\n");
         perror("listen");
         return 1;
     }
@@ -66,7 +63,6 @@ int main() {
 
     newfd = accept(sockfd, (struct sockaddr*)&clientaddr, &clientaddrsize); 
     if(newfd < 0) {
-        printf("accept() error\n");
         perror("accept");
         return 1;
     }
@@ -74,13 +70,18 @@ int main() {
 
     int bufferLen = 256;
     char buffer[bufferLen];
-    status = recv(newfd, &buffer, bufferLen, 0);
-    if(status < 0) {
-        perror("recv");
+    //status = recv(newfd, &buffer, bufferLen, 0);
+    while(status = recv(newfd, &buffer, bufferLen, 0) != 0) {
+        if (status < 0) {
+            perror("recv");
+            return 1;
+        }
+        buffer[255] = '\0'; // Prevent buffer overflow
+        printf("Recieved: %s\n", buffer);
+        memset(buffer, 0, sizeof(char)*256);
     }
 
-    buffer[255] = '\0'; // Prevent buffer overflow
-    printf("Telnet input: %s\n", buffer);
+    printf("Connection closed!\n");
 
     //shutdown(sockfd, 2);
     close(sockfd);
