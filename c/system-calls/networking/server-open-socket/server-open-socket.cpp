@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h> // for memset()
 #include <sys/types.h>
+#include <sys/wait.h> // for waitpid()
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h> // for close()
@@ -68,46 +69,52 @@ int main()
    }
    printf("Waiting for incoming connections...\n");
 
-label:
-   newfd = accept(sockfd, (struct sockaddr *)&clientaddr, &clientaddrsize);
-   if (newfd < 0)
+   while (1)
    {
-      perror("accept");
-      return 1;
-   }
-   pid_t pid = fork();
-   if (pid < 0)
-   {
-      perror("fork");
-      return 1;
-   }
-   if (pid != 0)
-   {
-      // save child pid
-      printf("This the parent process!\n");
-      goto label;
-      // clean up zombie processes
-   }
-   printf("Connection accepted!\n");
-
-   int bufferLen = 256;
-   char buffer[bufferLen];
-   while ((status = recv(newfd, &buffer, bufferLen, 0)) != 0)
-   {
-      if (status < 0)
+      newfd = accept(sockfd, (struct sockaddr *)&clientaddr, &clientaddrsize);
+      if (newfd < 0)
       {
-         perror("recv");
+         perror("accept");
          return 1;
       }
-      buffer[255] = '\0'; // Prevent buffer overflow
-      printf("recv status: %d\n", status);
-      printf("Recieved: %s\n", buffer);
-      status = send(newfd, &buffer, status, 0);
-      memset(buffer, 0, sizeof(char) * 256);
+      pid_t pid = fork();
+      if (pid < 0)
+      {
+         perror("fork");
+         return 1;
+      }
+      if (pid != 0)
+      {
+         // need to save child pid?
+         printf("This the parent process!\n");
+         // clean up zombie processe        // need to save child pid?
+
+         waitpid(-1, NULL, WNOHANG);
+         continue;
+      }
+
+      // child doesn't need sockfd
+      printf("Connection accepted!\n");
+
+      int bufferLen = 256;
+      char buffer[bufferLen];
+      while ((status = recv(newfd, &buffer, bufferLen, 0)) != 0)
+      {
+         if (status < 0)
+         {
+            perror("recv");
+            return 1;
+         }
+         buffer[255] = '\0'; // Prevent buffer overflow
+         printf("recv status: %d\n", status);
+         printf("Recieved: %s\n", buffer);
+         status = send(newfd, &buffer, status, 0);
+         memset(buffer, 0, sizeof(char) * 256);
+      }
+
+      printf("Connection closed!\n");
+
+      //shutdown(sockfd, 2);
+      close(sockfd);
    }
-
-   printf("Connection closed!\n");
-
-   //shutdown(sockfd, 2);
-   close(sockfd);
 }
