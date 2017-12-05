@@ -28,7 +28,6 @@ for room in list:
          dict[char] = 1
       else:
          dict[char] += 1
-   # print(dict)
    roomKey = sorted(dict, key=dict.__getitem__, reverse=True)
    for i in range(len(roomKey)):
       sameRange = i+1
