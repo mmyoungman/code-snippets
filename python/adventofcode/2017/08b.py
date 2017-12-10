@@ -1,4 +1,3 @@
-import re
 file = open("08input.txt", 'r')
 
 list = []

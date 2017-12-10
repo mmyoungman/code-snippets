@@ -50,5 +50,6 @@ for i in range(0, len(tree)):
       for j in range(1, len(values)):
          if values[0] != values[j]:
             print(tree[i], values)
+            break
 
 # From the output you can deduce that lnpuarm has the wrong weight, too heavy by 8

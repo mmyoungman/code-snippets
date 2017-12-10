@@ -12,7 +12,6 @@ while True:
 file.close()
 
 registers = {}
-maxReg = 0
 
 for line in list:
    if line[0] not in registers:
@@ -26,8 +25,5 @@ for line in list:
          registers[line[0]] += int(line[2])
       else:
          registers[line[0]] -= int(line[2])
-   
-   if registers[max(registers, key=registers.get)] > maxReg:
-      maxReg = registers[max(registers, key=registers.get)]
 
 print(registers[max(registers, key=registers.get)])
