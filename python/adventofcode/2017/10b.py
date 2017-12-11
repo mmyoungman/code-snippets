@@ -24,7 +24,7 @@ skip = 0
 for index in range(0, 64):
    for jumpLen in list:
       subList = []
-      if jumpLen < 1:
+      if jumpLen < 2:
          pass
       elif (pos+jumpLen)%256 > pos%256:
          subList = numList[pos%256:(pos+jumpLen)%256]
@@ -43,7 +43,7 @@ for index in range(0, 64):
          for i in range(0, (pos+jumpLen)%256):
             numList[i] = subList[j]
             j += 1
-      pos = pos + jumpLen + skip
+      pos += jumpLen + skip
       skip += 1
 
 result = []
@@ -52,6 +52,6 @@ for i in range(0, 256, 16):
    newValue = 0
    for j in range(i, i+16):
       newValue ^= numList[j]
-   result.append(hex(newValue))
+   result.append('{:02x}'.format(newValue))
 
-print(result)
+print(''.join(result))

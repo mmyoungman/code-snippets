@@ -23,7 +23,7 @@ skip = 0
 
 for jumpLen in list:
    subList = []
-   if jumpLen < 1:
+   if jumpLen < 2:
       pass
    elif (pos+jumpLen)%256 > pos%256:
       subList = numList[pos%256:(pos+jumpLen)%256]
@@ -42,7 +42,7 @@ for jumpLen in list:
       for i in range(0, (pos+jumpLen)%256):
          numList[i] = subList[j]
          j += 1
-   pos = pos + jumpLen + skip
+   pos += jumpLen + skip
    skip += 1
 
 print(numList[0] * numList[1])
