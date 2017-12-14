@@ -24,21 +24,15 @@ for line in list:
 
 groups = []
 for conn in pipes:
-   result = [conn[0]]
+   result = set([conn[0]])
    oldLen, newLen = 0, 1
    while newLen != oldLen:
       oldLen = len(result)
       for pipe in pipes:
          if pipe[0] in result:
-            result += pipe[1:]
-            newResult = [] 
-            for item in result:
-               if item not in newResult:
-                  newResult.append(item)
-            result = newResult
+            result.update(pipe[1:])
       newLen = len(result)
    inGroups = False
-   result = sorted(result)
    for group in groups:
       if result == group:
          inGroups = True 
