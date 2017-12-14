@@ -47,12 +47,6 @@ for i in range(128):
 
    grid.append(''.join(result))
 
-answer = 0
-for row in grid:
-   for bit in row:
-      if bit == "1":
-         answer += 1
-
 gridDict = {}
 for y in range(128):
    for x in range(128):
