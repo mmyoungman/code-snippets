@@ -3,9 +3,7 @@ file = open("16input.txt", 'r')
 
 list = []
 
-list = file.readline().rstrip('~!"£$%^&*()
-line = line.rstrip('\n')
-list = line.split(',')
+list = file.readline().rstrip('\n').split(',')
 
 file.close()
 
