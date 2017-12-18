@@ -20,8 +20,6 @@ values1 = {'p': 1}
 msgs0 = []
 msgs1 = []
 
-sound = 0
-
 def getvalue(arg, values):
    try:
       value = int(arg)
@@ -32,7 +30,6 @@ def getvalue(arg, values):
    return value
 
 def tick(pos, values, sndmsgs, rcvmsgs):
-   global sound
    if cmds[pos][0] == "set":
       values[cmds[pos][1]] = getvalue(cmds[pos][2], values)
    elif cmds[pos][0] == "add":
@@ -51,9 +48,7 @@ def tick(pos, values, sndmsgs, rcvmsgs):
          return pos, values, sndmsgs, rcvmsgs, False
       else:
          values[cmds[pos][1]] = rcvmsgs.pop(0)
-
    pos += 1
-   
    return pos, values, sndmsgs, rcvmsgs, True
 
 sentMsgs0 = 0
