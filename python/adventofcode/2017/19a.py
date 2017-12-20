@@ -19,7 +19,6 @@ posy = 0
 for x in range(len(list[0])):
    if list[0][x] == "|":
       posx= x
-      print(x)
 
 dir = "S"
 result = []

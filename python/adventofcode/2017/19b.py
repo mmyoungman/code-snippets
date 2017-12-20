@@ -18,8 +18,7 @@ posy = 0
 
 for x in range(len(list[0])):
    if list[0][x] == "|":
-      posx= x
-      print(x)
+      posx = x
 
 dir = "S"
 steps = 1  # Because we've already covered the first step
@@ -37,8 +36,6 @@ while True:
    if list[posy][posx] == ' ':
       print(steps)
       sys.exit(0)
-   elif list[posy][posx].isalpha():
-      result.append(list[posy][posx])
    elif list[posy][posx] == '+':
       if dir == 'N' or dir == 'S':
          if list[posy][posx+1] != ' ':
