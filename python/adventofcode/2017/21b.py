@@ -74,7 +74,7 @@ def match(pattern, square):
       return True
    return False
 
-iterations = 5
+iterations = 18
 pix = 0
 for _ in range(iterations):
    if len(grid) % 2 == 0:
