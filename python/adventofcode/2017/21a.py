@@ -86,7 +86,6 @@ def match(pattern, square):
 iterations = 5
 pix = 0
 for _ in range(iterations):
-   print(_, grid)
    if len(grid) % 2 == 0:
       pix = 2
    else:
@@ -94,25 +93,17 @@ for _ in range(iterations):
    newgrid = []
    for y in range(len(grid)//pix):
       for x in range(len(grid)//pix):
-         print(y, x)
          subgrid = grid[int(y*pix):int((y*pix)+pix)]
          for i in range(pix):
             subgrid[i] = subgrid[i][int(x*pix):int((x*pix)+pix)]
-         print("subgrid", subgrid)
-         matchFound = False
          for rule in rules:
-            # if match(rule[0], grid[int(y*pix):int((y*pix)+pix)][int(x*pix):int((x*pix)+pix)]):
             if match(rule[0], subgrid):
-               print("Match found!")
-               matchFound = True
                if x == 0:
                   newgrid += rule[1]
                else:
                   for i in range(pix+1):
                      newgrid[(y*(pix+1)) + i] += rule[1][i]
                break
-         if not matchFound:
-            print("Didn't find a match!")
 
    grid = newgrid
 
