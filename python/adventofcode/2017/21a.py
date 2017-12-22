@@ -39,38 +39,32 @@ def rotate(pattern):
       newpat[j] = row
    return newpat
 
-def equal(a, b):
-   for i in range(len(a)):
-      if a[i] != b[i]:
-         return False
-   return True
-
 def match(pattern, square):
    if len(pattern) != len(square):
       return False
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
    pattern = flip(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    pattern = rotate(pattern)
-   if equal(pattern, square):
+   if pattern == square:
       return True
    return False
 
