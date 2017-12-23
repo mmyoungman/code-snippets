@@ -27,7 +27,6 @@ def flip(pattern):
       for j in range(len(pattern[i])):
          row += pattern[i][(len(pattern[i])-1) - j]
       newpat[i] = row
-   # print("flip", pattern, newpat)
    return newpat
 
 def rotate(pattern):
@@ -42,28 +41,15 @@ def rotate(pattern):
 def match(pattern, square):
    if len(pattern) != len(square):
       return False
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
+   for _ in range(4):
+      if pattern == square:
+         return True
+      pattern = rotate(pattern)
    pattern = flip(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
-   if pattern == square:
-      return True
-   pattern = rotate(pattern)
+   for _ in range(3):
+      if pattern == square:
+         return True
+      pattern = rotate(pattern)
    if pattern == square:
       return True
    return False
@@ -78,9 +64,9 @@ for _ in range(iterations):
    newgrid = []
    for y in range(len(grid)//pix):
       for x in range(len(grid)//pix):
-         subgrid = grid[int(y*pix):int((y*pix)+pix)]
+         subgrid = grid[y*pix:(y*pix)+pix]
          for i in range(pix):
-            subgrid[i] = subgrid[i][int(x*pix):int((x*pix)+pix)]
+            subgrid[i] = subgrid[i][x*pix:(x*pix)+pix]
          for rule in rules:
             if match(rule[0], subgrid):
                if x == 0:
