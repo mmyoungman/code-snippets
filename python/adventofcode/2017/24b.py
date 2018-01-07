@@ -16,7 +16,8 @@ for i in range(len(pipes)):
 
 def maxstrength(bridge, port, length):
    matches = []
-   for i in range(len(bridge)-1, -1, -1):
+   # loop backwards so indexes aren't screwed by "del newbridge[blah]"
+   for i in range(len(bridge)-1, -1, -1): 
       if bridge[i][0] == port:
          matches.append(bridge[i] + [0, i])
       elif bridge[i][1] == port:
@@ -40,4 +41,4 @@ def maxstrength(bridge, port, length):
             maxlen = newlength
       return max, maxlen
 
-print(maxstrength(pipes, 0, 0))
+print(maxstrength(pipes, 0, 0)[0])
