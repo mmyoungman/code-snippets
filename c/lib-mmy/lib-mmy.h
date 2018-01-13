@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 21 Sep 2017
+   Last change: 13 Jan 2018
 
    000. (a) Type defines
         (b) Assert macro
@@ -24,17 +24,17 @@
    Math operations. a,b use intrinsics. c,d,e: 
    https://graphics.stanford.edu/%7Eseander/bithacks.html
 
-   003. (a) int stringLength(char* str)
-        (b) void stringCopy(char *s, char *copy)
-        (c) char* stringCopy(char *s)
-        (d) int stringsAreEqual(char *a, char *b)
-        (e) int stringBeginsWith(char *start, char *str)
-        (f) int stringEndsWith(char *end, char *str) // Untested
-        (g) char* stringConcat(char *str, char *addition)
-        (h) void stringLowerCase(char* str)
-        (i) void stringUpperCase(char* str)
-        (j) char** stringSplit(char* str, char c, int* size)
-        (k) int stringToInt(char* str)
+   003. (a) int str_length(char* str)
+        (b) void str_copy(char *s, char *copy)
+        (c) char* str_copy(char *s)
+        (d) int str_equal(char *a, char *b)
+        (e) int str_beginswith(char *start, char *str)
+        (f) int str_endswith(char *end, char *str) // Untested
+        (g) char* str_concat(char *str, char *addition)
+        (h) void str_lower(char* str)
+        (i) void str_upper(char* str)
+        (j) char** str_split(char* str, char c, int* size)
+        (k) int str_toint(char* str)
    ANSI string operations.
 
 */
@@ -284,14 +284,14 @@ int mathPower(int num, int pow) {
 
 #include <stdlib.h>
 
-int stringLength(char *str) {
+int str_len(char *str) {
      char* ptr = str;
      while(*ptr != 0)
           ptr++;
      return ptr - str;
 }
 
-void stringCopy(char *s, char *copy) {
+void str_copy(char *s, char *copy) {
      while(*s != '\0') {
           *copy = *s;
           s++, copy++;
@@ -299,8 +299,8 @@ void stringCopy(char *s, char *copy) {
      *copy = '\0';
 }
 
-char* stringCopy(char *s) {
-  char* copy = (char*)malloc(sizeof(char)*(stringLength(s)+1));
+char* str_copy(char *s) {
+  char* copy = (char*)malloc(sizeof(char)*(str_len(s)+1));
   char* sPtr = s;
   char* copyPtr = copy;
   while(*sPtr != '\0') {
@@ -311,22 +311,22 @@ char* stringCopy(char *s) {
   return copy;
 }
 
-int stringEquals(char *a, char *b) {
+int str_equal(char *a, char *b) {
   while((*a != '\0') && (*a == *b)) {
     a++, b++;
   }
   return ((*a == '\0') && (*b == '\0'));
 }
 
-int stringBeginsWith(char* a, char *str) {
+int str_beginswith(char* a, char *str) {
   while((*a != '\0') && (*a == *str))
     a++, str++;
   return *a == '\0';
 }
 
-int stringEndsWith(char* str, char* end) {
+int str_endswith(char* str, char* end) {
     char* strPtr = str;
-    int endLength = stringLength(end);
+    int endLength = str_len(end);
     while(*end != '\0') { end++; }
     while(*strPtr != '\0') { strPtr++; }
 
@@ -337,8 +337,8 @@ int stringEndsWith(char* str, char* end) {
     return *strPtr == *end;
 }
 
-void stringConcat(char* str, char* addition) {
-    int newLength = stringLength(str) + stringLength(addition) + 1;
+void str_concat(char* str, char* addition) {
+    int newLength = str_len(str) + str_len(addition) + 1;
     str = (char*)realloc(str, sizeof(char) * newLength);
     char* strPtr = str;
     while(*strPtr != '\0') { strPtr++; }
@@ -350,7 +350,7 @@ void stringConcat(char* str, char* addition) {
     *strPtr = '\0';
 }
 
-void stringLowerCase(char* str) {
+void str_lower(char* str) {
   char* strPtr = str;
   while(*strPtr != '\0') {
     if(*strPtr >= 'A' && *strPtr <= 'Z') {
@@ -360,7 +360,7 @@ void stringLowerCase(char* str) {
   }
 }
 
-void stringUpperCase(char* str) {
+void str_upper(char* str) {
   char* strPtr = str;
   while(*strPtr != '\0') {
     if(*strPtr >= 'a' && *strPtr <= 'z') {
@@ -370,7 +370,7 @@ void stringUpperCase(char* str) {
   }
 }
 
-char** stringSplit(char* str, char c, int* size) {
+char** str_split(char* str, char c, int* size) {
   int numStrs = 1;
   char* strPtr = str;
   while(*strPtr != '\0') {
@@ -401,10 +401,15 @@ int stringToInt(char* str) {
   int result = 0;
   char* strPtr = str;
 
-  int length = stringLength(str);
+  int length = str_len(str);
   while(length > 0) {
     length--;
-    result += (*strPtr - 48) * mathPower(10, length);
+    // Calculate value based on position (i.e. value * 10^position)
+    int exponent = 1;
+    for(int i = 0; i < length; i++) {
+        exponent *= 10;
+    }
+    result += (*strPtr - 48) * exponent;
     strPtr++;
   }
   return result;
