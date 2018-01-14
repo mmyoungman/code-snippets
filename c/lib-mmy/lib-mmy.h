@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 13 Jan 2018
+   Last change: 14 Jan 2018
 
    000. (a) Type defines
         (b) Assert macro
@@ -24,7 +24,7 @@
    Math operations. a,b use intrinsics. c,d,e: 
    https://graphics.stanford.edu/%7Eseander/bithacks.html
 
-   003. (a) int str_length(char* str)
+   003. (a) int str_len(char* str)
         (b) void str_copy(char *s, char *copy)
         (c) char* str_copy(char *s)
         (d) int str_equal(char *a, char *b)
@@ -33,8 +33,9 @@
         (g) char* str_concat(char *str, char *addition)
         (h) void str_lower(char* str)
         (i) void str_upper(char* str)
-        (j) char** str_split(char* str, char c, int* size)
-        (k) int str_toint(char* str)
+        (j) void str_sort(char* str)
+        (k) char** str_split(char* str, char c, int* size)
+        (l) int str_toint(char* str)
    ANSI string operations.
 
 */
@@ -280,7 +281,7 @@ int mathPower(int num, int pow) {
 // 002. END
 
 // 003. START
-#if 0
+#if 1
 
 #include <stdlib.h>
 
@@ -370,6 +371,19 @@ void str_upper(char* str) {
   }
 }
 
+void str_sort(char* str) {
+   int len = str_len(str);
+   for(int i = 0; i < len; i++) {
+      for(int j = i+1; j < len; j++) {
+         if(str[i] > str[j]) {
+            char temp = str[i];
+            str[i] = str[j];
+            str[j] = temp;
+         }
+      }
+   }
+}
+
 char** str_split(char* str, char c, int* size) {
   int numStrs = 1;
   char* strPtr = str;
@@ -397,7 +411,7 @@ char** str_split(char* str, char c, int* size) {
   return result;
 }
 
-int stringToInt(char* str) {
+int str_toint(char* str) {
   int result = 0;
   char* strPtr = str;
 
