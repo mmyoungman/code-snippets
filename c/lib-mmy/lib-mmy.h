@@ -3,7 +3,7 @@
    Last change: 05 Feb 2018
 
    000. 
-      (a) Type defines
+      (a) Typedefs
       (b) Useful macros
       (c) Assert/Debug macros
       (d) Logging macros
@@ -53,23 +53,25 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
 
-typedef int8_t s8; 
-typedef int16_t s16; 
-typedef int32_t s32; 
-typedef int64_t s64; 
+typedef int8_t int8; 
+typedef int16_t int16; 
+typedef int32_t int32; 
+typedef int64_t int64; 
 
-typedef float f32;
-typedef double f64;
+typedef float real32;
+typedef double real64;
 
-#define kilobytes(value) ((value)*1024)
+#define kilobytes(value) ((value)*(uint64)1024)
 #define megabytes(value) (kilobytes(value)*1024)
 #define gigabytes(value) (megabytes(value)*1024)
+#define terabytes(value) (gigabytes(value)*1024)
 
+#define alloc(size) calloc(1, size) // calloc so memory is zeroed
 
 #ifdef DEBUG
 #define dbg(msg, ...) fprintf(stderr, "[DEBUG] (%s:%d) " msg "\n", \
@@ -333,7 +335,7 @@ void str_copy(char *s, char *copy) {
 }
 
 char* str_copy(char *s) {
-  char* copy = (char*)malloc(sizeof(char)*(str_len(s)+1));
+  char* copy = (char*)alloc(sizeof(char)*(str_len(s)+1));
   char* sPtr = s;
   char* copyPtr = copy;
   while(*sPtr != '\0') {
@@ -364,7 +366,7 @@ int str_endswith(char* str, char* end) {
     return *strPtr == *end;
 }
 
-void str_concat(char* str, char* addition) {
+char* str_concat(char* str, char* addition) {
     int newLength = str_len(str) + str_len(addition) + 1;
     str = (char*)realloc(str, sizeof(char) * newLength);
     char* strPtr = str;
@@ -375,6 +377,7 @@ void str_concat(char* str, char* addition) {
         strPtr++, addPtr++;
     }
     *strPtr = '\0';
+    return str;
 }
 
 void str_lower(char* str) {
@@ -420,7 +423,7 @@ char** str_split(char* str, char c, int* size) {
     }
     strPtr++;
   }
-  char** result = (char**)malloc(sizeof(char*)*numStrs);
+  char** result = (char**)alloc(sizeof(char*)*numStrs);
   char* strStart = str;
   strPtr = strStart;
   int i = 0;
@@ -478,7 +481,7 @@ char* str_inttostr(int num) {
       temp /= 10;
    }
 
-   char *res = (char *)malloc(sizeof(char) *
+   char *res = (char *)alloc(sizeof(char) *
                               (len + negative + 1)); // extra for '-' and '\0'
 
    char *resPtr = res;

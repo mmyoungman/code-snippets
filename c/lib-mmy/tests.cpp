@@ -9,6 +9,12 @@ int main()
    printf("\nStarting non-debug tests..\n\n");
 #endif
 
+   // Test 000.
+   assert(1024 == kilobytes(1));
+   assert((1024*1024) == megabytes(1));
+   assert(((uint64)10*1024*1024*1024) == gigabytes(10));
+   dbg("gigabytes(10): %lld", gigabytes(10));
+
    // Test 001.
    log_err("Log error: %d, %s", 42, "string literal");
    log_warn("Log warning: %d, %s", 12, "another string literal");
@@ -51,7 +57,7 @@ int main()
    assert(str_endswith(str, "tring"));
 
    str = str_copy("Test ");
-   str_concat(str, "string");
+   str = str_concat(str, "string");
    assert(str_equal(str, "Test string"));
    free(str);
 
