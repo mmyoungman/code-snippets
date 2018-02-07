@@ -1,11 +1,13 @@
 /*
    lib-mmy.h
-   Last change: 14 Jan 2018
+   Last change: 05 Feb 2018
 
    000. (a) Type defines
         (b) Assert macro
+        (c) Debugging macros
+        (d) Logging macros
 
-   001. (a) unsigned long stb_srand(unsigned long seed)
+   002. (a) unsigned long stb_srand(unsigned long seed)
         (b) unsigned long stb_rand()
         (c) double stb_frand()
    Copied from https://github.com/nothings/stb/ (public domain). 
@@ -15,35 +17,38 @@
    (b) returns a random number between 0 and ULONG_MAX. 
    (c) returns a random number between 0 and 1. 
 
-   002. (a) float mathSqrt(float input)
-        (b) double mathSqrt(double input)
-        (c) int mathMin(int a, int b)
-        (d) int mathMax(int a, int b)
-        (e) int mathAbs(int a)
-        (f) int mathPower(int num, int pow)
+   003 (a) float mth_sqrt(float input)
+       (b) double mth_sqrt(double input)
+       (c) int mth_min(int a, int b)
+       (d) int mth_max(int a, int b)
+       (e) int mth_abs(int a)
+       (f) int mth_pow(int num, int pow)
    Math operations. a,b use intrinsics. c,d,e: 
    https://graphics.stanford.edu/%7Eseander/bithacks.html
 
-   003. (a) int str_len(char* str)
-        (b) void str_copy(char *s, char *copy)
-        (c) char* str_copy(char *s)
-        (d) int str_equal(char *a, char *b)
+   004. (a) int str_len(char* str)
+        (b) int str_equal(char *a, char *b)
+        (c) void str_copy(char *s, char *copy)
+        (d) char* str_copy(char *s)
         (e) int str_beginswith(char *start, char *str)
-        (f) int str_endswith(char *end, char *str) // Untested
+        (f) int str_endswith(char *end, char *str)
         (g) char* str_concat(char *str, char *addition)
         (h) void str_lower(char* str)
         (i) void str_upper(char* str)
         (j) void str_sort(char* str)
         (k) char** str_split(char* str, char c, int* size)
         (l) int str_toint(char* str)
+        (m) char* str_inttostr(int num)
    ANSI string operations.
 
 */
 
 // 000. START 
-#if 0
+#if 1
 
+#include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -58,21 +63,36 @@ typedef int64_t s64;
 typedef float f32;
 typedef double f64;
 
-#define Kilobytes(Value) ((Value)*1024)
-#define Megabytes(Value) (Kilobytes(Value)*1024)
-#define Gigabytes(Value) (Megabytes(Value)*1024)
+#define kilobytes(value) ((value)*1024)
+#define megabytes(value) (kilobytes(value)*1024)
+#define gigabytes(value) (megabytes(value)*1024)
 
-#if DEBUG
-#define assert(expression) if(!(expression)) { *(int*)0 = 0; }
+#ifdef DEBUG
+#define dbg(msg, ...) fprintf(stderr, "[DEBUG] (%s:%d) " msg "\n", \
+                              __FILE__, __LINE__, ##__VA_ARGS__)
+#define assert(expr) if(!(expr)) { dbg("Assert failed: " #expr); *(int*)0 = 0; }
 #else
-#define assert(expression)
+#define dbg(msg, ...)
+#define assert(expr)
 #endif
+
+#define log_err(msg, ...) fprintf(stderr, "[ERROR] (%s:%d) " msg "\n", \
+                                  __FILE__, __LINE__, ##__VA_ARGS__) 
+#define log_warn(msg, ...) fprintf(stderr, "[WARN] (%s:%d) " msg "\n", \
+                                   __FILE__, __LINE__, ##__VA_ARGS__)
+#define log_info(msg, ...) fprintf(stderr, "[INFO] (%s:%d) " msg "\n", \
+                                   __FILE__, __LINE__, ##__VA_ARGS__)
 
 #endif
 // 000. END
 
 // 001. START
 #if 0
+#endif
+// 001. END
+
+// 002. START
+#if 1
 
 #include <time.h>
 #include <stdlib.h>
@@ -224,14 +244,14 @@ double stb_frand(void) {
 }
 
 #endif
-// 001. END
+// 002. END
 
-// 002. START
-#if 0
+// 003. START
+#if 1
 
 #include <emmintrin.h>
 
-float mathSqrt(float input) {
+float mth_sqrt(float input) {
     float result = 0.0f;
     __m128 one = _mm_set_ss(input);
     __m128 two = _mm_sqrt_ss(one); // SSE
@@ -240,7 +260,7 @@ float mathSqrt(float input) {
     return result;
 }
 
-double mathSqrt(double input) {
+double mth_sqrt(double input) {
     double result = 0.0f;
     __m128d one = _mm_set_sd(input);
     __m128d two = _mm_sqrt_pd(one); // SSE2
@@ -249,19 +269,19 @@ double mathSqrt(double input) {
      return result;
 }
 
-int mathMin(int a, int b) {
+int mth_min(int a, int b) {
     int result = b ^ ((a ^ b) & -(a < b));
 
     return result;
 }
 
-int mathMax(int a, int b) {
+int mth_max(int a, int b) {
     int result = a ^ ((a ^ b) & -(a < b));
 
     return result;
 }
 
-int mathAbs(int a) {
+int mth_abs(int a) {
      unsigned int result;
      int const mask = a >> sizeof(int) * 8 - 1;
      result = (a + mask) ^ mask;
@@ -269,7 +289,7 @@ int mathAbs(int a) {
     return result;
 }
 
-int mathPower(int num, int pow) {
+int mth_pow(int num, int pow) {
     int result = 1;
     for(int i = 0; i < pow; i++) {
         result *= num;
@@ -278,9 +298,9 @@ int mathPower(int num, int pow) {
 }
 
 #endif
-// 002. END
+// 003. END
 
-// 003. START
+// 004. START
 #if 1
 
 #include <stdlib.h>
@@ -290,6 +310,13 @@ int str_len(char *str) {
      while(*ptr != 0)
           ptr++;
      return ptr - str;
+}
+
+int str_equal(char *a, char *b) {
+  while((*a != '\0') && (*a == *b)) {
+    a++, b++;
+  }
+  return ((*a == '\0') && (*b == '\0'));
 }
 
 void str_copy(char *s, char *copy) {
@@ -312,16 +339,10 @@ char* str_copy(char *s) {
   return copy;
 }
 
-int str_equal(char *a, char *b) {
-  while((*a != '\0') && (*a == *b)) {
-    a++, b++;
-  }
-  return ((*a == '\0') && (*b == '\0'));
-}
-
 int str_beginswith(char* a, char *str) {
-  while((*a != '\0') && (*a == *str))
+  while((*a != '\0') && (*a == *str)) {
     a++, str++;
+  }
   return *a == '\0';
 }
 
@@ -411,23 +432,71 @@ char** str_split(char* str, char c, int* size) {
   return result;
 }
 
-int str_toint(char* str) {
-  int result = 0;
-  char* strPtr = str;
+int str_toint(char *str) {
+   int result = 0;
+   char *strPtr = str;
 
-  int length = str_len(str);
-  while(length > 0) {
-    length--;
-    // Calculate value based on position (i.e. value * 10^position)
-    int exponent = 1;
-    for(int i = 0; i < length; i++) {
-        exponent *= 10;
-    }
-    result += (*strPtr - 48) * exponent;
-    strPtr++;
-  }
-  return result;
+   int length = str_len(str);
+
+   while (length > 0) {
+      length--;
+      if (*strPtr < '0' || *strPtr > '9') {
+         strPtr++;
+         continue;
+      } else {
+         // Calculate value based on position (i.e. value * 10^position)
+         int exponent = 1;
+         for (int i = 0; i < length; i++) {
+            exponent *= 10;
+         }
+         result += (*strPtr - 48) * exponent;
+         strPtr++;
+      }
+   }
+   if (str[0] == '-')
+      result = -result;
+
+   return result;
+}
+
+char* str_inttostr(int num) {
+   int negative = 0;
+   if (num < 0) {
+      negative = 1;
+      num = -num;
+   }
+
+   int len = 1;
+   int temp = num;
+   while (temp >= 10) {
+      len++;
+      temp /= 10;
+   }
+
+   char *res = (char *)malloc(sizeof(char) *
+                              (len + negative + 1)); // extra for '-' and '\0'
+
+   char *resPtr = res;
+   if (negative) {
+      *resPtr = '-';
+      resPtr++;
+   }
+
+   while (len > 0) {
+      int mod = 1;
+      int templen = len;
+      while (templen > 0) {
+         mod *= 10;
+         templen--;
+      }
+      *resPtr = '0' + ((num % mod) / (mod / 10)); // isolate wanted digit
+      resPtr++;
+      len--;
+   }
+
+   *resPtr = '\0';
+   return res;
 }
 
 #endif
-// 003. END
+// 004. END
