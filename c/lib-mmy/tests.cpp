@@ -1,10 +1,5 @@
 #include "lib-mmy.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <limits.h> // for INT_MIN etc.
-
 int main()
 {
 
@@ -78,6 +73,7 @@ int main()
    str = str_copy("This:Is:A:Test:To:Use:With:Split");
    int size;
    char** split = str_split(str, ':', &size);
+   assert(size == 8);
    assert(str_equal(split[0], "This"));
    assert(str_equal(split[4], "To"));
    assert(str_equal(split[7], "Split"));

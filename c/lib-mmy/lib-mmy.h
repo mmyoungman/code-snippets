@@ -2,44 +2,48 @@
    lib-mmy.h
    Last change: 05 Feb 2018
 
-   000. (a) Type defines
-        (b) Assert macro
-        (c) Debugging macros
-        (d) Logging macros
+   000. 
+      (a) Type defines
+      (b) Useful macros
+      (c) Assert/Debug macros
+      (d) Logging macros
 
-   002. (a) unsigned long stb_srand(unsigned long seed)
-        (b) unsigned long stb_rand()
-        (c) double stb_frand()
+   002. 
    Copied from https://github.com/nothings/stb/ (public domain). 
    Uses Meresenne Twister and LCG to seed. Changed so automatically 
    seeded with time(NULL) if srand() hasn't been called.
    (a) seeds the random number generator. 
    (b) returns a random number between 0 and ULONG_MAX. 
    (c) returns a random number between 0 and 1. 
+      (a) unsigned long stb_srand(unsigned long seed)
+      (b) unsigned long stb_rand()
+      (c) double stb_frand()
 
-   003 (a) float mth_sqrt(float input)
-       (b) double mth_sqrt(double input)
-       (c) int mth_min(int a, int b)
-       (d) int mth_max(int a, int b)
-       (e) int mth_abs(int a)
-       (f) int mth_pow(int num, int pow)
+   003.
    Math operations. a,b use intrinsics. c,d,e: 
    https://graphics.stanford.edu/%7Eseander/bithacks.html
+      (a) float mth_sqrt(float input)
+      (b) double mth_sqrt(double input)
+      (c) int mth_min(int a, int b)
+      (d) int mth_max(int a, int b)
+      (e) int mth_abs(int a)
+      (f) int mth_pow(int num, int pow)
 
-   004. (a) int str_len(char* str)
-        (b) int str_equal(char *a, char *b)
-        (c) void str_copy(char *s, char *copy)
-        (d) char* str_copy(char *s)
-        (e) int str_beginswith(char *start, char *str)
-        (f) int str_endswith(char *end, char *str)
-        (g) char* str_concat(char *str, char *addition)
-        (h) void str_lower(char* str)
-        (i) void str_upper(char* str)
-        (j) void str_sort(char* str)
-        (k) char** str_split(char* str, char c, int* size)
-        (l) int str_toint(char* str)
-        (m) char* str_inttostr(int num)
+   004. 
    ANSI string operations.
+      (a) int str_len(char* str)
+      (b) int str_equal(char *a, char *b)
+      (c) void str_copy(char *s, char *copy)
+      (d) char* str_copy(char *s)
+      (e) int str_beginswith(char *start, char *str)
+      (f) int str_endswith(char *end, char *str)
+      (g) char* str_concat(char *str, char *addition)
+      (h) void str_lower(char* str)
+      (i) void str_upper(char* str)
+      (j) void str_sort(char* str)
+      (k) char** str_split(char* str, char c, int* size)
+      (l) int str_toint(char* str)
+      (m) char* str_inttostr(int num)
 
 */
 
@@ -48,7 +52,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <errno.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -67,6 +70,7 @@ typedef double f64;
 #define megabytes(value) (kilobytes(value)*1024)
 #define gigabytes(value) (megabytes(value)*1024)
 
+
 #ifdef DEBUG
 #define dbg(msg, ...) fprintf(stderr, "[DEBUG] (%s:%d) " msg "\n", \
                               __FILE__, __LINE__, ##__VA_ARGS__)
@@ -75,6 +79,7 @@ typedef double f64;
 #define dbg(msg, ...)
 #define assert(expr)
 #endif
+
 
 #define log_err(msg, ...) fprintf(stderr, "[ERROR] (%s:%d) " msg "\n", \
                                   __FILE__, __LINE__, ##__VA_ARGS__) 
@@ -94,8 +99,8 @@ typedef double f64;
 // 002. START
 #if 1
 
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
 #include <string.h>
 
 typedef struct { char d[4]; } stb__4;
@@ -303,7 +308,7 @@ int mth_pow(int num, int pow) {
 // 004. START
 #if 1
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 int str_len(char *str) {
      char* ptr = str;
@@ -481,7 +486,6 @@ char* str_inttostr(int num) {
       *resPtr = '-';
       resPtr++;
    }
-
    while (len > 0) {
       int mod = 1;
       int templen = len;
