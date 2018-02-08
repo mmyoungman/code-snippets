@@ -40,10 +40,14 @@
       (g) char* str_concat(char *str, char *addition)
       (h) void str_lower(char* str)
       (i) void str_upper(char* str)
-      (j) void str_sort(char* str)
-      (k) char** str_split(char* str, char c, int* size)
-      (l) int str_toint(char* str)
-      (m) char* str_inttostr(int num)
+      (j) int str_isalpha(char* str)
+      (k) int str_isint(char* str)
+      (l) char* str_lstrip(char* str, char tostrip)
+      (m) char* str_rstrip(char* str, char tostrip)
+      (n) void str_sort(char* str)
+      (o) char** str_split(char* str, char c, int* size)
+      (p) int str_toint(char* str)
+      (q) char* str_inttostr(int num)
 
 */
 
@@ -336,11 +340,10 @@ void str_copy(char *s, char *copy) {
 
 char* str_copy(char *s) {
   char* copy = (char*)alloc(sizeof(char)*(str_len(s)+1));
-  char* sPtr = s;
   char* copyPtr = copy;
-  while(*sPtr != '\0') {
-    *copyPtr = *sPtr;
-    sPtr++, copyPtr++;
+  while(*s != '\0') {
+    *copyPtr = *s;
+    s++, copyPtr++;
   }
   *copyPtr = '\0';
   return copy;
@@ -354,16 +357,15 @@ int str_beginswith(char* a, char *str) {
 }
 
 int str_endswith(char* str, char* end) {
-    char* strPtr = str;
     int endLength = str_len(end);
     while(*end != '\0') { end++; }
-    while(*strPtr != '\0') { strPtr++; }
+    while(*str != '\0') { str++; }
 
-    while(*strPtr == *end && endLength > 0) {
-        strPtr--, end--;
+    while(*str == *end && endLength > 0) {
+        str--, end--;
         endLength--;
     }
-    return *strPtr == *end;
+    return *str == *end;
 }
 
 char* str_concat(char* str, char* addition) {
@@ -371,33 +373,72 @@ char* str_concat(char* str, char* addition) {
     str = (char*)realloc(str, sizeof(char) * newLength);
     char* strPtr = str;
     while(*strPtr != '\0') { strPtr++; }
-    char* addPtr = addition;
-    while(*addPtr != '\0') {
-        *strPtr = *addPtr;
-        strPtr++, addPtr++;
+    while(*addition != '\0') {
+        *strPtr = *addition;
+        strPtr++, addition++;
     }
     *strPtr = '\0';
     return str;
 }
 
 void str_lower(char* str) {
-  char* strPtr = str;
-  while(*strPtr != '\0') {
-    if(*strPtr >= 'A' && *strPtr <= 'Z') {
-      *strPtr += 'a' - 'A';
+  while(*str != '\0') {
+    if(*str >= 'A' && *str <= 'Z') {
+      *str += 'a' - 'A';
     }
-    strPtr++;
+    str++;
   }
 }
 
 void str_upper(char* str) {
-  char* strPtr = str;
-  while(*strPtr != '\0') {
-    if(*strPtr >= 'a' && *strPtr <= 'z') {
-      *strPtr -= 'a' - 'A';
+  while(*str != '\0') {
+    if(*str >= 'a' && *str <= 'z') {
+      *str -= 'a' - 'A';
     }
-    strPtr++;
+    str++;
   }
+}
+
+int str_isalpha(char* str) {
+   while(*str != '\0') {
+      if((*str < 'a' || *str > 'z') && (*str < 'A' || *str > 'Z')) {
+         return 0;
+      }
+      str++;
+   }
+   return 1;
+}
+
+int str_isint(char* str) {
+   if(*str == '-') {
+      str++;
+   }
+   while(*str != '\0') {
+      if(*str < '0' || *str > '9') {
+         return 0;
+      }
+      str++;
+   }
+   return 1;
+}
+
+char* str_lstrip(char* str, char tostrip) {
+   while(*str == tostrip) {
+      str++;
+   }
+   return str;
+}
+
+char* str_rstrip(char* str, char tostrip) {
+   char* strPtr = str;
+   while(strPtr[1] != '\0') {
+      strPtr++;
+   }
+   while(*strPtr == tostrip) {
+      *strPtr = '\0';
+      strPtr--;
+   }
+   return str;
 }
 
 void str_sort(char* str) {
@@ -424,14 +465,13 @@ char** str_split(char* str, char c, int* size) {
     strPtr++;
   }
   char** result = (char**)alloc(sizeof(char*)*numStrs);
-  char* strStart = str;
-  strPtr = strStart;
+  strPtr = str;
   int i = 0;
   while(numStrs > 0) {
     if(*strPtr == '\0') {
       numStrs--;
-      result[i] = strStart;
-      strStart = strPtr + 1;
+      result[i] = str;
+      str = strPtr + 1;
       i++;
     }
     strPtr++;

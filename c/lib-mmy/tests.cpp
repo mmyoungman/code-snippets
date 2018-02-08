@@ -13,7 +13,7 @@ int main()
    assert(1024 == kilobytes(1));
    assert((1024*1024) == megabytes(1));
    assert(((uint64)10*1024*1024*1024) == gigabytes(10));
-   dbg("gigabytes(10): %lld", gigabytes(10));
+   dbg("gigabytes(10): %ll", gigabytes(10));
 
    // Test 001.
    log_err("Log error: %d, %s", 42, "string literal");
@@ -71,18 +71,37 @@ int main()
    assert(str_equal(str, "QUIET"));
    free(str);
 
+   str = str_copy("aaalksfjnhekwjbegjabwegij");
+   dbg("isalpha(str): %d, str: %s", str_isalpha(str), str);
+   assert(str_isalpha(str));
+   str[10] = '#';
+   dbg("isalpha(str): %d, str: %s", str_isalpha(str), str);
+   assert(!str_isalpha(str));
+   free(str);
+
+   str = str_copy("-190572985672019359876298");
+   assert(str_isint(str));
+   free(str);
+
+   str = str_copy("eeeeeeeeeeeklhgfgh         ");
+   assert(str_equal(str_rstrip(str, ' '), "eeeeeeeeeeeklhgfgh"));
+   assert(str_equal(str_lstrip(str, 'e'), "klhgfgh"));
+
+
    str = str_copy("agfecbd");
    str_sort(str);
    assert(str_equal(str, "abcdefg"));
    free(str);
 
-   str = str_copy("This:Is:A:Test:To:Use:With:Split");
+   str = str_copy("This:Is::A:Test:To:Use:With:Split::");
    int size;
    char** split = str_split(str, ':', &size);
-   assert(size == 8);
+   assert(size == 11);
    assert(str_equal(split[0], "This"));
-   assert(str_equal(split[4], "To"));
-   assert(str_equal(split[7], "Split"));
+   assert(str_equal(split[5], "To"));
+   assert(str_equal(split[8], "Split"));
+   assert(str_equal(split[9], ""));
+   assert(str_equal(split[10], ""));
    
    dbg("str_toint(\"1234\"): %d", str_toint("1234"));
    dbg("str_toint(\"-12345\"): %d", str_toint("-12345"));
