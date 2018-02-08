@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 05 Feb 2018
+   Last change: 08 Feb 2018
 
    000. 
       (a) Typedefs
@@ -35,8 +35,8 @@
       (b) int str_equal(char *a, char *b)
       (c) void str_copy(char *s, char *copy)
       (d) char* str_copy(char *s)
-      (e) int str_beginswith(char *start, char *str)
-      (f) int str_endswith(char *end, char *str)
+      (e) int str_beginswith(char *str, char *start)
+      (f) int str_endswith(char *str, char *end)
       (g) char* str_concat(char *str, char *addition)
       (h) void str_lower(char* str)
       (i) void str_upper(char* str)
@@ -349,11 +349,11 @@ char* str_copy(char *s) {
   return copy;
 }
 
-int str_beginswith(char* a, char *str) {
-  while((*a != '\0') && (*a == *str)) {
-    a++, str++;
+int str_beginswith(char* str, char* start) {
+  while((*start != '\0') && (*start == *str)) {
+    start++, str++;
   }
-  return *a == '\0';
+  return *start == '\0';
 }
 
 int str_endswith(char* str, char* end) {
