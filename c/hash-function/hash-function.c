@@ -59,7 +59,7 @@ u64 hash_crcvariant(char* msg) {
 
 //http://www.burtleburtle.net/bob/hash/hashfaq.html
 u64 hash_bjenkins(char* msg) {
-   u32 h = 0;
+   u16 h = 0;
    for(int i = 0; i < str_len(msg); i++) {
       h += msg[i];
       h += (h << 10);
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
    //for(int i = 0; i < num_buckets; i++) {
    //   sum_chars[i] = 0;
    //}
-   //for(int i = 0; i < 8; i++) {
+   //for(int i = 0; i < str_len(msg); i++) {
    //   while(msg[i] < 'z') {
    //      sum_chars[hash_chars(msg)] += 1;
    //      msg[i] += 1; 
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
    //for(int i = 0; i < num_buckets; i++) {
    //   sum_multrandfloat[i] = 0;
    //}
-   //for(int i = 0; i < 8; i++) {
+   //for(int i = 0; i < str_len(msg); i++) {
    //   while(msg[i] < 'z') {
    //      sum_multrandfloat[hash_multrandfloat(msg)] += 1;
    //      msg[i] += 1; 
@@ -107,29 +107,29 @@ int main(int argc, char** argv) {
    //}
    //dbg("hash_multrandfloat total: %d", total);
 
-   free(msg);
-   msg = str_copy("aaaaaaaa");
-   total = 0;
-   int sum_multrand[num_buckets];
-   for(int i = 0; i < num_buckets; i++) {
-      sum_multrand[i] = 0;
-   }
-   for(int i = 0; i < 8; i++) {
-      while(msg[i] < 'z') {
-         sum_multrand[hash_multrand(msg)] += 1;
-         msg[i] += 1; 
-         total += 1;
-      }
-   }
-   for(int i = 0; i < num_buckets; i++) {
-      dbg("hash_multrand-- bucket: %d, count: %d", i, sum_multrand[i]);
-   }
-   dbg("hash_multrand total: %d", total);
-   total = 0;
-   for(int i = 0; i < num_buckets; i++) {
-      total += sum_multrand[i];
-   }
-   dbg("hash_multrand calculated total: %d", total);
+   //free(msg);
+   //msg = str_copy("aaaaaaaa");
+   //total = 0;
+   //int sum_multrand[num_buckets];
+   //for(int i = 0; i < num_buckets; i++) {
+   //   sum_multrand[i] = 0;
+   //}
+   //for(int i = 0; i < str_len(msg); i++) {
+   //   while(msg[i] < 'z') {
+   //      sum_multrand[hash_multrand(msg)] += 1;
+   //      msg[i] += 1; 
+   //      total += 1;
+   //   }
+   //}
+   //for(int i = 0; i < num_buckets; i++) {
+   //   dbg("hash_multrand-- bucket: %d, count: %d", i, sum_multrand[i]);
+   //}
+   //dbg("hash_multrand total: %d", total);
+   //total = 0;
+   //for(int i = 0; i < num_buckets; i++) {
+   //   total += sum_multrand[i];
+   //}
+   //dbg("hash_multrand calculated total: %d", total);
 
    //free(msg);
    //msg = str_copy("aaaaaaaa");
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
    //for(int i = 0; i < num_buckets; i++) {
    //   sum_crcvariant[i] = 0;
    //}
-   //for(int i = 0; i < 8; i++) {
+   //for(int i = 0; i < str_len(msg); i++) {
    //   while(msg[i] < 'z') {
    //      sum_crcvariant[hash_crcvariant(msg)] += 1;
    //      msg[i] += 1; 
@@ -148,13 +148,13 @@ int main(int argc, char** argv) {
    //}
 
    free(msg);
-   msg = str_copy("aaaaaaaa");
+   msg = str_copy("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
    total = 0;
    int sum_bjenkins[num_buckets];
    for(int i = 0; i < num_buckets; i++) {
       sum_bjenkins[i] = 0;
    }
-   for(int i = 0; i < 8; i++) {
+   for(int i = 0; i < str_len(msg); i++) {
       while(msg[i] < 'z') {
          sum_bjenkins[hash_bjenkins(msg)] += 1;
          msg[i] += 1; 
