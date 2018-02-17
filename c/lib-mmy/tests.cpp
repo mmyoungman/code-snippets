@@ -12,8 +12,8 @@ int main()
    // Test 000.
    assert(1024 == kilobytes(1));
    assert((1024*1024) == megabytes(1));
-   assert(((uint64)10*1024*1024*1024) == gigabytes(10));
-   dbg("gigabytes(10): %ll", gigabytes(10));
+   assert(((u64)10*1024*1024*1024) == gigabytes(10));
+   dbg("gigabytes(10): %ld", gigabytes(10));
 
    // Test 001.
    log_err("Log error: %d, %s", 42, "string literal");
