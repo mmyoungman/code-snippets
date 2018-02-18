@@ -1,12 +1,15 @@
 /*
    lib-mmy.h
-   Last change: 17 Feb 2018
+   Last change: 18 Feb 2018
 
    000. 
       (a) Typedefs
       (b) Useful macros
       (c) Assert/Debug macros
       (d) Logging macros
+
+   001.
+      (a) void memset(unsigned char *ptr, unsigned char value, u64 size)
 
    002. 
    Copied from https://github.com/nothings/stb/ (public domain). 
@@ -98,7 +101,14 @@ typedef double f64;
 // 000. END
 
 // 001. START
-#if 0
+#if 1
+// NOTE: Untested
+void memset(unsigned char *ptr, unsigned char value, u64 size) {
+   for(u64 i = 0; i < size; i++) {
+      *ptr = value;
+      ptr++;
+   }
+}
 #endif
 // 001. END
 

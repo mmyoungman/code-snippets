@@ -1,6 +1,6 @@
 #include "lib-mmy.h"
 
-int num_buckets = 8;
+int num_buckets = 4096;
 
 u64 hash_chars(char* msg) {
    u64 value = 0;
