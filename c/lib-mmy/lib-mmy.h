@@ -1,6 +1,6 @@
 /*
    lib-mmy.h
-   Last change: 18 Feb 2018
+   Last change: 26 May 2018
 
    000. 
       (a) Typedefs
@@ -328,7 +328,7 @@ int mth_pow(int num, int pow) {
 
 int str_len(char *str) {
      char* ptr = str;
-     while(*ptr != 0)
+     while(*ptr != '\0')
           ptr++;
      return ptr - str;
 }
@@ -440,6 +440,7 @@ char* str_lstrip(char* str, char tostrip) {
 }
 
 char* str_rstrip(char* str, char tostrip) {
+   assert(str_len(str) > 0);
    char* strPtr = str;
    while(strPtr[1] != '\0') {
       strPtr++;
@@ -511,9 +512,7 @@ int str_toint(char *str) {
          strPtr++;
       }
    }
-   if (str[0] == '-')
-      result = -result;
-
+   if (str[0] == '-') { result = -result; }
    return result;
 }
 
