@@ -89,11 +89,6 @@ typedef double f64;
 #define assert(expr)
 #endif
 
-// #ifdef TEST
-// #define assert(expr) if(!(expr)) { dbg("Assert failed: " #expr); }
-// #endif
-
-
 #define log_err(msg, ...) fprintf(stderr, "[ERROR] (%s:%d) " msg "\n", \
                                   __FILE__, __LINE__, ##__VA_ARGS__) 
 #define log_warn(msg, ...) fprintf(stderr, "[WARN] (%s:%d) " msg "\n", \
