@@ -3,24 +3,20 @@
 int main()
 {
 
-#ifdef DEBUG
-   printf("\nStarting debug tests...\n\n");
-#else
-   printf("\nStarting non-debug tests..\n\n");
-#endif
+dbg("Starting tests...\n\n");
 
    // Test 000.
    assert(1024 == kilobytes(1));
    assert((1024*1024) == megabytes(1));
    assert(((u64)10*1024*1024*1024) == gigabytes(10));
-   dbg("gigabytes(10): %ld", gigabytes(10));
+
+   // log_err("Log error: %d, %s", 42, "string literal");
+   // log_warn("Log warning: %d, %s", 12, "another string literal");
+   // log_info("Log info: %d, %s", 13, "yet another string literal");
+   // dbg("Test msg: %d, %s", 14, "not another bloody string literal");
+
 
    // Test 001.
-   log_err("Log error: %d, %s", 42, "string literal");
-   log_warn("Log warning: %d, %s", 12, "another string literal");
-   log_info("Log info: %d, %s", 13, "yet another string literal");
-   
-   dbg("Test msg: %d, %s", 14, "not another bloody string literal");
 
 
    // Test 002.
@@ -45,7 +41,6 @@ int main()
    copy[0] = 'a';
    copy[1] = ' ';
    assert(str_equal(str, copy));
-   dbg("str: %s, copy: %s", str, copy);
    free(copy);
 
    assert(str_beginswith(str, "a stri"));
@@ -67,10 +62,8 @@ int main()
    free(str);
 
    str = str_copy("aaalksfjnhekwjbegjabwegij");
-   dbg("isalpha(str): %d, str: %s", str_isalpha(str), str);
    assert(str_isalpha(str));
    str[10] = '#';
-   dbg("isalpha(str): %d, str: %s", str_isalpha(str), str);
    assert(!str_isalpha(str));
    free(str);
 
@@ -98,13 +91,10 @@ int main()
    assert(str_equal(split[9], ""));
    assert(str_equal(split[10], ""));
    
-   dbg("str_toint(\"1234\"): %d", str_toint("1234"));
-   dbg("str_toint(\"-12345\"): %d", str_toint("-12345"));
    assert(str_toint("1234") == 1234);
    assert(str_toint("-12345") == -12345);
 
-   dbg("str_inttostr(1234): \"%s\"", str_inttostr(1234));
-   dbg("str_inttostr(-12345): \"%s\"", str_inttostr(-12345));
+   // shouldAssert(str_toint("12-12"));
 
-   printf("\nEnd of tests.\n\n");
+   dbg("End of tests\n\n");
 }

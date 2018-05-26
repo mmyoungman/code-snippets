@@ -84,10 +84,14 @@ typedef double f64;
 #define dbg(msg, ...) fprintf(stderr, "[DEBUG] (%s:%d) " msg "\n", \
                               __FILE__, __LINE__, ##__VA_ARGS__)
 #define assert(expr) if(!(expr)) { dbg("Assert failed: " #expr); *(int*)0 = 0; }
-#else
+#else 
 #define dbg(msg, ...)
 #define assert(expr)
 #endif
+
+// #ifdef TEST
+// #define assert(expr) if(!(expr)) { dbg("Assert failed: " #expr); }
+// #endif
 
 
 #define log_err(msg, ...) fprintf(stderr, "[ERROR] (%s:%d) " msg "\n", \
@@ -323,7 +327,6 @@ int mth_pow(int num, int pow) {
 
 // 004. START
 #if 1
-
 //#include <stdlib.h>
 
 int str_len(char *str) {
@@ -498,19 +501,17 @@ int str_toint(char *str) {
    int length = str_len(str);
 
    while (length > 0) {
+      assert((*strPtr >= '0' && *strPtr <= '9') || (length == str_len(str) && *strPtr == '-'));
       length--;
-      if (*strPtr < '0' || *strPtr > '9') {
-         strPtr++;
-         continue;
-      } else {
-         // Calculate value based on position (i.e. value * 10^position)
-         int exponent = 1;
-         for (int i = 0; i < length; i++) {
-            exponent *= 10;
-         }
-         result += (*strPtr - 48) * exponent;
-         strPtr++;
+      if(*strPtr == '-') { strPtr++; continue; }
+
+      // Calculate value based on position (i.e. value * 10^position)
+      int exponent = 1;
+      for (int i = 0; i < length; i++) {
+         exponent *= 10;
       }
+      result += (*strPtr - 48) * exponent;
+      strPtr++;
    }
    if (str[0] == '-') { result = -result; }
    return result;
