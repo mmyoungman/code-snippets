@@ -1,0 +1,26 @@
+<html>
+<head>
+    <title>XHR Test</title>
+</head>
+<body>
+    <p id="demo">Waiting for XHR request...</p>
+    <script>
+        var req= new XMLHttpRequest();
+
+        req.onreadystatechange = function() {
+            if(req.readyState == 4) {
+                switch(req.status) {
+                        case 200:
+                            document.getElementById("demo").innerHTML = this.responseText;
+                            break;
+                        default:
+                            document.getElementById("demo").innerHTML = "An error has occurred! XHR request failed!";
+                }
+            }
+        }
+        req.open("GET", "https://foaas.com/version");
+        req.setRequestHeader("Accept", "application/json");
+        req.send();
+    </script>
+</body>
+</html>
