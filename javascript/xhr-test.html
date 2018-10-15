@@ -5,17 +5,22 @@
 <body>
     <p id="demo">Waiting for XHR request...</p>
     <script>
+        var text = document.getElementById("demo");
         var req= new XMLHttpRequest();
 
         req.onreadystatechange = function() {
             if(req.readyState == 4) {
                 switch(req.status) {
                         case 200:
-                            document.getElementById("demo").innerHTML = this.responseText;
+                        text.innerHTML = this.responseText + "<br>";
                             break;
                         default:
-                            document.getElementById("demo").innerHTML = "An error has occurred! XHR request failed!";
+                        text.innerHTML = "An error has occurred! XHR request failed!<br>";
                 }
+                text.innerHTML += "status: " + this.status + "<br>";
+                text.innerHTML += "statusText: " + this.statusText + "<br>";
+                text.innerHTML += "responseType: " + this.responseType + "<br>";
+                text.innerHTML += "responseURL: " + this.responseURL + "<br>";
             }
         }
         req.open("GET", "https://foaas.com/version");
