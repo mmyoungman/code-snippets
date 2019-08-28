@@ -1,14 +1,14 @@
 def without_decorator():
 
     def add_messages(start_message, end_message):
-        def amend_func(old_add_func):
+        def decorator_func(old_add_func):
             def new_add_func(x, y):
                 print(start_message)
                 result = old_add_func(x, y)
                 print(end_message)
                 return result
             return new_add_func
-        return amend_func
+        return decorator_func
     
     def add(x, y):
         return x + y
@@ -21,14 +21,14 @@ def without_decorator():
 def with_decorator():
 
     def add_messages(start_message, end_message):
-        def amend_func(func):
+        def decorator_func(old_add_func):
             def new_add_func(x, y):
                 print(start_message)
-                result = func(x, y)
+                result = old_add_func(x, y)
                 print(end_message)
                 return result
             return new_add_func
-        return amend_func
+        return decorator_func
     
     @add_messages("Starting add!!", "Add completed!!")
     def add(x, y):
