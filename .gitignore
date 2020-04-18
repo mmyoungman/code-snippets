@@ -15,3 +15,4 @@ c/system-calls/networking/server-open-socket/server-open-socket
 
 node/**/node_modules
 node/react/react-typescript-basic/dist
+node/react/react-basic/dist
