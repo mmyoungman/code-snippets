@@ -1,6 +1,8 @@
 .vscode
 tags
 
+**/zips/*
+
 # QtCreator files for lib-mmy
 **/*.creator.user
 c/lib-mmy/lib-mmy.config

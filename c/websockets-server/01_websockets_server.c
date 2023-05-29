@@ -96,6 +96,12 @@ int main()
       // child doesn't need sockfd
       printf("Connection accepted!\n");
 
+      char sendMsg[256];
+      sendMsg[0] = 'B';
+      sendMsg[1] = '\0';
+
+      send(newfd, &sendMsg, 2, 0);
+
       int bufferLen = 256;
       char buffer[bufferLen];
       while ((status = recv(newfd, &buffer, bufferLen, 0)) != 0)
