@@ -26,6 +26,21 @@ mkdir -p build/lib
 mkdir -p build/contrib
 mkdir -p build/include
 
+# zlib (for IXWebSocket)
+ZLIB_VERSION="1.2.13"
+if [ ! -f build/contrib/zlib-${ZLIB_VERSION}/libz.a ]; then
+  if [ ! -f zips/zlib-${ZLIB_VERSION}.tar.gz ]; then
+    echo "zlib-${ZLIB_VERSION}.tar.gz not found in zips directory"
+    exit 1
+  else
+    tar -xf zips/zlib-${ZLIB_VERSION}.tar.gz -C build/contrib
+    cmake -S build/contrib/zlib-${ZLIB_VERSION} -B build/contrib/zlib-${ZLIB_VERSION}
+    make -C build/contrib/zlib-${ZLIB_VERSION}
+    cp build/contrib/zlib-${ZLIB_VERSION}/libz.a build/lib/
+    cp build/contrib/zlib-${ZLIB_VERSION}/*.h build/include
+  fi
+fi
+
 # mbedtls (for IXWebSocket)
 MBEDTLS_VERSION="3.4.0"
 if [ ! -f build/contrib/mbedtls-${MBEDTLS_VERSION}/library/libmbedtls.a ]; then
@@ -43,7 +58,7 @@ if [ ! -f build/contrib/mbedtls-${MBEDTLS_VERSION}/library/libmbedtls.a ]; then
 fi
 
 # IXWebSocket
-IXWEBSOCKET_VERSION="11.4.3"
+IXWEBSOCKET_VERSION="11.4.4"
 if [ ! -f build/lib/libixwebsocket.a ]; then
   if [ ! -f zips/IXWebSocket-${IXWEBSOCKET_VERSION}.zip ]; then
     echo "IXWebSocket-${IXWEBSOCKET_VERSION}.zip not found in zips directory"
@@ -51,7 +66,7 @@ if [ ! -f build/lib/libixwebsocket.a ]; then
   else
     unzip -d build/contrib zips/IXWebSocket-${IXWEBSOCKET_VERSION}.zip
 
-    cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DMBEDTLS_VERSION_GREATER_THAN_3="build/include" -DMBEDTLS_INCLUDE_DIRS="build/include" -DMBEDTLS_LIBRARY="build/lib/libmbedtls.a" -DMBEDCRYPTO_LIBRARY="build/lib/libmbedcrypto.a" -DMBEDX509_LIBRARY="build/lib/libmbedx509.a" -S build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION} -B build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION}
+    cmake -DUSE_TLS=1 -DUSE_MBED_TLS=1 -DMBEDTLS_VERSION_GREATER_THAN_3="build/include" -DMBEDTLS_INCLUDE_DIRS="build/include" -DMBEDTLS_LIBRARY="build/lib/libmbedtls.a" -DMBEDCRYPTO_LIBRARY="build/lib/libmbedcrypto.a" -DMBEDX509_LIBRARY="build/lib/libmbedx509.a" -DZLIB_INCLUDE_DIR="build/include" -DZLIB_LIBRARY_RELEASE="build/lib/zlib.a" -S build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION} -B build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION}
     make -C build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION}
 
     cp build/contrib/IXWebSocket-${IXWEBSOCKET_VERSION}/libixwebsocket.a build/lib/
