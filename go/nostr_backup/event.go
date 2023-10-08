@@ -3,9 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -17,28 +15,6 @@ type Event struct {
 	Tags      Tags   `json:"tags"`
 	Content   string `json:"content"`
 	Sig       string `json:"sig"`
-}
-
-func (e Event) MarshalJSON() ([]byte, error) {
-	tagsJson, err := json.Marshal(e.Tags)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//if e.Id == "" { // @MarkFix
-	//	e.Id = GenerateEventId(e)
-	//}
-
-	return json.Marshal(map[string]interface{}{
-		"id":         e.Id,
-		"pubkey":     e.PubKey,
-		"created_at": e.CreatedAt,
-		"kind":       e.Kind,
-		"tags":       tagsJson,
-		"content":    e.Content,
-		"sig":        e.Sig,
-	})
-
 }
 
 var asciiEscapes = []byte{'\\', '"', 'b', 'f', 'n', 'r', 't'}

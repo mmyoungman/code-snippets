@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -46,7 +47,8 @@ func main() {
 	}
 
 	subscriptionId := uuid.New().String()
-	reqMessage := fmt.Sprintf("[\"REQ\", \"%s\", %s]", subscriptionId, filter.String())
+	filterJson, _ := json.Marshal(filter)
+	reqMessage := fmt.Sprintf("[\"REQ\", \"%s\", %s]", subscriptionId, filterJson)
 
 	//conn := Connect("nos.lol")
 	conn := Connect("nostr.mom")
@@ -63,7 +65,7 @@ func main() {
 
 	for {
 		newMessage := <-receivedMessage
-		// @MarkFix make generic message handler
+		// @MarkFix make generic message handler?
 		if strings.HasPrefix(newMessage, "[\"EVENT\",") {
 			fmt.Printf("Received: \n%s\n", newMessage)
 			eventSubId, event := JsonToEventMessage(newMessage)
@@ -71,7 +73,7 @@ func main() {
 				log.Fatal("Event subscriptionId incorrect?")
 			}
 
-			eventJson, _ := event.MarshalJSON()
+			eventJson, _ := json.Marshal(event)
 			fmt.Printf("Processed EVENT: \n%s\n", eventJson)
 		}
 		if strings.HasPrefix(newMessage, "[\"EOSE\",") {

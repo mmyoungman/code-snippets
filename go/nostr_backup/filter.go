@@ -1,10 +1,5 @@
 package main
 
-import (
-	"encoding/json"
-	"log"
-)
-
 type Filter struct {
 	Ids     []string `json:"ids,omitempty"`
 	Kinds   []int    `json:"kinds,omitempty"`
@@ -16,19 +11,3 @@ type Filter struct {
 }
 
 type Filters []Filter
-
-func (filter Filter) String() string {
-	json, err := json.Marshal(filter)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(json)
-}
-
-func (filters Filters) String() string {
-	json, err := json.Marshal(filters)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(json)
-}
