@@ -8,10 +8,10 @@ import (
 type Tag []string
 type Tags []Tag
 
-func (tags Tags) String() string { // @MarkFix untested
+func (tags Tags) MarshalJSON() ([]byte, error) {
 	var result strings.Builder
-	result.WriteString("[")
 
+	result.WriteString("[")
 	for i, tag := range tags {
 		if i > 0 {
 			result.WriteString(",")
@@ -19,9 +19,9 @@ func (tags Tags) String() string { // @MarkFix untested
 
 		writeTag(&result, tag)
 	}
-
 	result.WriteString("]")
-	return result.String()
+
+	return []byte(result.String()), nil
 }
 
 func writeTag(result *strings.Builder, tag Tag) {

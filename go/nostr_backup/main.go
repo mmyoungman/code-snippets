@@ -63,6 +63,7 @@ func main() {
 
 	for {
 		newMessage := <-receivedMessage
+		// @MarkFix make generic message handler
 		if strings.HasPrefix(newMessage, "[\"EVENT\",") {
 			fmt.Printf("Received: \n%s\n", newMessage)
 			eventSubId, event := JsonToEventMessage(newMessage)
@@ -70,7 +71,8 @@ func main() {
 				log.Fatal("Event subscriptionId incorrect?")
 			}
 
-			fmt.Printf("Processed EVENT: \n%s\n", event.String())
+			eventJson, _ := event.MarshalJSON()
+			fmt.Printf("Processed EVENT: \n%s\n", eventJson)
 		}
 		if strings.HasPrefix(newMessage, "[\"EOSE\",") {
 			break

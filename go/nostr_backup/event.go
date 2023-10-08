@@ -19,22 +19,26 @@ type Event struct {
 	Sig       string `json:"sig"`
 }
 
-func (e Event) String() string {
-	eventJson, err := json.Marshal(e)
+func (e Event) MarshalJSON() ([]byte, error) {
+	tagsJson, err := json.Marshal(e.Tags)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(eventJson)
 
-}
+	//if e.Id == "" { // @MarkFix
+	//	e.Id = GenerateEventId(e)
+	//}
 
-func JsonToEvent(eventJson string) Event {
-	var event Event
-	err := json.Unmarshal([]byte(eventJson), &event)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return event
+	return json.Marshal(map[string]interface{}{
+		"id":         e.Id,
+		"pubkey":     e.PubKey,
+		"created_at": e.CreatedAt,
+		"kind":       e.Kind,
+		"tags":       tagsJson,
+		"content":    e.Content,
+		"sig":        e.Sig,
+	})
+
 }
 
 var asciiEscapes = []byte{'\\', '"', 'b', 'f', 'n', 'r', 't'}
@@ -55,7 +59,7 @@ func escapeByte(b *strings.Builder, c byte) {
 	b.WriteByte(c)
 }
 
-func DecorateJsonStr(str string) string { // @MarkFix untested
+func DecorateJsonStr(str string) string {
 	var result strings.Builder
 	result.WriteByte('"')
 	for _, c := range []byte(str) {
@@ -66,14 +70,14 @@ func DecorateJsonStr(str string) string { // @MarkFix untested
 }
 
 func GenerateEventId(event Event) string {
+	tagsBytes, _ := event.Tags.MarshalJSON()
+
 	serializedEvent := fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
 		event.PubKey,
 		event.CreatedAt,
 		event.Kind,
-		event.Tags,
+		tagsBytes,
 		DecorateJsonStr(event.Content))
-
-	fmt.Printf("Serialized: \n%s\n", serializedEvent)
 
 	hash := sha256.Sum256([]byte(serializedEvent))
 	return hex.EncodeToString(hash[:])
