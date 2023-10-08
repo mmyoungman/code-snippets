@@ -37,7 +37,6 @@ func JsonToEvent(eventJson string) Event {
 	return event
 }
 
-
 var asciiEscapes = []byte{'\\', '"', 'b', 'f', 'n', 'r', 't'}
 var binaryEscapes = []byte{'\\', '"', '\b', '\f', '\n', '\r', '\t'}
 
@@ -74,25 +73,8 @@ func GenerateEventId(event Event) string {
 		event.Tags,
 		DecorateJsonStr(event.Content))
 
+	fmt.Printf("Serialized: \n%s\n", serializedEvent)
+
 	hash := sha256.Sum256([]byte(serializedEvent))
 	return hex.EncodeToString(hash[:])
 }
-
-//func GenerateEventIdJsonPackageEscaping(event Event) string {
-//	content, err := json.Marshal(event.Content)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	serializedEvent := fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
-//		event.PubKey,
-//		event.CreatedAt,
-//		event.Kind,
-//		event.Tags,
-//		content)
-//
-//	fmt.Printf("Serialized event: %s\n", serializedEvent)
-//
-//	hash := sha256.Sum256([]byte(serializedEvent))
-//	return hex.EncodeToString(hash[:])
-//}
-

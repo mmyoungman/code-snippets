@@ -12,62 +12,61 @@ import (
 )
 
 func main() {
-	event := Event{
-		PubKey:    "",
-		Kind:      KindTextNote,
-		CreatedAt: 0,
-		Tags:      make([]Tag, 0),
-		Content:   "Test!\n❤️‍🔥\"b\\😅",
-	}
-	event.Id = GenerateEventId(event)
-
-	eventJson := event.String()
-
-	fmt.Println("Event JSON: ", eventJson)
-
-	eventStruct := JsonToEvent(eventJson)
-
-	fmt.Println(
-		"eventStruct: ",
-		eventStruct.Id,
-		eventStruct.PubKey,
-		eventStruct.CreatedAt,
-		eventStruct.Kind,
-		eventStruct.Tags,
-		eventStruct.Content,
-		eventStruct.Sig)
-
 	//npub := "1f0rwg0z2smrkggypqn7gctscevu22z6thch243365xt0tz8fw9uqupzj2x"
 	npubHex := "4bc6e43c4a86c764208104fc8c2e18cb38a50b4bbe2eaac63aa196f588e97178"
 
+	//event := Event{
+	//	PubKey:    npubHex,
+	//	Kind:      KindTextNote,
+	//	CreatedAt: 0,
+	//	Tags:      make([]Tag, 0),
+	//	Content:   "Test!\n❤️‍🔥\"b\\😅",
+	//}
+	//event.Id = GenerateEventId(event)
+
+	//eventJson := event.String()
+
+	//fmt.Println("Event JSON: ", eventJson)
+
+	//eventStruct := JsonToEvent(eventJson)
+
+	//fmt.Println(
+	//	"eventStruct: ",
+	//	eventStruct.Id,
+	//	eventStruct.PubKey,
+	//	eventStruct.CreatedAt,
+	//	eventStruct.Kind,
+	//	eventStruct.Tags,
+	//	eventStruct.Content,
+	//	eventStruct.Sig)
+
 	filter := Filter{
 		Authors: []string{npubHex},
-		Kinds: []int{KindTextNote,KindRepost,KindReaction},
+		//Kinds: []int{KindTextNote,KindRepost,KindReaction},
 	}
 
-	subscriptionId := uuid.New()
-	message := fmt.Sprintf("[\"REQ\", \"%s\", %s]", subscriptionId, filter.String())
-
-	fmt.Println("Message: ", message)
+	subscriptionId := uuid.New().String()
+	reqMessage := fmt.Sprintf("[\"REQ\", \"%s\", %s]", subscriptionId, filter.String())
 
 	//conn := Connect("nos.lol")
 	conn := Connect("nostr.mom")
 
-	receivedMessages := make(chan string)
+	receivedMessage := make(chan string)
 
-	go ReceiveMessages(conn, receivedMessages)
+	go ReceiveMessages(conn, receivedMessage)
 	defer conn.Close()
 
-	err := conn.WriteMessage(websocket.TextMessage, []byte(message))
+	err := conn.WriteMessage(websocket.TextMessage, []byte(reqMessage))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for {
-		newMessage := <-receivedMessages
+		newMessage := <-receivedMessage
 		if strings.HasPrefix(newMessage, "[\"EVENT\",") {
+			fmt.Printf("Received: \n%s\n", newMessage)
 			eventSubId, event := JsonToEventMessage(newMessage)
-			if eventSubId != subscriptionId.String() {
+			if eventSubId != subscriptionId {
 				log.Fatal("Event subscriptionId incorrect?")
 			}
 
@@ -86,17 +85,3 @@ func main() {
 		return
 	}
 }
-
-		//messageStr := string(message)
-		//switch {
-		//case strings.HasPrefix(messageStr, "[\"EVENT\","):
-		//	fmt.Println("Got an EVENT message!")
-		//case strings.HasPrefix(messageStr, "[\"OK\","):
-		//	fmt.Println("Got an OK message!")
-		//case strings.HasPrefix(messageStr, "[\"EOSE\","):
-		//	fmt.Println("Got an EOSE message!")
-		//case strings.HasPrefix(messageStr, "[\"NOTICE\","):
-		//	fmt.Println("Got an NOTICE message!")
-		//default:
-		//	fmt.Println("Received message of unknown type!")
-		//}

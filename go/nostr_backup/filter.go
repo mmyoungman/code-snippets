@@ -15,6 +15,8 @@ type Filter struct {
 	Limit   []string `json:"limit,omitempty"`
 }
 
+type Filters []Filter
+
 func (filter Filter) String() string {
 	json, err := json.Marshal(filter)
 	if err != nil {
@@ -22,8 +24,6 @@ func (filter Filter) String() string {
 	}
 	return string(json)
 }
-
-type Filters []Filter
 
 func (filters Filters) String() string {
 	json, err := json.Marshal(filters)

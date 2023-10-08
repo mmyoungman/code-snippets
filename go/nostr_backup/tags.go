@@ -1,34 +1,38 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Tag []string
 type Tags []Tag
 
 func (tags Tags) String() string { // @MarkFix untested
-	result := "["
+	var result strings.Builder
+	result.WriteString("[")
 
 	for i, tag := range tags {
 		if i > 0 {
-			result += ","
+			result.WriteString(",")
 		}
 
-		result += tag.String()
+		writeTag(&result, tag)
 	}
 
-	return result + "]"
+	result.WriteString("]")
+	return result.String()
 }
 
-func (tag Tag) String() string {
-	result := "["
+func writeTag(result *strings.Builder, tag Tag) {
+	result.WriteString("[")
 
 	for i, str := range tag {
 		if i > 0 {
-			result += ","
+			result.WriteString(",")
 		}
-		result += fmt.Sprintf("\"%s\"", str)
+		result.WriteString(fmt.Sprintf("\"%s\"", str))
 	}
 
-	return result + "]"
+	result.WriteString("]")
 }
-
