@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -9,6 +10,32 @@ type EventMessage struct {
 	Label string
 	SubscriptionId string
 	Event Event
+}
+
+type ReqMessage struct {
+	Label string
+	SubscriptionId string
+	Filters Filters
+}
+
+func (em EventMessage) MarshalJSON() ([]byte, error) {
+	type localEventMessage EventMessage
+	valueJson, err := json.Marshal(localEventMessage(em))
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(fmt.Sprintf("[%s]", valueJson)), nil
+}
+
+func (em ReqMessage) MarshalJSON() ([]byte, error) {
+	type localReqMessage ReqMessage
+	valueJson, err := json.Marshal(localReqMessage(em))
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(fmt.Sprintf("[%s]", valueJson)), nil
 }
 
 func JsonToEventMessage(eventJson string) (subscriptionId string, event Event) {
