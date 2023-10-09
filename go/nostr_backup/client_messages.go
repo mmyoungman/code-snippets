@@ -6,30 +6,24 @@ import (
 	"log"
 )
 
-type EventMessage struct {
+type ClientEventMessage struct {
 	Label string
-	SubscriptionId string
 	Event Event
 }
 
-type ReqMessage struct {
+type ClientReqMessage struct {
 	Label string
 	SubscriptionId string
 	Filters Filters
 }
 
-func (em EventMessage) MarshalJSON() ([]byte, error) {
-	type localEventMessage EventMessage
-	valueJson, err := json.Marshal(localEventMessage(em))
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(fmt.Sprintf("[%s]", valueJson)), nil
+type ClientCloseMessage struct {
+	Label string
+	SubscriptionId string
 }
 
-func (em ReqMessage) MarshalJSON() ([]byte, error) {
-	type localReqMessage ReqMessage
+func (em ClientReqMessage) MarshalJSON() ([]byte, error) {
+	type localReqMessage ClientReqMessage
 	valueJson, err := json.Marshal(localReqMessage(em))
 	if err != nil {
 		return nil, err

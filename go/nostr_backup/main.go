@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -48,7 +47,7 @@ func main() {
 
 	subscriptionId := uuid.New().String()
 	filterJson, _ := json.Marshal(filter)
-	reqMessage := fmt.Sprintf("[\"REQ\", \"%s\", %s]", subscriptionId, filterJson)
+	reqMessage := fmt.Sprintf("[\"REQ\",\"%s\",%s]", subscriptionId, filterJson)
 
 	//conn := Connect("nos.lol")
 	conn := Connect("nostr.mom")
@@ -64,23 +63,71 @@ func main() {
 	}
 
 	for {
-		newMessage := <-receivedMessage
-		// @MarkFix make generic message handler?
-		if strings.HasPrefix(newMessage, "[\"EVENT\",") {
-			fmt.Printf("Received: \n%s\n", newMessage)
-			eventSubId, event := JsonToEventMessage(newMessage)
-			if eventSubId != subscriptionId {
-				log.Fatal("Event subscriptionId incorrect?")
+		label, message := ProcessRelayMessage(<-receivedMessage)
+
+		switch label {
+		case "EVENT":
+			var eventMessage RelayEventMessage
+			err = json.Unmarshal(message[0], &eventMessage.SubscriptionId)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			eventJson, _ := json.Marshal(event)
-			fmt.Printf("Processed EVENT: \n%s\n", eventJson)
-		}
-		if strings.HasPrefix(newMessage, "[\"EOSE\",") {
-			break
+			err = json.Unmarshal(message[1], &eventMessage.Event)
+			if err != nil {
+				log.Fatal(err)
+			}
+			generatedEventId := GenerateEventId(eventMessage.Event)
+			if generatedEventId != eventMessage.Event.Id {
+				log.Fatal("Incorrect Id received!")
+			}
+			var eventJson, _ = json.Marshal(eventMessage)
+			fmt.Printf("RelayEventMessage: %s\n", eventJson)
+
+		case "OK":
+			var okMessage RelayOkMessage
+			err = json.Unmarshal(message[0], &okMessage.EventId)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = json.Unmarshal(message[1], &okMessage.Status)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = json.Unmarshal(message[2], &okMessage.Message)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var okJson, _ = json.Marshal(okMessage)
+			fmt.Printf("RelayOkMessage: %s\n", okJson)
+
+		case "EOSE":
+			var eoseMessage RelayEoseMessage
+			err = json.Unmarshal(message[0], &eoseMessage.SubscriptionId)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var eoseJson, _ = json.Marshal(eoseMessage)
+			fmt.Printf("RelayEoseMessage: %s\n", eoseJson)
+			goto end
+
+		case "NOTICE":
+			var noticeMessage RelayNoticeMessage
+			err = json.Unmarshal(message[0], &noticeMessage.Message)
+			if err != nil {
+				log.Fatal(err)
+			}
+			var noticeJson, _  = json.Marshal(noticeMessage)
+			fmt.Printf("RelayNoticeMessage: %s\n", noticeJson)
+			goto end
+
+		default:
+			log.Fatalf("Unknown Relay Message type: \"%s\"", label)
 		}
 	}
-
+end:
 	fmt.Println("Press Enter to quit")
 	in := bufio.NewReader(os.Stdin)
 	_, err = in.ReadString('\n')
