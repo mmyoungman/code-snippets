@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Go Auth</title>
+    <script src="https://unpkg.com/htmx.org@1.9.2" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous"></script>
+</head>
+<body>
+    <h1>Login</h1>
+    <form hx-post="/login/" hx-target="#login" hx-swap="beforeend" hx-indicator="#loading">
+        <label for="login-email">Email</label>
+        <input type="text" name="email" id="login-email" />
+        <label for="login-password">Password</label>
+        <input type="password" name="password" id="login-password" />
+        <button type="submit" class="btn btn-primary">
+            Submit
+        </button>
+        <span class="htmx-indicator" id="loading">Loading...</span>
+    </form>
+
+    <h1>Login status</h1>
+    <div id="login-status">
+      <p >{{ .LoginStatus }}</p>
+    </div>
+</body>
+</html>
