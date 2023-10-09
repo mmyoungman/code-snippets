@@ -40,14 +40,18 @@ func main() {
 	//	eventStruct.Content,
 	//	eventStruct.Sig)
 
-	filter := Filter{
+	filters := Filters{{
 		Authors: []string{npubHex},
 		//Kinds: []int{KindTextNote,KindRepost,KindReaction},
+	}}
+
+	clientReqMessage := ClientReqMessage{
+		SubscriptionId: uuid.New().String(),
+		Filters: filters,
 	}
 
-	subscriptionId := uuid.New().String()
-	filterJson, _ := json.Marshal(filter)
-	reqMessage := fmt.Sprintf("[\"REQ\",\"%s\",%s]", subscriptionId, filterJson)
+	clientReqJson, _ := json.Marshal(clientReqMessage)
+	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
 	//conn := Connect("nos.lol")
 	conn := Connect("nostr.mom")
@@ -57,7 +61,7 @@ func main() {
 	go ReceiveMessages(conn, receivedMessage)
 	defer conn.Close()
 
-	err := conn.WriteMessage(websocket.TextMessage, []byte(reqMessage))
+	err := conn.WriteMessage(websocket.TextMessage, []byte(clientReqJson))
 	if err != nil {
 		log.Fatal(err)
 	}

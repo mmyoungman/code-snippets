@@ -27,7 +27,7 @@ type RelayNoticeMessage struct {
 
 func ProcessRelayMessage(messageJson string) (label string, message []json.RawMessage) {
 	if !json.Valid([]byte(messageJson)) {
-		log.Fatal("Trying to process invalid JSON for an event message")
+		log.Fatal("Message has invalid JSON", messageJson)
 	}
 
 	err := json.Unmarshal([]byte(messageJson), &message)
@@ -60,7 +60,7 @@ func (em RelayEoseMessage) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("[\"EOSE\",\"%s\"]", em.SubscriptionId)), nil
 }
 
-func (om RelayOkMessage) MarshalJson() ([]byte, error) {
+func (om RelayOkMessage) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf("[\"OK\",\"%s\",%t,\"%s\"]", om.EventId, om.Status, om.Message)), nil
 }
 
