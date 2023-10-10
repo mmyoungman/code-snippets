@@ -17,42 +17,33 @@ type Event struct {
 	Sig       string `json:"sig"`
 }
 
-var asciiEscapes = []byte{'\\', '"', 'b', 'f', 'n', 'r', 't'}
-var binaryEscapes = []byte{'\\', '"', '\b', '\f', '\n', '\r', '\t'}
-
-func escapeByte(b *strings.Builder, c byte) {
-	for i, esc := range binaryEscapes {
-		if esc == c {
-			b.WriteByte('\\')
-			b.WriteByte(asciiEscapes[i])
-			return
-		}
-	}
-	if c < 0x20 {
-		b.WriteString(fmt.Sprintf("\\u%04x", c))
-		return
-	}
-	b.WriteByte(c)
+func (event Event) MarshalJSON() ([]byte, error) {
+	panic("Use ToJson")
 }
 
-func DecorateJsonStr(str string) string {
+func (event Event) ToJson() string {
 	var result strings.Builder
-	result.WriteByte('"')
-	for _, c := range []byte(str) {
-		escapeByte(&result, c)
-	}
-	result.WriteByte('"')
+	result.WriteString(fmt.Sprintf("{\"id\":\"%s\",", event.Id))
+	result.WriteString(fmt.Sprintf("\"pubkey\":\"%s\",", event.PubKey))
+	result.WriteString(fmt.Sprintf("\"created_at\":%d,", event.CreatedAt))
+	result.WriteString(fmt.Sprintf("\"kind\":%d,", event.Kind))
+	result.WriteString(fmt.Sprintf("\"tags\":%s,", event.Tags.ToJson()))
+	result.WriteString(
+		fmt.Sprintf("\"content\":%s,", DecorateJsonStr(event.Content)))
+	result.WriteString(fmt.Sprintf("\"sig\":\"%s\"}", event.Sig))
+
+	// @MarkFix Dev build only check that JSON is valid (along with all other ToJson
+	// functions
+
 	return result.String()
 }
 
 func GenerateEventId(event Event) string {
-	tagsBytes, _ := event.Tags.MarshalJSON()
-
 	serializedEvent := fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
 		event.PubKey,
 		event.CreatedAt,
 		event.Kind,
-		tagsBytes,
+		event.Tags.ToJson(),
 		DecorateJsonStr(event.Content))
 
 	hash := sha256.Sum256([]byte(serializedEvent))

@@ -8,7 +8,15 @@ import (
 type Tag []string
 type Tags []Tag
 
+func (tag Tag) MarshalJSON() ([]byte, error) {
+	panic("Use ToJson with Tags object, not Tag")
+}
+
 func (tags Tags) MarshalJSON() ([]byte, error) {
+	panic("Use ToJson")
+}
+
+func (tags Tags) ToJson() string {
 	var result strings.Builder
 
 	result.WriteString("[")
@@ -21,7 +29,7 @@ func (tags Tags) MarshalJSON() ([]byte, error) {
 	}
 	result.WriteString("]")
 
-	return []byte(result.String()), nil
+	return result.String()
 }
 
 func writeTag(result *strings.Builder, tag Tag) {

@@ -46,24 +46,36 @@ func ProcessRelayMessage(messageJson string) (label string, message []json.RawMe
 
 	return label, message[1:]
 }
-
 func (em RelayEventMessage) MarshalJSON() ([]byte, error) {
-	eventJson, err := json.Marshal(em.Event)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(fmt.Sprintf("[\"EVENT\",\"%s\",%s]", em.SubscriptionId, eventJson)), nil
+	panic("Use ToJson")
 }
 
 func (em RelayEoseMessage) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[\"EOSE\",\"%s\"]", em.SubscriptionId)), nil
+	panic("Use ToJson")
 }
 
-func (om RelayOkMessage) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[\"OK\",\"%s\",%t,\"%s\"]", om.EventId, om.Status, om.Message)), nil
+func (em RelayOkMessage) MarshalJSON() ([]byte, error) {
+	panic("Use ToJson")
 }
 
-func (nm RelayNoticeMessage) MarshalJson() ([]byte, error) {
-	return []byte(fmt.Sprintf("[\"NOTICE\",\"%s\"]", nm.Message)), nil
+func (em RelayNoticeMessage) MarshalJSON() ([]byte, error) {
+	panic("Use ToJson")
+}
+
+func (em RelayEventMessage) ToJson() string {
+	return fmt.Sprintf("[\"EVENT\",\"%s\",%s]",
+		em.SubscriptionId, em.Event.ToJson())
+}
+
+func (em RelayEoseMessage) ToJson() string {
+	return fmt.Sprintf("[\"EOSE\",\"%s\"]", em.SubscriptionId)
+}
+
+func (om RelayOkMessage) ToJson() string {
+	return fmt.Sprintf("[\"OK\",\"%s\",%t,\"%s\"]",
+		om.EventId, om.Status, om.Message)
+}
+
+func (nm RelayNoticeMessage) ToJson() string {
+	return fmt.Sprintf("[\"NOTICE\",\"%s\"]", nm.Message)
 }

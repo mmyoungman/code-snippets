@@ -15,30 +15,31 @@ func main() {
 	//npub := "1f0rwg0z2smrkggypqn7gctscevu22z6thch243365xt0tz8fw9uqupzj2x"
 	npubHex := "4bc6e43c4a86c764208104fc8c2e18cb38a50b4bbe2eaac63aa196f588e97178"
 
-	//event := Event{
-	//	PubKey:    npubHex,
-	//	Kind:      KindTextNote,
-	//	CreatedAt: 0,
-	//	Tags:      make([]Tag, 0),
-	//	Content:   "Test!\n❤️‍🔥\"b\\😅",
-	//}
-	//event.Id = GenerateEventId(event)
+	event := Event{
+		PubKey:    npubHex,
+		Kind:      KindTextNote,
+		CreatedAt: 0,
+		Tags:      make([]Tag, 0),
+		Content:   "Test!\n❤️‍🔥\"b\\😅  <html>",
+	}
+	event.Id = GenerateEventId(event)
 
-	//eventJson := event.String()
+	eventJson := event.ToJson()
 
-	//fmt.Println("Event JSON: ", eventJson)
+	fmt.Printf("Event JSON: %s\n", eventJson)
 
-	//eventStruct := JsonToEvent(eventJson)
+	var eventStruct Event
+	_ = json.Unmarshal([]byte(eventJson), &eventStruct)
 
-	//fmt.Println(
-	//	"eventStruct: ",
-	//	eventStruct.Id,
-	//	eventStruct.PubKey,
-	//	eventStruct.CreatedAt,
-	//	eventStruct.Kind,
-	//	eventStruct.Tags,
-	//	eventStruct.Content,
-	//	eventStruct.Sig)
+	fmt.Println(
+		"eventStruct: ",
+		eventStruct.Id,
+		eventStruct.PubKey,
+		eventStruct.CreatedAt,
+		eventStruct.Kind,
+		eventStruct.Tags,
+		eventStruct.Content,
+		eventStruct.Sig)
 
 	filters := Filters{{
 		Authors: []string{npubHex},
@@ -50,7 +51,7 @@ func main() {
 		Filters: filters,
 	}
 
-	clientReqJson, _ := json.Marshal(clientReqMessage)
+	clientReqJson := clientReqMessage.ToJson()
 	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
 	//conn := Connect("nos.lol")
@@ -66,8 +67,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	numOfMessages := 0
 	for {
 		label, message := ProcessRelayMessage(<-receivedMessage)
+		numOfMessages++
 
 		switch label {
 		case "EVENT":
@@ -85,7 +88,7 @@ func main() {
 			if generatedEventId != eventMessage.Event.Id {
 				log.Fatal("Incorrect Id received!")
 			}
-			var eventJson, _ = json.Marshal(eventMessage)
+			var eventJson = eventMessage.ToJson()
 			fmt.Printf("RelayEventMessage: %s\n", eventJson)
 
 		case "OK":
@@ -113,7 +116,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			var eoseJson, _ = json.Marshal(eoseMessage)
+			var eoseJson = eoseMessage.ToJson()
 			fmt.Printf("RelayEoseMessage: %s\n", eoseJson)
 			goto end
 
@@ -123,7 +126,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			var noticeJson, _  = json.Marshal(noticeMessage)
+			var noticeJson  = noticeMessage.ToJson()
 			fmt.Printf("RelayNoticeMessage: %s\n", noticeJson)
 			goto end
 
@@ -132,6 +135,7 @@ func main() {
 		}
 	}
 end:
+	fmt.Println("NumOfMessages: ", numOfMessages)
 	fmt.Println("Press Enter to quit")
 	in := bufio.NewReader(os.Stdin)
 	_, err = in.ReadString('\n')

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -19,24 +18,27 @@ type ClientCloseMessage struct {
 }
 
 func (em ClientEventMessage) MarshalJSON() ([]byte, error) {
-	eventJson, err := json.Marshal(em.Event)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(fmt.Sprintf("[\"EVENT\",%s]", eventJson)), nil
+	panic("Use ToJson")
 }
 
 func (rm ClientReqMessage) MarshalJSON() ([]byte, error) {
-	filtersJson, err := json.Marshal(rm.Filters)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(fmt.Sprintf("[\"REQ\",\"%s\",%s]", rm.SubscriptionId, filtersJson)), nil
+	panic("Use ToJson")
 }
 
 func (cm ClientCloseMessage) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[\"CLOSE\",\"%s\"]", cm.SubscriptionId)), nil
+	panic("Use ToJson")
+}
+
+func (em ClientEventMessage) ToJson() string {
+	return fmt.Sprintf("[\"EVENT\",%s]", em.Event.ToJson())
+}
+
+func (rm ClientReqMessage) ToJson() string {
+	return fmt.Sprintf("[\"REQ\",\"%s\",%s]",
+		rm.SubscriptionId, rm.Filters.ToJson())
+}
+
+func (cm ClientCloseMessage) ToJson() string {
+	return fmt.Sprintf("[\"CLOSE\",\"%s\"]", cm.SubscriptionId)
 }
 
