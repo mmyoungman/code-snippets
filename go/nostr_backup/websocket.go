@@ -17,15 +17,16 @@ func Connect(server string) *websocket.Conn {
 	return conn
 }
 
-func ReceiveMessages(conn *websocket.Conn, receivedMessage chan string, done chan bool) {
+func ReceiveMessages(conn *websocket.Conn, receivedMessage chan string, done chan error) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				done <- true
+				done <- nil
 				return
 			}
 			log.Println("ReceiveMessages() error: ", err)
+			done <- err
 			return
 		}
 

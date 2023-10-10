@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,7 +57,7 @@ func main() {
 	conn := Connect("nostr.mom")
 
 	receivedMessage := make(chan string)
-	receivedMessagesDone := make(chan bool)
+	receivedMessagesDone := make(chan error)
 
 	go ReceiveMessages(conn, receivedMessage, receivedMessagesDone)
 
@@ -140,10 +139,11 @@ end:
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 	select {
-	case <-receivedMessagesDone:
-		fmt.Println("Exiting successfully")
+	case err := <-receivedMessagesDone:
+		if err != nil {
+			log.Fatal("receivedMessages exited with error: ", err)
+		}
 	case <-time.After(10 * time.Second):
-		fmt.Println("recievedMessages didn't close after 10 seconds")
-		os.Exit(1)
+		log.Fatal("recievedMessages didn't close after 10 seconds")
 	}
 }
