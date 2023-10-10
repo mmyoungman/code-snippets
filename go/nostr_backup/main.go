@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -58,9 +58,9 @@ func main() {
 	conn := Connect("nostr.mom")
 
 	receivedMessage := make(chan string)
+	receivedMessagesDone := make(chan bool)
 
-	go ReceiveMessages(conn, receivedMessage)
-	defer conn.Close()
+	go ReceiveMessages(conn, receivedMessage, receivedMessagesDone)
 
 	err := conn.WriteMessage(websocket.TextMessage, []byte(clientReqJson))
 	if err != nil {
@@ -136,11 +136,14 @@ func main() {
 	}
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
-	fmt.Println("Press Enter to quit")
-	in := bufio.NewReader(os.Stdin)
-	_, err = in.ReadString('\n')
-	if err != nil {
-		log.Println(err)
-		return
+	_ = conn.WriteMessage(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	select {
+	case <-receivedMessagesDone:
+		fmt.Println("Exiting successfully")
+	case <-time.After(10 * time.Second):
+		fmt.Println("recievedMessages didn't close after 10 seconds")
+		os.Exit(1)
 	}
 }
