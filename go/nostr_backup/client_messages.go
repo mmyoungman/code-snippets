@@ -30,15 +30,21 @@ func (cm ClientCloseMessage) MarshalJSON() ([]byte, error) {
 }
 
 func (em ClientEventMessage) ToJson() string {
-	return fmt.Sprintf("[\"EVENT\",%s]", em.Event.ToJson())
+	result := fmt.Sprintf("[\"EVENT\",%s]", em.Event.ToJson())
+	DevBuildValidJson(result)
+	return result
 }
 
 func (rm ClientReqMessage) ToJson() string {
-	return fmt.Sprintf("[\"REQ\",\"%s\",%s]",
+	result := fmt.Sprintf("[\"REQ\",\"%s\",%s]",
 		rm.SubscriptionId, rm.Filters.ToJson())
+	DevBuildValidJson(result)
+	return result
 }
 
 func (cm ClientCloseMessage) ToJson() string {
-	return fmt.Sprintf("[\"CLOSE\",\"%s\"]", cm.SubscriptionId)
+	result := fmt.Sprintf("[\"CLOSE\",\"%s\"]", cm.SubscriptionId)
+	DevBuildValidJson(result)
+	return result
 }
 

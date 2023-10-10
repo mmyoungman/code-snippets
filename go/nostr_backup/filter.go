@@ -91,5 +91,7 @@ func (filters Filters) ToJson() string {
 		filter.writeFilter(&result)
 	}
 
+	DevBuildValidJson(result.String())
+
 	return result.String()
 }

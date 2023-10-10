@@ -29,6 +29,8 @@ func (tags Tags) ToJson() string {
 	}
 	result.WriteString("]")
 
+	DevBuildValidJson(result.String())
+
 	return result.String()
 }
 

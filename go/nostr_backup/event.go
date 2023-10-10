@@ -32,8 +32,7 @@ func (event Event) ToJson() string {
 		fmt.Sprintf("\"content\":%s,", DecorateJsonStr(event.Content)))
 	result.WriteString(fmt.Sprintf("\"sig\":\"%s\"}", event.Sig))
 
-	// @MarkFix Dev build only check that JSON is valid (along with all other ToJson
-	// functions
+	DevBuildValidJson(result.String())
 
 	return result.String()
 }
@@ -45,6 +44,8 @@ func GenerateEventId(event Event) string {
 		event.Kind,
 		event.Tags.ToJson(),
 		DecorateJsonStr(event.Content))
+
+	DevBuildValidJson(serializedEvent)
 
 	hash := sha256.Sum256([]byte(serializedEvent))
 	return hex.EncodeToString(hash[:])

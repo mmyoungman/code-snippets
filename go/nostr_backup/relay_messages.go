@@ -63,19 +63,27 @@ func (em RelayNoticeMessage) MarshalJSON() ([]byte, error) {
 }
 
 func (em RelayEventMessage) ToJson() string {
-	return fmt.Sprintf("[\"EVENT\",\"%s\",%s]",
+	result := fmt.Sprintf("[\"EVENT\",\"%s\",%s]",
 		em.SubscriptionId, em.Event.ToJson())
+	DevBuildValidJson(result)
+	return result
 }
 
 func (em RelayEoseMessage) ToJson() string {
-	return fmt.Sprintf("[\"EOSE\",\"%s\"]", em.SubscriptionId)
+	result := fmt.Sprintf("[\"EOSE\",\"%s\"]", em.SubscriptionId)
+	DevBuildValidJson(result)
+	return result
 }
 
 func (om RelayOkMessage) ToJson() string {
-	return fmt.Sprintf("[\"OK\",\"%s\",%t,\"%s\"]",
+	result := fmt.Sprintf("[\"OK\",\"%s\",%t,\"%s\"]",
 		om.EventId, om.Status, om.Message)
+	DevBuildValidJson(result)
+	return result
 }
 
 func (nm RelayNoticeMessage) ToJson() string {
-	return fmt.Sprintf("[\"NOTICE\",\"%s\"]", nm.Message)
+	result := fmt.Sprintf("[\"NOTICE\",\"%s\"]", nm.Message)
+	DevBuildValidJson(result)
+	return result
 }
