@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -53,17 +52,14 @@ func main() {
 	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
 	//conn := Connect("nos.lol")
-	conn := Connect("nostr.mom")
+	conn := WSConnect("nostr.mom")
 
 	receivedMessage := make(chan string)
 	receivedMessagesDone := make(chan error)
 
-	go ReceiveMessages(conn, receivedMessage, receivedMessagesDone)
+	go WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
 
-	err := conn.WriteMessage(websocket.TextMessage, []byte(clientReqJson))
-	if err != nil {
-		log.Fatal(err)
-	}
+	WSWriteMessage(conn, clientReqJson)
 
 	numOfMessages := 0
 	for {
@@ -74,7 +70,7 @@ func main() {
 		switch label {
 		case "EVENT":
 			var eventMessage RelayEventMessage
-			err = UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
+			err := UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -92,7 +88,7 @@ func main() {
 
 		case "OK":
 			var okMessage RelayOkMessage
-			err = UnmarshalJSON(message[0], &okMessage.EventId)
+			err := UnmarshalJSON(message[0], &okMessage.EventId)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -111,7 +107,7 @@ func main() {
 
 		case "EOSE":
 			var eoseMessage RelayEoseMessage
-			err = UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
+			err := UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -121,7 +117,7 @@ func main() {
 
 		case "NOTICE":
 			var noticeMessage RelayNoticeMessage
-			err = UnmarshalJSON(message[0], &noticeMessage.Message)
+			err := UnmarshalJSON(message[0], &noticeMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -135,9 +131,7 @@ func main() {
 	}
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
-	_ = conn.WriteMessage(
-		websocket.CloseMessage,
-		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	WSSendCloseMessage(conn)
 	select {
 	case err := <-receivedMessagesDone:
 		if err != nil {
