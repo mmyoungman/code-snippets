@@ -1,0 +1,2 @@
+- Add sig generation/verification (and wrap dependency)
+- Save new events to a database

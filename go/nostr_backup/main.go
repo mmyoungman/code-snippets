@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -21,14 +20,14 @@ func main() {
 		Tags:      make([]Tag, 0),
 		Content:   "Test!\n❤️‍🔥\"b\\😅  <html>",
 	}
-	event.Id = GenerateEventId(event)
+	event.Id = event.GenerateEventId()
 
 	eventJson := event.ToJson()
 
 	fmt.Printf("Event JSON: %s\n", eventJson)
 
 	var eventStruct Event
-	_ = json.Unmarshal([]byte(eventJson), &eventStruct)
+	_ = UnmarshalJSON([]byte(eventJson), &eventStruct)
 
 	fmt.Println(
 		"eventStruct: ",
@@ -47,7 +46,7 @@ func main() {
 
 	clientReqMessage := ClientReqMessage{
 		SubscriptionId: uuid.New().String(),
-		Filters: filters,
+		Filters:        filters,
 	}
 
 	clientReqJson := clientReqMessage.ToJson()
@@ -68,64 +67,65 @@ func main() {
 
 	numOfMessages := 0
 	for {
-		label, message := ProcessRelayMessage(<-receivedMessage)
+		newMessage := <-receivedMessage
+		label, message := ProcessRelayMessage(newMessage)
 		numOfMessages++
 
 		switch label {
 		case "EVENT":
 			var eventMessage RelayEventMessage
-			err = json.Unmarshal(message[0], &eventMessage.SubscriptionId)
+			err = UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json.Unmarshal(message[1], &eventMessage.Event)
+			err = UnmarshalJSON(message[1], &eventMessage.Event)
 			if err != nil {
 				log.Fatal(err)
 			}
-			generatedEventId := GenerateEventId(eventMessage.Event)
+			generatedEventId := eventMessage.Event.GenerateEventId()
 			if generatedEventId != eventMessage.Event.Id {
 				log.Fatal("Incorrect Id received!")
 			}
-			var eventJson = eventMessage.ToJson()
+			eventJson := eventMessage.ToJson()
 			fmt.Printf("RelayEventMessage: %s\n", eventJson)
 
 		case "OK":
 			var okMessage RelayOkMessage
-			err = json.Unmarshal(message[0], &okMessage.EventId)
+			err = UnmarshalJSON(message[0], &okMessage.EventId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json.Unmarshal(message[1], &okMessage.Status)
+			err = UnmarshalJSON(message[1], &okMessage.Status)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json.Unmarshal(message[2], &okMessage.Message)
+			err = UnmarshalJSON(message[2], &okMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
-			var okJson, _ = json.Marshal(okMessage)
+			okJson := okMessage.ToJson()
 			fmt.Printf("RelayOkMessage: %s\n", okJson)
 
 		case "EOSE":
 			var eoseMessage RelayEoseMessage
-			err = json.Unmarshal(message[0], &eoseMessage.SubscriptionId)
+			err = UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
-			var eoseJson = eoseMessage.ToJson()
+			eoseJson := eoseMessage.ToJson()
 			fmt.Printf("RelayEoseMessage: %s\n", eoseJson)
 			goto end
 
 		case "NOTICE":
 			var noticeMessage RelayNoticeMessage
-			err = json.Unmarshal(message[0], &noticeMessage.Message)
+			err = UnmarshalJSON(message[0], &noticeMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
-			var noticeJson  = noticeMessage.ToJson()
+			noticeJson := noticeMessage.ToJson()
 			fmt.Printf("RelayNoticeMessage: %s\n", noticeJson)
 			goto end
 

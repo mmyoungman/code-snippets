@@ -37,7 +37,7 @@ func (event Event) ToJson() string {
 	return result.String()
 }
 
-func GenerateEventId(event Event) string {
+func (event Event) GenerateEventId() string {
 	serializedEvent := fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
 		event.PubKey,
 		event.CreatedAt,
