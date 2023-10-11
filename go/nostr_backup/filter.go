@@ -17,14 +17,6 @@ type Filter struct {
 
 type Filters []Filter
 
-func (filter Filter) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson with Filters object, not Filter")
-}
-
-func (filters Filters) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
 func (filter Filter) writeFilter(result *strings.Builder) {
 	sectionAdded := false
 	result.WriteString("{")

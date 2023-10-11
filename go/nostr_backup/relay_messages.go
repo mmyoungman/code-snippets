@@ -24,22 +24,6 @@ type RelayNoticeMessage struct {
 	Message string
 }
 
-func (em RelayEventMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
-func (em RelayEoseMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
-func (em RelayOkMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
-func (em RelayNoticeMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
 func (em RelayEventMessage) ToJson() string {
 	result := fmt.Sprintf("[\"EVENT\",\"%s\",%s]",
 		em.SubscriptionId, em.Event.ToJson())

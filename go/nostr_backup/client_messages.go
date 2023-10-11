@@ -17,18 +17,6 @@ type ClientCloseMessage struct {
 	SubscriptionId string
 }
 
-func (em ClientEventMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
-func (rm ClientReqMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
-func (cm ClientCloseMessage) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
 func (em ClientEventMessage) ToJson() string {
 	result := fmt.Sprintf("[\"EVENT\",%s]", em.Event.ToJson())
 	DevBuildValidJson(result)

@@ -17,10 +17,6 @@ type Event struct {
 	Sig       string `json:"sig"`
 }
 
-func (event Event) MarshalJSON() ([]byte, error) {
-	panic("Use ToJson")
-}
-
 func (event Event) ToJson() string {
 	var result strings.Builder
 	result.WriteString(fmt.Sprintf("{\"id\":\"%s\",", event.Id))
