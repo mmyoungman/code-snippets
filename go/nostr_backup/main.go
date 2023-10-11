@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -44,7 +42,7 @@ func main() {
 	}}
 
 	clientReqMessage := ClientReqMessage{
-		SubscriptionId: uuid.New().String(),
+		SubscriptionId: NewUuid(),
 		Filters:        filters,
 	}
 
