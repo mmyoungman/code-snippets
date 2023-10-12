@@ -81,6 +81,12 @@ func main() {
 			if generatedEventId != eventMessage.Event.Id {
 				log.Fatal("Incorrect Id received!")
 			}
+
+			eventHasValidSig := eventMessage.Event.IsSigValid()
+			if !eventHasValidSig {
+				log.Fatal("Event has invalid sig: ",
+					eventMessage.Event.ToJson())
+			}
 			eventJson := eventMessage.ToJson()
 			fmt.Printf("RelayEventMessage: %s\n", eventJson)
 

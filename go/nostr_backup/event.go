@@ -32,13 +32,17 @@ func (event Event) ToJson() string {
 	return result
 }
 
-func (event Event) GenerateEventId() string {
-	serializedEvent := fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
+func (event Event) Serialise() string {
+	return fmt.Sprintf("[0,\"%s\",%d,%d,%s,%s]",
 		event.PubKey,
 		event.CreatedAt,
 		event.Kind,
 		event.Tags.ToJson(),
 		DecorateJsonStr(event.Content))
+}
+
+func (event Event) GenerateEventId() string {
+	serializedEvent := event.Serialise()
 
 	DevBuildValidJson(serializedEvent)
 
