@@ -2,6 +2,7 @@
 - Better error handling
 - Save new events to a database
 - Add sig generation
+- Add key generation
 
 ### To run
 
