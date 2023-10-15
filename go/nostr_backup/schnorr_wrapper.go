@@ -1,34 +1,83 @@
 package main
 
+// #cgo CFLAGS: -I./vendors/secp256k1/src/
+// #cgo CFLAGS: -DENABLE_MODULE_ECDH=1 -DENABLE_MODULE_SCHNORRSIG=1 -DENABLE_MODULE_EXTRAKEYS=1
+// #cgo CFLAGS: -DECMULT_WINDOW_SIZE=15 -DECMULT_GEN_PREC_BIT=4
+// #cgo amd64 CFLAGS: -DUSE_ASM_X86_64=1
+// #include "./vendors/secp256k1/src/secp256k1.c"
+// #include "./vendors/secp256k1/src/precomputed_ecmult.c"
+// #include "./vendors/secp256k1/src/precomputed_ecmult_gen.c"
+import "C"
+
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
-
-	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 )
 
+var context *C.secp256k1_context
+
+func init() {
+	context = C.secp256k1_context_create(C.SECP256K1_CONTEXT_NONE)
+
+	randomize := [32]byte{}
+	n, err := rand.Read(randomize[:])
+	if err != nil || n != len(randomize) {
+		log.Fatal("Failed to generate randomness")
+	}
+
+	randomizePtr := (*C.uchar)(&randomize[0])
+	return_value := C.secp256k1_context_randomize(context, randomizePtr)
+	if return_value != 1 {
+		log.Fatal("Failed to randomize the context")
+	}
+}
+
 func (event Event) IsSigValid() bool {
-	pubKeyHex, err := hex.DecodeString(event.PubKey)
+	pubKey := deserializePubKey(event.PubKey)
+
+	return verifyEventSig(pubKey, event.Sig, event.Serialise())
+}
+
+func deserializePubKey(pubKeyStr string) C.secp256k1_xonly_pubkey {
+	serializedPubKey, err := hex.DecodeString(pubKeyStr)
 	if err != nil {
-		log.Fatal("PubKey not valid hex. From event: ", event.ToJson())
+		log.Fatal("PubKey is not valid hex. ", err)
+	}
+	if len(serializedPubKey) != 32 {
+		log.Fatal("serializedPubKey incorrect len")
 	}
 
-	pubKey, err := schnorr.ParsePubKey(pubKeyHex)
-	if err != nil {
-		log.Fatal("PubKey cannot be parsed. From event: ", event.ToJson())
+	seralizedPubKeyPtr := (*C.uchar)(&serializedPubKey[0])
+
+	var pubKey C.secp256k1_xonly_pubkey
+
+	return_value := C.secp256k1_xonly_pubkey_parse(C.secp256k1_context_static, &pubKey, seralizedPubKeyPtr)
+	if return_value != 1 {
+		log.Fatal("Failed to parse serializedPubKey")
 	}
 
-	sigHex, err := hex.DecodeString(event.Sig)
-	if err != nil {
-		log.Fatal("Sig not valid hex. From event: ", event.ToJson())
-	}
+	return pubKey
+}
 
-	sig, err := schnorr.ParseSignature(sigHex)
+func verifyEventSig(pubKey C.secp256k1_xonly_pubkey, sigStr string, serializedEvent string) bool {
+	signature, err := hex.DecodeString(sigStr)
 	if err != nil {
-		log.Fatal("Sig cannot be parsed. From event: ", event.ToJson())
+		log.Fatal("Sig is not valid hex. ", err)
 	}
+	if len(signature) != 64 {
+		log.Fatal("Sig incorrect len.")
+	}
+	signaturePtr := (*C.uchar)(&signature[0])
 
-	hash := sha256.Sum256([]byte(event.Serialise()))
-	return sig.Verify(hash[:], pubKey)
+	eventHash := sha256.Sum256([]byte(serializedEvent))
+	eventHashPtr := (*C.uchar)(&eventHash[0])
+
+	return_value := C.secp256k1_schnorrsig_verify(context, signaturePtr, eventHashPtr, 32, &pubKey)
+
+	if return_value == 1 {
+		return true
+	}
+	return false
 }
