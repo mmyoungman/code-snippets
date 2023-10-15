@@ -1,12 +1,19 @@
 ### TODO
-- Add sig generation
+- Better error handling
 - Save new events to a database
+- Add sig generation
 
 ### To run
 
-As a dev build:
+First
 ```
 cd path/to/nostr_backup
+git submodule init
+git submodule update
+```
+
+As a dev build:
+```
 go run .
 ```
 
