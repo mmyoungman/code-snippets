@@ -45,7 +45,7 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	result.Scan(&exists)
 	result.Close()
 	if exists {
-		fmt.Println("Id", event.Id, "already in DB")
+		fmt.Println(event.Id, "already in DB")
 		return
 	}
 

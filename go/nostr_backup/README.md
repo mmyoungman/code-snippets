@@ -1,8 +1,9 @@
 ### TODO
 - Better error handling
-- Save new events to a database
+- Better database reading/writing?
 - Add sig generation
 - Add key generation
+- Fetch events from multiple relays
 
 ### To run
 
