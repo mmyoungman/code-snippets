@@ -51,7 +51,7 @@ func (nm RelayNoticeMessage) ToJson() string {
 	return result
 }
 
-func ProcessRelayMessage(messageJson string) (label string, message RawJsonArray) {
+func ProcessRelayMessage(messageJson string) (label string, message json_wrapper.RawJsonArray) {
 	if !json_wrapper.IsValidJson(messageJson) {
 		log.Fatal("Message has invalid JSON", messageJson)
 	}

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"mmyoungman/nostr_backup/schnorr_wrapper"
 )
 
 type Event struct {
@@ -48,4 +49,8 @@ func (event Event) GenerateEventId() string {
 
 	hash := sha256.Sum256([]byte(serializedEvent))
 	return hex.EncodeToString(hash[:])
+}
+
+func (event Event) IsSigValid() bool {
+	return schnorr_wrapper.IsSigValid(event.PubKey, event.Sig, event.Serialise())
 }
