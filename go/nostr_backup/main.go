@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"mmyoungman/nostr_backup/json_wrapper"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func main() {
 	fmt.Printf("Event JSON: %s\n", eventJson)
 
 	var eventStruct Event
-	_ = UnmarshalJSON([]byte(eventJson), &eventStruct)
+	_ = json_wrapper.UnmarshalJSON([]byte(eventJson), &eventStruct)
 
 	fmt.Println(
 		"eventStruct: ",
@@ -68,12 +69,12 @@ func main() {
 		switch label {
 		case "EVENT":
 			var eventMessage RelayEventMessage
-			err := UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
+			err := json_wrapper.UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = UnmarshalJSON(message[1], &eventMessage.Event)
+			err = json_wrapper.UnmarshalJSON(message[1], &eventMessage.Event)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -92,17 +93,17 @@ func main() {
 
 		case "OK":
 			var okMessage RelayOkMessage
-			err := UnmarshalJSON(message[0], &okMessage.EventId)
+			err := json_wrapper.UnmarshalJSON(message[0], &okMessage.EventId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = UnmarshalJSON(message[1], &okMessage.Status)
+			err = json_wrapper.UnmarshalJSON(message[1], &okMessage.Status)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = UnmarshalJSON(message[2], &okMessage.Message)
+			err = json_wrapper.UnmarshalJSON(message[2], &okMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -111,7 +112,7 @@ func main() {
 
 		case "EOSE":
 			var eoseMessage RelayEoseMessage
-			err := UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
+			err := json_wrapper.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -121,7 +122,7 @@ func main() {
 
 		case "NOTICE":
 			var noticeMessage RelayNoticeMessage
-			err := UnmarshalJSON(message[0], &noticeMessage.Message)
+			err := json_wrapper.UnmarshalJSON(message[0], &noticeMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}

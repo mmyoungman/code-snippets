@@ -1,8 +1,8 @@
-package main
+package json_wrapper
 
 import "encoding/json"
 
-type rawJsonArray []json.RawMessage
+type RawJsonArray []json.RawMessage
 
 func IsValidJson(str string) bool {
 	return json.Valid([]byte(str))
