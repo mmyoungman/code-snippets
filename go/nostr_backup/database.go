@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"mmyoungman/nostr_backup/pkg/json"
+	"mmyoungman/nostr_backup/internal/json"
 
 	_ "github.com/mattn/go-sqlite3"
 )
