@@ -1,4 +1,4 @@
-package main
+package uuid_wrapper
 
 import "github.com/google/uuid"
 

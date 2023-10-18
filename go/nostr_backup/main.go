@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"mmyoungman/nostr_backup/json_wrapper"
+	"mmyoungman/nostr_backup/uuid_wrapper"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func main() {
 	}}
 
 	clientReqMessage := ClientReqMessage{
-		SubscriptionId: NewUuid(),
+		SubscriptionId: uuid_wrapper.NewUuid(),
 		Filters:        filters,
 	}
 
