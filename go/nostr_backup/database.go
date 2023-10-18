@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"mmyoungman/nostr_backup/pkg/json"
 
@@ -16,7 +17,7 @@ func DBConnect() *sql.DB {
 
 	query := `
 	CREATE TABLE IF NOT EXISTS Events(
-		id TEXT,
+		id TEXT UNIQUE,
 		pubkey TEXT,
 		created_at UNSIGNED INT(2),
 		kind int,
@@ -35,15 +36,30 @@ func DBConnect() *sql.DB {
 
 func DBInsertEvent(db *sql.DB, event Event) {
 	query := `
+	SELECT count(1) FROM Events
+	WHERE id = ?;`
+
+	result, err := db.Query(query, event.Id)
+	var exists bool
+	result.Next()
+	result.Scan(&exists)
+	result.Close()
+	if exists {
+		fmt.Println("Id", event.Id, "already in DB")
+		return
+	}
+
+	query = `
 	INSERT INTO Events (id, pubkey, created_at, kind, tags, content, sig)
 	VALUES (?, ?, ?, ?, ?, ?, ?);`
 
-	_, err := db.Exec(query, event.Id,
+	_, err = db.Exec(query, event.Id,
 		event.PubKey, event.CreatedAt, event.Kind,
 		event.Tags.ToJson(), DecorateJsonStr(event.Content), event.Sig)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
 
 func DBGetEvents(db *sql.DB) []Event {
@@ -55,8 +71,9 @@ func DBGetEvents(db *sql.DB) []Event {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rows.Close()
 
-	var result []Event = make([]Event, 0)
+	var events []Event = make([]Event, 0)
 	for rows.Next() {
 		var event Event
 		var tags string
@@ -68,8 +85,8 @@ func DBGetEvents(db *sql.DB) []Event {
 		}
 		json.UnmarshalJSON([]byte(tags), event.Tags)
 
-		result = append(result, event)
+		events = append(events, event)
 	}
 
-	return result
+	return events
 }
