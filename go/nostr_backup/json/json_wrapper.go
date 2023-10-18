@@ -1,4 +1,4 @@
-package json_wrapper
+package json
 
 import "encoding/json"
 

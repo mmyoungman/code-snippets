@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"mmyoungman/nostr_backup/schnorr_wrapper"
+	"mmyoungman/nostr_backup/schnorr"
 )
 
 type Event struct {
@@ -52,5 +52,5 @@ func (event Event) GenerateEventId() string {
 }
 
 func (event Event) IsSigValid() bool {
-	return schnorr_wrapper.IsSigValid(event.PubKey, event.Sig, event.Serialise())
+	return schnorr.IsSigValid(event.PubKey, event.Sig, event.Serialise())
 }

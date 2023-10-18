@@ -1,4 +1,4 @@
-package websocket_wrapper
+package websocket
 
 import (
 	"log"

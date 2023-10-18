@@ -2,12 +2,12 @@
 
 package main
 
-import "mmyoungman/nostr_backup/json_wrapper"
+import "mmyoungman/nostr_backup/json"
 
 func UNUSED(x ...interface{}) {}
 
 func DevBuildValidJson(str string) {
-	if !json_wrapper.IsValidJson(str) {
+	if !json.IsValidJson(str) {
 		panic("Json is not valid!")
 	}
 }

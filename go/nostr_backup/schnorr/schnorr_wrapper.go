@@ -1,4 +1,4 @@
-package schnorr_wrapper
+package schnorr
 
 // #cgo CFLAGS: -I../contrib/secp256k1/src/
 // #cgo CFLAGS: -DENABLE_MODULE_ECDH=1 -DENABLE_MODULE_SCHNORRSIG=1 -DENABLE_MODULE_EXTRAKEYS=1

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"mmyoungman/nostr_backup/json_wrapper"
+	"mmyoungman/nostr_backup/json"
 )
 
 type RelayEventMessage struct {
@@ -51,12 +51,12 @@ func (nm RelayNoticeMessage) ToJson() string {
 	return result
 }
 
-func ProcessRelayMessage(messageJson string) (label string, message json_wrapper.RawJsonArray) {
-	if !json_wrapper.IsValidJson(messageJson) {
+func ProcessRelayMessage(messageJson string) (label string, message json.RawJsonArray) {
+	if !json.IsValidJson(messageJson) {
 		log.Fatal("Message has invalid JSON", messageJson)
 	}
 
-	err := json_wrapper.UnmarshalJSON([]byte(messageJson), &message)
+	err := json.UnmarshalJSON([]byte(messageJson), &message)
 	if err != nil {
 		log.Fatal("Could not unmarshal messageJson", err)
 	}
@@ -65,7 +65,7 @@ func ProcessRelayMessage(messageJson string) (label string, message json_wrapper
 		log.Fatal("Relay messages should be an array of at least length 2!", message)
 	}
 
-	err = json_wrapper.UnmarshalJSON(message[0], &label)
+	err = json.UnmarshalJSON(message[0], &label)
 	if err != nil {
 		log.Fatal(err)
 	}

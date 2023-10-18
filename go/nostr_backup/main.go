@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"mmyoungman/nostr_backup/json_wrapper"
-	"mmyoungman/nostr_backup/uuid_wrapper"
-	"mmyoungman/nostr_backup/websocket_wrapper"
+	"mmyoungman/nostr_backup/json"
+	"mmyoungman/nostr_backup/uuid"
+	"mmyoungman/nostr_backup/websocket"
 	"time"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	fmt.Printf("Event JSON: %s\n", eventJson)
 
 	var eventStruct Event
-	_ = json_wrapper.UnmarshalJSON([]byte(eventJson), &eventStruct)
+	_ = json.UnmarshalJSON([]byte(eventJson), &eventStruct)
 
 	fmt.Println(
 		"eventStruct: ",
@@ -45,7 +45,7 @@ func main() {
 	}}
 
 	clientReqMessage := ClientReqMessage{
-		SubscriptionId: uuid_wrapper.NewUuid(),
+		SubscriptionId: uuid.NewUuid(),
 		Filters:        filters,
 	}
 
@@ -53,14 +53,14 @@ func main() {
 	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
 	//conn := Connect("nos.lol")
-	conn := websocket_wrapper.WSConnect("nostr.mom")
+	conn := websocket.WSConnect("nostr.mom")
 
 	receivedMessage := make(chan string)
 	receivedMessagesDone := make(chan error)
 
-	go websocket_wrapper.WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
+	go websocket.WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
 
-	websocket_wrapper.WSWriteMessage(conn, clientReqJson)
+	websocket.WSWriteMessage(conn, clientReqJson)
 
 	numOfMessages := 0
 	for {
@@ -71,12 +71,12 @@ func main() {
 		switch label {
 		case "EVENT":
 			var eventMessage RelayEventMessage
-			err := json_wrapper.UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
+			err := json.UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json_wrapper.UnmarshalJSON(message[1], &eventMessage.Event)
+			err = json.UnmarshalJSON(message[1], &eventMessage.Event)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -95,17 +95,17 @@ func main() {
 
 		case "OK":
 			var okMessage RelayOkMessage
-			err := json_wrapper.UnmarshalJSON(message[0], &okMessage.EventId)
+			err := json.UnmarshalJSON(message[0], &okMessage.EventId)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json_wrapper.UnmarshalJSON(message[1], &okMessage.Status)
+			err = json.UnmarshalJSON(message[1], &okMessage.Status)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			err = json_wrapper.UnmarshalJSON(message[2], &okMessage.Message)
+			err = json.UnmarshalJSON(message[2], &okMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -114,7 +114,7 @@ func main() {
 
 		case "EOSE":
 			var eoseMessage RelayEoseMessage
-			err := json_wrapper.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
+			err := json.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -124,7 +124,7 @@ func main() {
 
 		case "NOTICE":
 			var noticeMessage RelayNoticeMessage
-			err := json_wrapper.UnmarshalJSON(message[0], &noticeMessage.Message)
+			err := json.UnmarshalJSON(message[0], &noticeMessage.Message)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -138,7 +138,7 @@ func main() {
 	}
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
-	websocket_wrapper.WSSendCloseMessage(conn)
+	websocket.WSSendCloseMessage(conn)
 	select {
 	case err := <-receivedMessagesDone:
 		if err != nil {
