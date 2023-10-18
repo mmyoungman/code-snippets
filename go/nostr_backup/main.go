@@ -5,6 +5,7 @@ import (
 	"log"
 	"mmyoungman/nostr_backup/json_wrapper"
 	"mmyoungman/nostr_backup/uuid_wrapper"
+	"mmyoungman/nostr_backup/websocket_wrapper"
 	"time"
 )
 
@@ -52,14 +53,14 @@ func main() {
 	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
 	//conn := Connect("nos.lol")
-	conn := WSConnect("nostr.mom")
+	conn := websocket_wrapper.WSConnect("nostr.mom")
 
 	receivedMessage := make(chan string)
 	receivedMessagesDone := make(chan error)
 
-	go WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
+	go websocket_wrapper.WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
 
-	WSWriteMessage(conn, clientReqJson)
+	websocket_wrapper.WSWriteMessage(conn, clientReqJson)
 
 	numOfMessages := 0
 	for {
@@ -137,7 +138,7 @@ func main() {
 	}
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
-	WSSendCloseMessage(conn)
+	websocket_wrapper.WSSendCloseMessage(conn)
 	select {
 	case err := <-receivedMessagesDone:
 		if err != nil {
