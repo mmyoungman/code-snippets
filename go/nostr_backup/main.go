@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"mmyoungman/nostr_backup/json"
-	"mmyoungman/nostr_backup/uuid"
-	"mmyoungman/nostr_backup/websocket"
+	"mmyoungman/nostr_backup/pkg/json"
+	"mmyoungman/nostr_backup/pkg/uuid"
+	"mmyoungman/nostr_backup/pkg/websocket"
 	"time"
 )
 

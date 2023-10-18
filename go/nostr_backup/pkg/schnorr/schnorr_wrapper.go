@@ -1,12 +1,12 @@
 package schnorr
 
-// #cgo CFLAGS: -I../contrib/secp256k1/src/
+// #cgo CFLAGS: -I../../contrib/secp256k1/src/
 // #cgo CFLAGS: -DENABLE_MODULE_ECDH=1 -DENABLE_MODULE_SCHNORRSIG=1 -DENABLE_MODULE_EXTRAKEYS=1
 // #cgo CFLAGS: -DECMULT_WINDOW_SIZE=15 -DECMULT_GEN_PREC_BIT=4
 // #cgo amd64 CFLAGS: -DUSE_ASM_X86_64=1
-// #include "../contrib/secp256k1/src/secp256k1.c"
-// #include "../contrib/secp256k1/src/precomputed_ecmult.c"
-// #include "../contrib/secp256k1/src/precomputed_ecmult_gen.c"
+// #include "../../contrib/secp256k1/src/secp256k1.c"
+// #include "../../contrib/secp256k1/src/precomputed_ecmult.c"
+// #include "../../contrib/secp256k1/src/precomputed_ecmult_gen.c"
 import "C"
 
 import (

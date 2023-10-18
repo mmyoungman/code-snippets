@@ -2,7 +2,7 @@
 
 package main
 
-import "mmyoungman/nostr_backup/json"
+import "mmyoungman/nostr_backup/pkg/json"
 
 func UNUSED(x ...interface{}) {}
 

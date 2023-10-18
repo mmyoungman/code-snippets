@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"mmyoungman/nostr_backup/json"
+	"mmyoungman/nostr_backup/pkg/json"
 )
 
 type RelayEventMessage struct {
