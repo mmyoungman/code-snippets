@@ -13,31 +13,42 @@ func main() {
 	//npub := "1f0rwg0z2smrkggypqn7gctscevu22z6thch243365xt0tz8fw9uqupzj2x"
 	npubHex := "4bc6e43c4a86c764208104fc8c2e18cb38a50b4bbe2eaac63aa196f588e97178"
 
-	event := Event{
-		PubKey:    npubHex,
-		Kind:      KindTextNote,
-		CreatedAt: 0,
-		Tags:      make([]Tag, 0),
-		Content:   "Test!\n❤️‍🔥\"b\\😅  <html>",
-	}
-	event.Id = event.GenerateEventId()
+	//event := Event{
+	//	PubKey:    npubHex,
+	//	Kind:      KindTextNote,
+	//	CreatedAt: 0,
+	//	Tags:      make([]Tag, 0),
+	//	Content:   "Test!\n❤️‍🔥\"b\\😅  <html>",
+	//}
+	//event.Id = event.GenerateEventId()
 
-	eventJson := event.ToJson()
+	//eventJson := event.ToJson()
 
-	fmt.Printf("Event JSON: %s\n", eventJson)
+	//fmt.Printf("Event JSON: %s\n", eventJson)
 
-	var eventStruct Event
-	_ = json.UnmarshalJSON([]byte(eventJson), &eventStruct)
+	//var eventStruct Event
+	//_ = json.UnmarshalJSON([]byte(eventJson), &eventStruct)
 
-	fmt.Println(
-		"eventStruct: ",
-		eventStruct.Id,
-		eventStruct.PubKey,
-		eventStruct.CreatedAt,
-		eventStruct.Kind,
-		eventStruct.Tags,
-		eventStruct.Content,
-		eventStruct.Sig)
+	//fmt.Println(
+	//	"eventStruct: ",
+	//	eventStruct.Id,
+	//	eventStruct.PubKey,
+	//	eventStruct.CreatedAt,
+	//	eventStruct.Kind,
+	//	eventStruct.Tags,
+	//	eventStruct.Content,
+	//	eventStruct.Sig)
+
+	db := DBConnect()
+	defer db.Close()
+
+	//DBInsertEvent(db, eventStruct)
+
+	//events := DBGetEvents(db)
+
+	//for _, event := range events {
+	//	fmt.Println(event.ToJson())
+	//}
 
 	filters := Filters{{
 		Authors: []string{npubHex},
@@ -90,8 +101,11 @@ func main() {
 				log.Fatal("Event has invalid sig: ",
 					eventMessage.Event.ToJson())
 			}
-			eventJson := eventMessage.ToJson()
-			fmt.Printf("RelayEventMessage: %s\n", eventJson)
+
+			DBInsertEvent(db, eventMessage.Event)
+
+			//eventJson := eventMessage.ToJson()
+			//fmt.Printf("RelayEventMessage: %s\n", eventJson)
 
 		case "OK":
 			var okMessage RelayOkMessage
@@ -139,6 +153,12 @@ func main() {
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
 	websocket.WSSendCloseMessage(conn)
+
+	events := DBGetEvents(db)
+	for _, event := range events {
+		fmt.Println(event.ToJson())
+	}
+
 	select {
 	case err := <-receivedMessagesDone:
 		if err != nil {
