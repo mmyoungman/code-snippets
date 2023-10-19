@@ -11,7 +11,7 @@ func Connect(server string) *websocket.Conn {
 	URL := url.URL{Scheme: "wss", Host: server}
 	conn, _, err := websocket.DefaultDialer.Dial(URL.String(), nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to websocket", server, err)
 	}
 
 	return conn

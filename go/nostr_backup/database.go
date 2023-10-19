@@ -12,7 +12,7 @@ import (
 func DBConnect() *sql.DB {
 	db, err := sql.Open("sqlite3", "./nostr_backup.db")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to open db", err)
 	}
 
 	stm, err := db.Prepare(`
@@ -26,13 +26,13 @@ func DBConnect() *sql.DB {
 		sig TEXT
 	);`)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Invalid SQL prepared to create table", err)
 	}
 	defer stm.Close()
 
 	_, err = stm.Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to execute SQL to create table", err)
 	}
 
 	return db
@@ -43,10 +43,13 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	SELECT count(1) FROM Events
 	WHERE id = ?;`)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Invalid SQL to check for specific event", err)
 	}
 
 	result, err := stm.Query(event.Id)
+	if err != nil {
+		log.Fatal("Failed to execute query to check for event", event.Id, err)
+	}
 	var exists bool
 	result.Next()
 	result.Scan(&exists)
@@ -60,12 +63,15 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	stm, err = db.Prepare(`
 	INSERT INTO Events (id, pubkey, created_at, kind, tags, content, sig)
 	VALUES (?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		log.Fatal("Invalid SQL to insert new event", err)
+	}
 
 	_, err = stm.Exec(event.Id,
 		event.PubKey, event.CreatedAt, event.Kind,
 		event.Tags.ToJson(), DecorateJsonStr(event.Content), event.Sig)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to execute query to insert new event", err)
 	}
 }
 
@@ -74,13 +80,13 @@ func DBGetEvents(db *sql.DB) []Event {
 	SELECT id, pubkey, created_at, kind, tags, content, sig
 	FROM Events;`)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Invalid SQL to select all events", err)
 	}
 	defer stm.Close()
 
 	rows, err := stm.Query()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to execute query to fetch all events", err)
 	}
 	defer rows.Close()
 
@@ -92,7 +98,7 @@ func DBGetEvents(db *sql.DB) []Event {
 		err = rows.Scan(&event.Id, &event.PubKey, &event.CreatedAt,
 		&event.Kind, &tags, &event.Content, &event.Sig)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to read row of event from DB", err)
 		}
 		json.UnmarshalJSON([]byte(tags), event.Tags)
 

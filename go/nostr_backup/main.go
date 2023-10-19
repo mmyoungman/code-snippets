@@ -92,12 +92,12 @@ func main() {
 			var eventMessage RelayEventMessage
 			err := json.UnmarshalJSON(message[0], &eventMessage.SubscriptionId)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayEventMessage.SubscriptionId", err)
 			}
 
 			err = json.UnmarshalJSON(message[1], &eventMessage.Event)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayEventMessage.Event", err)
 			}
 			generatedEventId := eventMessage.Event.GenerateEventId()
 			if generatedEventId != eventMessage.Event.Id {
@@ -119,17 +119,17 @@ func main() {
 			var okMessage RelayOkMessage
 			err := json.UnmarshalJSON(message[0], &okMessage.EventId)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayOkMessage.EventId", err)
 			}
 
 			err = json.UnmarshalJSON(message[1], &okMessage.Status)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayOkMessage.Status", err)
 			}
 
 			err = json.UnmarshalJSON(message[2], &okMessage.Message)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayOkMessage.Message", err)
 			}
 			okJson := okMessage.ToJson()
 			fmt.Printf("RelayOkMessage: %s\n", okJson)
@@ -138,7 +138,7 @@ func main() {
 			var eoseMessage RelayEoseMessage
 			err := json.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
 			eoseJson := eoseMessage.ToJson()
 			fmt.Printf("RelayEoseMessage: %s\n", eoseJson)
@@ -148,7 +148,7 @@ func main() {
 			var noticeMessage RelayNoticeMessage
 			err := json.UnmarshalJSON(message[0], &noticeMessage.Message)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal("Failed to unmarshal RelayNoticeMessage.Message", err)
 			}
 			noticeJson := noticeMessage.ToJson()
 			fmt.Printf("RelayNoticeMessage: %s\n", noticeJson)

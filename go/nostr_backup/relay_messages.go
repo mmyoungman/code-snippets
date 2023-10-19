@@ -67,7 +67,7 @@ func ProcessRelayMessage(messageJson string) (label string, message json.RawJson
 
 	err = json.UnmarshalJSON(message[0], &label)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to unmarshal RelayMessage label", err)
 	}
 
 	return label, message[1:]
