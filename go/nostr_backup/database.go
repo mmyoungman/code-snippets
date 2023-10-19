@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"mmyoungman/nostr_backup/internal/json"
 
@@ -46,19 +45,15 @@ func DBInsertEvent(db *sql.DB, event Event) {
 		log.Fatal("Invalid SQL to check for specific event", err)
 	}
 
-	result, err := stm.Query(event.Id)
-	if err != nil {
-		log.Fatal("Failed to execute query to check for event", event.Id, err)
-	}
 	var exists bool
-	result.Next()
-	result.Scan(&exists)
-	result.Close()
+	err = stm.QueryRow(event.Id).Scan(&exists)
+	stm.Close()
+	if err != nil {
+		log.Fatal("Failed to execute query to check for specific event", event.Id, err)
+	}
 	if exists {
-		fmt.Println(event.Id, "already in DB")
 		return
 	}
-	stm.Close()
 
 	stm, err = db.Prepare(`
 	INSERT INTO Events (id, pubkey, created_at, kind, tags, content, sig)
@@ -66,6 +61,7 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	if err != nil {
 		log.Fatal("Invalid SQL to insert new event", err)
 	}
+	defer stm.Close()
 
 	_, err = stm.Exec(event.Id,
 		event.PubKey, event.CreatedAt, event.Kind,
