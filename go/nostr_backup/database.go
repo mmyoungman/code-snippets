@@ -15,18 +15,22 @@ func DBConnect() *sql.DB {
 		log.Fatal(err)
 	}
 
-	query := `
+	stm, err := db.Prepare(`
 	CREATE TABLE IF NOT EXISTS Events(
 		id TEXT UNIQUE,
 		pubkey TEXT,
 		created_at UNSIGNED INT(2),
-		kind int,
+		kind INT,
 		tags TEXT,
 		content TEXT,
 		sig TEXT
-	);`
+	);`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stm.Close()
 
-	_, err = db.Exec(query)
+	_, err = stm.Exec()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,11 +39,14 @@ func DBConnect() *sql.DB {
 }
 
 func DBInsertEvent(db *sql.DB, event Event) {
-	query := `
+	stm, err := db.Prepare(`
 	SELECT count(1) FROM Events
-	WHERE id = ?;`
+	WHERE id = ?;`)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	result, err := db.Query(query, event.Id)
+	result, err := stm.Query(event.Id)
 	var exists bool
 	result.Next()
 	result.Scan(&exists)
@@ -48,12 +55,13 @@ func DBInsertEvent(db *sql.DB, event Event) {
 		fmt.Println(event.Id, "already in DB")
 		return
 	}
+	stm.Close()
 
-	query = `
+	stm, err = db.Prepare(`
 	INSERT INTO Events (id, pubkey, created_at, kind, tags, content, sig)
-	VALUES (?, ?, ?, ?, ?, ?, ?);`
+	VALUES (?, ?, ?, ?, ?, ?, ?)`)
 
-	_, err = db.Exec(query, event.Id,
+	_, err = stm.Exec(event.Id,
 		event.PubKey, event.CreatedAt, event.Kind,
 		event.Tags.ToJson(), DecorateJsonStr(event.Content), event.Sig)
 	if err != nil {
@@ -63,11 +71,15 @@ func DBInsertEvent(db *sql.DB, event Event) {
 }
 
 func DBGetEvents(db *sql.DB) []Event {
-	query := `
+	stm, err := db.Prepare(`
 	SELECT id, pubkey, created_at, kind, tags, content, sig
-	FROM Events;`
+	FROM Events;`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stm.Close()
 
-	rows, err := db.Query(query)
+	rows, err := stm.Query()
 	if err != nil {
 		log.Fatal(err)
 	}
