@@ -67,7 +67,6 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func DBGetEvents(db *sql.DB) []Event {

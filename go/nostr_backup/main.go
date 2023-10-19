@@ -63,19 +63,27 @@ func main() {
 	clientReqJson := clientReqMessage.ToJson()
 	fmt.Printf("clientReqJson: %s\n", clientReqJson)
 
-	//conn := Connect("nos.lol")
-	conn := websocket.WSConnect("nostr.mom")
+	//conn := websocket.WSConnect("nos.lol")
+	conn := websocket.Connect("nostr.mom")
+	defer conn.Close()
 
 	receivedMessage := make(chan string)
 	receivedMessagesDone := make(chan error)
 
-	go websocket.WSReceieveMessages(conn, receivedMessage, receivedMessagesDone)
+	go websocket.ReceiveMessages(conn, receivedMessage, receivedMessagesDone)
 
-	websocket.WSWriteMessage(conn, clientReqJson)
+	websocket.WriteMessage(conn, clientReqJson)
 
 	numOfMessages := 0
 	for {
-		newMessage := <-receivedMessage
+		var newMessage string
+		select {
+		case newMessage = <-receivedMessage:
+		case <-time.After(10 * time.Second):
+			fmt.Println("No new message received in 10 seconds")
+			goto end
+		}
+		//newMessage := <-receivedMessage
 		label, message := ProcessRelayMessage(newMessage)
 		numOfMessages++
 
@@ -152,12 +160,12 @@ func main() {
 	}
 end:
 	fmt.Println("NumOfMessages: ", numOfMessages)
-	websocket.WSSendCloseMessage(conn)
+	websocket.WriteCloseMessage(conn)
 
-	events := DBGetEvents(db)
-	for _, event := range events {
-		fmt.Println(event.ToJson())
-	}
+	//events := DBGetEvents(db)
+	//for _, event := range events {
+	//	fmt.Println(event.ToJson())
+	//}
 
 	select {
 	case err := <-receivedMessagesDone:
