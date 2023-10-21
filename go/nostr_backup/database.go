@@ -37,7 +37,7 @@ func DBConnect() *sql.DB {
 	return db
 }
 
-func DBInsertEvent(db *sql.DB, event Event) {
+func DBInsertEvent(db *sql.DB, event Event) (eventAdded bool) {
 	stm, err := db.Prepare(`
 	SELECT count(1) FROM Events
 	WHERE id = ?;`)
@@ -52,7 +52,7 @@ func DBInsertEvent(db *sql.DB, event Event) {
 		log.Fatal("Failed to execute query to check for specific event", event.Id, err)
 	}
 	if exists {
-		return
+		return false
 	}
 
 	stm, err = db.Prepare(`
@@ -69,6 +69,8 @@ func DBInsertEvent(db *sql.DB, event Event) {
 	if err != nil {
 		log.Fatal("Failed to execute query to insert new event", err)
 	}
+
+	return true
 }
 
 func DBGetEvents(db *sql.DB) []Event {

@@ -7,7 +7,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func Connect(server string) *websocket.Conn {
+type Connection = *websocket.Conn
+
+func Connect(server string) Connection {
 	URL := url.URL{Scheme: "wss", Host: server}
 	conn, _, err := websocket.DefaultDialer.Dial(URL.String(), nil)
 	if err != nil {
@@ -17,31 +19,30 @@ func Connect(server string) *websocket.Conn {
 	return conn
 }
 
-func ReceiveMessages(conn *websocket.Conn, receivedMessage chan string, done chan error) {
+func ReceiveMessages(conn Connection, messageChan chan string, doneChan chan error) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				done <- nil
+				doneChan <- nil
 				return
 			}
-			log.Println("ReceiveMessages() error: ", err)
-			done <- err
+			doneChan <- err
 			return
 		}
 
-		receivedMessage <- string(message)
+		messageChan <- string(message)
 	}
 }
 
-func WriteMessage(conn *websocket.Conn, message string) {
+func WriteMessage(conn Connection, message string) {
 	err := conn.WriteMessage(websocket.TextMessage, []byte(message))
 	if err != nil {
 		log.Fatal("Failed to write websocket message!", err)
 	}
 }
 
-func WriteCloseMessage(conn *websocket.Conn) {
+func WriteCloseMessage(conn Connection) {
 	err := conn.WriteMessage(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
