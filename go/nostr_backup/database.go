@@ -39,38 +39,22 @@ func DBConnect() *sql.DB {
 
 func DBInsertEvent(db *sql.DB, event Event) (eventsAdded int) {
 	stm, err := db.Prepare(`
-	SELECT count(1) FROM Events
-	WHERE id = ?;`)
-	if err != nil {
-		log.Fatal("Invalid SQL to check for specific event", err)
-	}
-
-	var exists bool
-	err = stm.QueryRow(event.Id).Scan(&exists)
-	stm.Close()
-	if err != nil {
-		log.Fatal("Failed to execute query to check for specific event", event.Id, err)
-	}
-	if exists {
-		return 0
-	}
-
-	stm, err = db.Prepare(`
-	INSERT INTO Events (id, pubkey, created_at, kind, tags, content, sig)
-	VALUES (?, ?, ?, ?, ?, ?, ?)`)
+	INSERT OR IGNORE INTO Events (id, pubkey, created_at, kind, tags, content, sig)
+		VALUES (?, ?, ?, ?, ?, ?, ?);`)
 	if err != nil {
 		log.Fatal("Invalid SQL to insert new event", err)
 	}
 	defer stm.Close()
 
-	_, err = stm.Exec(event.Id,
+	result, err := stm.Exec(event.Id,
 		event.PubKey, event.CreatedAt, event.Kind,
 		event.Tags.ToJson(), DecorateJsonStr(event.Content), event.Sig)
 	if err != nil {
 		log.Fatal("Failed to execute query to insert new event", err)
 	}
 
-	return 1
+	n, _ := result.RowsAffected()
+	return int(n)
 }
 
 func DBGetEvents(db *sql.DB) []Event {
