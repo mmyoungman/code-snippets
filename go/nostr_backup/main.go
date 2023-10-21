@@ -43,7 +43,7 @@ func main() {
 			fmt.Println("No new message received in 5 seconds")
 			goto end
 		}
-		//connection := poolMessage.Connection
+		server := poolMessage.Server
 		label, message := ProcessRelayMessage(poolMessage.Message)
 		numOfMessages++
 
@@ -80,7 +80,7 @@ func main() {
 			if err != nil {
 				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
-			connPool.EoseSubscription(poolMessage.Server, eoseMessage.SubscriptionId)
+			connPool.EoseSubscription(server, eoseMessage.SubscriptionId)
 
 		case "OK":
 			var okMessage RelayOkMessage

@@ -5,7 +5,7 @@
 - Add key generation
 - Add bech32 encoding/decoding
 - Fetch other referenced events?
-- Fetch events from multiple relays
+- Clean up ConnectionPool stuff
 
 ### To run
 
