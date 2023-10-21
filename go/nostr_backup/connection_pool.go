@@ -3,29 +3,29 @@ package main
 import "log"
 
 type ConnectionPoolMessage struct {
-	Server     string
+	Connection *Connection
 	Message    string
 }
 
 type ConnectionPool struct {
-	Connections []Connection
+	Connections [](*Connection)
 	DoneChans   []chan error
 	MessageChan chan ConnectionPoolMessage
 }
 
-func CreateConnectionPool() (*ConnectionPool) {
+func CreateConnectionPool() *ConnectionPool {
 	var connPool ConnectionPool
 	connPool.MessageChan = make(chan ConnectionPoolMessage, 100)
 	return &connPool
 }
 
 func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
-	server string, messageChan chan string, doneChan chan error) {
+	conn *Connection, messageChan chan string, doneChan chan error) {
 	for {
 		select {
 		case newMessage := <-messageChan:
 			cpMessage := ConnectionPoolMessage{
-				Server:     server,
+				Connection: conn,
 				Message:    newMessage,
 			}
 			cpMessageChan <- cpMessage
@@ -40,11 +40,11 @@ func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
 
 func (cp *ConnectionPool) AddConnection(server string) {
 	newConn := Connect(server)
-	cp.Connections = append(cp.Connections, *newConn)
+	cp.Connections = append(cp.Connections, newConn)
 	doneChan := make(chan error)
 	cp.DoneChans = append(cp.DoneChans, doneChan)
 
-	go messageAggregator(cp.MessageChan, server, newConn.MessageChan, doneChan)
+	go messageAggregator(cp.MessageChan, newConn, newConn.MessageChan, doneChan)
 }
 
 func (cp *ConnectionPool) Close() {
