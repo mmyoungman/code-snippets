@@ -13,14 +13,19 @@ type ConnectionPool struct {
 	MessageChan chan ConnectionPoolMessage
 }
 
-func messageAggregator(
-	cpMessageChan chan ConnectionPoolMessage, conn *Connection,
-	messageChan chan string, doneChan chan error) {
+func CreateConnectionPool() (*ConnectionPool) {
+	var connPool ConnectionPool
+	connPool.MessageChan = make(chan ConnectionPoolMessage, 100)
+	return &connPool
+}
+
+func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
+	server string, messageChan chan string, doneChan chan error) {
 	for {
 		select {
 		case newMessage := <-messageChan:
 			cpMessage := ConnectionPoolMessage{
-				Server:     conn.Server,
+				Server:     server,
 				Message:    newMessage,
 			}
 			cpMessageChan <- cpMessage
@@ -39,7 +44,7 @@ func (cp *ConnectionPool) AddConnection(server string) {
 	doneChan := make(chan error)
 	cp.DoneChans = append(cp.DoneChans, doneChan)
 
-	go messageAggregator(cp.MessageChan, newConn, newConn.MessageChan, doneChan)
+	go messageAggregator(cp.MessageChan, server, newConn.MessageChan, doneChan)
 }
 
 func (cp *ConnectionPool) Close() {

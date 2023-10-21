@@ -15,8 +15,7 @@ func main() {
 	db := DBConnect()
 	defer db.Close()
 
-	var connPool ConnectionPool
-	connPool.MessageChan = make(chan ConnectionPoolMessage, 1)
+	connPool := CreateConnectionPool()
 	connPool.AddConnection("nos.lol")
 	connPool.AddConnection("nostr.mom")
 	defer connPool.Close()
