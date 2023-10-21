@@ -2,10 +2,11 @@
 - Better error handling
 - Better database reading/writing/etc
 - Add sig generation
-- Add key generation
+- Add priv/pub key generation
 - Add bech32 encoding/decoding
 - Fetch other referenced events?
-- Clean up ConnectionPool stuff
+- Check ConnectionPool stuff is right
+- Sort out tags -> JSON in `writeFilter`
 
 ### To run
 

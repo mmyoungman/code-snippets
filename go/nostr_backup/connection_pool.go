@@ -20,10 +20,10 @@ func CreateConnectionPool() *ConnectionPool {
 }
 
 func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
-	conn *Connection, messageChan chan string, doneChan chan error) {
+	conn *Connection, doneChan chan error) {
 	for {
 		select {
-		case newMessage := <-messageChan:
+		case newMessage := <-conn.MessageChan:
 			cpMessage := ConnectionPoolMessage{
 				Connection: conn,
 				Message:    newMessage,
@@ -44,7 +44,9 @@ func (cp *ConnectionPool) AddConnection(server string) {
 	doneChan := make(chan error)
 	cp.DoneChans = append(cp.DoneChans, doneChan)
 
-	go messageAggregator(cp.MessageChan, newConn, newConn.MessageChan, doneChan)
+	//assert len(Connections) == len(DoneChans)
+
+	go messageAggregator(cp.MessageChan, newConn, doneChan)
 }
 
 func (cp *ConnectionPool) Close() {
@@ -63,14 +65,16 @@ func (cp *ConnectionPool) CloseConnection(server string) {
 
 			//assert len(Connections) == len(DoneChans)
 
+			// remove connection from pool arrays
 			numConns := len(cp.Connections)
 			cp.Connections[i] = cp.Connections[numConns-1]
 			cp.DoneChans[i] = cp.DoneChans[numConns-1]
 			cp.Connections = cp.Connections[:numConns-1]
 			cp.DoneChans = cp.DoneChans[:numConns-1]
+			return
 		}
 	}
-	log.Fatal("Cannot close connection", server, "as not in connection pool")
+	log.Fatal("Cannot close connection", server, " as not in connection pool")
 }
 
 func (cp *ConnectionPool) CreateSubscriptions(subscriptionId string, filters Filters) {
@@ -87,16 +91,6 @@ func (cp *ConnectionPool) CloseSubscription(server string, subscriptionId string
 		}
 	}
 	log.Fatal("CloseSubscription fail! Could not find subscriptionId", subscriptionId, "for server", server)
-}
-
-func (cp *ConnectionPool) EoseSubscription(server string, subscriptionId string) {
-	for i := range cp.Connections {
-		if cp.Connections[i].Server == server {
-			cp.Connections[i].EoseSubscription(subscriptionId)
-			return
-		}
-	}
-	log.Fatal("EoseSubscription fail! Could not find subscriptionId", subscriptionId, "for server", server)
 }
 
 func (cp *ConnectionPool) HasAllSubsEosed() bool {

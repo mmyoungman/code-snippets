@@ -7,9 +7,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Connection = *websocket.Conn
+type WSConnection = *websocket.Conn
 
-func Connect(server string) Connection {
+func Connect(server string) WSConnection {
 	URL := url.URL{Scheme: "wss", Host: server}
 	conn, _, err := websocket.DefaultDialer.Dial(URL.String(), nil)
 	if err != nil {
@@ -19,7 +19,7 @@ func Connect(server string) Connection {
 	return conn
 }
 
-func ReceiveMessages(conn Connection, messageChan chan string, doneChan chan error) {
+func ReceiveMessages(conn WSConnection, messageChan chan string, doneChan chan error) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -35,14 +35,14 @@ func ReceiveMessages(conn Connection, messageChan chan string, doneChan chan err
 	}
 }
 
-func WriteMessage(conn Connection, message string) {
+func WriteMessage(conn WSConnection, message string) {
 	err := conn.WriteMessage(websocket.TextMessage, []byte(message))
 	if err != nil {
 		log.Fatal("Failed to write websocket message!", err)
 	}
 }
 
-func WriteCloseMessage(conn Connection) {
+func WriteCloseMessage(conn WSConnection) {
 	err := conn.WriteMessage(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))

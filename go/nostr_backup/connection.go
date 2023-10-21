@@ -8,7 +8,7 @@ import (
 
 type Connection struct {
 	Server        string
-	WSConnection  websocket.Connection
+	WSConnection  websocket.WSConnection
 	Subscriptions []Subscription
 	MessageChan   chan string
 	DoneChan      chan error
@@ -28,6 +28,8 @@ func Connect(server string) *Connection {
 }
 
 func (conn *Connection) Close() {
+	// WriteCloseMessage results in DoneChan sending data from websocket.ReceiveMessages,
+	// which confirms that the connection's ReceiveMessages goroutine has finished
 	websocket.WriteCloseMessage(conn.WSConnection)
 	select {
 	case err := <-conn.DoneChan:

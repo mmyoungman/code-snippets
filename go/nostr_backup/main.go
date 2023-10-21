@@ -16,8 +16,10 @@ func main() {
 	defer db.Close()
 
 	connPool := CreateConnectionPool()
-	connPool.AddConnection("nos.lol")
-	connPool.AddConnection("nostr.mom")
+	servers := []string{"nos.lol", "nostr.mom"}
+	for _, server := range servers {
+		connPool.AddConnection(server)
+	}
 	defer connPool.Close()
 
 	filters := Filters{{
@@ -80,6 +82,7 @@ func main() {
 				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
 			connection.EoseSubscription(eoseMessage.SubscriptionId)
+			connPool.CloseConnection(connection.Server)
 
 		case "OK":
 			var okMessage RelayOkMessage
