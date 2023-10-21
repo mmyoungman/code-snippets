@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"mmyoungman/nostr_backup/internal/json"
+	"mmyoungman/nostr_backup/internal/uuid"
 	"time"
 )
 
@@ -14,32 +15,36 @@ func main() {
 	db := DBConnect()
 	defer db.Close()
 
-	//connection := Connect("nos.lol")
-	connection := Connect("nostr.mom")
-	defer connection.Close()
+	var connPool ConnectionPool
+	connPool.MessageChan = make(chan ConnectionPoolMessage, 1)
+	connPool.AddConnection("nos.lol")
+	connPool.AddConnection("nostr.mom")
+	defer connPool.Close()
 
 	filters := Filters{{
 		Authors: []string{npubHex},
 		//Kinds: []int{KindTextNote,KindRepost,KindReaction},
 	}}
-	connection.CreateSubscription(filters)
+	connPool.CreateSubscriptions(uuid.NewUuid(), filters)
 
 	numOfMessages := 0
 	numOfEventMessages := 0
 	numOfNewEvents := 0
+
 	for {
-		if connection.HasAllSubsEosed() {
+		if connPool.HasAllSubsEosed() {
 			goto end
 		}
 
-		var newMessage string
+		var poolMessage ConnectionPoolMessage
 		select {
-		case newMessage = <-connection.MessageChan:
-		case <-time.After(10 * time.Second):
-			fmt.Println("No new message received in 10 seconds")
+		case poolMessage = <-connPool.MessageChan:
+		case <-time.After(5 * time.Second):
+			fmt.Println("No new message received in 5 seconds")
 			goto end
 		}
-		label, message := ProcessRelayMessage(newMessage)
+		//connection := poolMessage.Connection
+		label, message := ProcessRelayMessage(poolMessage.Message)
 		numOfMessages++
 
 		switch label {
@@ -67,10 +72,15 @@ func main() {
 					eventMessage.Event.ToJson())
 			}
 
-			eventInserted := DBInsertEvent(db, eventMessage.Event)
-			if eventInserted {
-				numOfNewEvents++
+			numOfNewEvents += DBInsertEvent(db, eventMessage.Event)
+
+		case "EOSE":
+			var eoseMessage RelayEoseMessage
+			err := json.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
+			if err != nil {
+				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
+			connPool.EoseSubscription(poolMessage.Server, eoseMessage.SubscriptionId)
 
 		case "OK":
 			var okMessage RelayOkMessage
@@ -90,14 +100,6 @@ func main() {
 			}
 			okJson := okMessage.ToJson()
 			fmt.Printf("RelayOkMessage: %s\n", okJson)
-
-		case "EOSE":
-			var eoseMessage RelayEoseMessage
-			err := json.UnmarshalJSON(message[0], &eoseMessage.SubscriptionId)
-			if err != nil {
-				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
-			}
-			connection.EoseSubscription(eoseMessage.SubscriptionId)
 
 		case "NOTICE":
 			var noticeMessage RelayNoticeMessage

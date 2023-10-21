@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"mmyoungman/nostr_backup/internal/uuid"
 	"mmyoungman/nostr_backup/internal/websocket"
 	"time"
 )
@@ -17,6 +16,7 @@ type Connection struct {
 
 func Connect(server string) *Connection {
 	var conn Connection
+	conn.Server = server
 	conn.WSConnection = websocket.Connect(server)
 	conn.MessageChan = make(chan string)
 	conn.DoneChan = make(chan error)
@@ -34,16 +34,16 @@ func (conn *Connection) Close() {
 		if err != nil {
 			log.Fatal("receivedMessages exited with error: ", err)
 		}
-	case <-time.After(10 * time.Second):
-		log.Fatal("recievedMessages didn't close after 10 seconds")
+	case <-time.After(5 * time.Second):
+		log.Fatal("recievedMessages didn't close after 5 seconds")
 	}
 	close(conn.MessageChan)
 	close(conn.DoneChan)
 }
 
-func (conn *Connection) CreateSubscription(filters Filters) (subscriptionId string) {
+func (conn *Connection) CreateSubscription(subscriptionId string, filters Filters) {
 	var subscription Subscription
-	subscription.Id = uuid.NewUuid()
+	subscription.Id = subscriptionId
 	subscription.Filters = filters
 
 	clientReqMessage := ClientReqMessage{
@@ -55,8 +55,6 @@ func (conn *Connection) CreateSubscription(filters Filters) (subscriptionId stri
 
 	conn.Subscriptions = append(
 		conn.Subscriptions, subscription)
-
-	return subscriptionId
 }
 
 func (conn *Connection) HasAllSubsEosed() bool {
@@ -80,8 +78,9 @@ func (conn *Connection) EoseSubscription(subscriptionId string) {
 func (conn *Connection) CloseSubscription(subscriptionId string) {
 	for i := range conn.Subscriptions {
 		if conn.Subscriptions[i].Id == subscriptionId {
-			conn.Subscriptions[i] = conn.Subscriptions[len(conn.Subscriptions)-1]
-			conn.Subscriptions = conn.Subscriptions[:len(conn.Subscriptions)-1]
+			numSubscriptions := len(conn.Subscriptions)
+			conn.Subscriptions[i] = conn.Subscriptions[numSubscriptions-1]
+			conn.Subscriptions = conn.Subscriptions[:numSubscriptions-1]
 			goto closeWSConnection
 		}
 	}
