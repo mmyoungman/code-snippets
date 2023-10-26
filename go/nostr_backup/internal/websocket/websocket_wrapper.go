@@ -7,6 +7,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type WSConnectionMessage struct {
+	Server string
+	Message string
+}
+
 type WSConnection = *websocket.Conn
 
 func Connect(server string) WSConnection {
@@ -19,7 +24,7 @@ func Connect(server string) WSConnection {
 	return conn
 }
 
-func ReceiveMessages(conn WSConnection, messageChan chan string, doneChan chan error) {
+func ReceiveMessages(server string, conn WSConnection, messageChan chan WSConnectionMessage, doneChan chan error) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -31,7 +36,7 @@ func ReceiveMessages(conn WSConnection, messageChan chan string, doneChan chan e
 			return
 		}
 
-		messageChan <- string(message)
+		messageChan <- WSConnectionMessage{Server: server, Message: string(message)}
 	}
 }
 

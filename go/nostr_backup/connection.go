@@ -10,19 +10,20 @@ type Connection struct {
 	Server        string
 	WSConnection  websocket.WSConnection
 	Subscriptions []Subscription
-	MessageChan   chan string
 	DoneChan      chan error
 }
 
-func Connect(server string) *Connection {
+func Connect(server string, messageChan chan websocket.WSConnectionMessage) *Connection {
 	var conn Connection
 	conn.Server = server
 	conn.WSConnection = websocket.Connect(server)
-	conn.MessageChan = make(chan string)
 	conn.DoneChan = make(chan error)
 
-	go websocket.ReceiveMessages(conn.WSConnection,
-		conn.MessageChan, conn.DoneChan)
+	go websocket.ReceiveMessages(
+		server,
+		conn.WSConnection,
+		messageChan,
+		conn.DoneChan)
 
 	return &conn
 }
@@ -39,7 +40,6 @@ func (conn *Connection) Close() {
 	case <-time.After(5 * time.Second):
 		log.Fatal("recievedMessages didn't close after 5 seconds")
 	}
-	close(conn.MessageChan)
 	close(conn.DoneChan)
 }
 
@@ -66,15 +66,6 @@ func (conn *Connection) HasAllSubsEosed() bool {
 		}
 	}
 	return true
-}
-
-func (conn *Connection) EoseSubscription(subscriptionId string) {
-	for i := range conn.Subscriptions {
-		if conn.Subscriptions[i].Id == subscriptionId {
-			conn.Subscriptions[i].Eose = true
-		}
-	}
-
 }
 
 func (conn *Connection) CloseSubscription(subscriptionId string) {

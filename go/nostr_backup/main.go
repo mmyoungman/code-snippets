@@ -5,6 +5,7 @@ import (
 	"log"
 	"mmyoungman/nostr_backup/internal/json"
 	"mmyoungman/nostr_backup/internal/uuid"
+	"mmyoungman/nostr_backup/internal/websocket"
 	"time"
 )
 
@@ -37,14 +38,15 @@ func main() {
 			goto end
 		}
 
-		var connListMessage ConnectionListMessage
+		var connListMessage websocket.WSConnectionMessage
 		select {
 		case connListMessage = <-connList.MessageChan:
 		case <-time.After(5 * time.Second):
 			fmt.Println("No new message received in 5 seconds")
 			goto end
 		}
-		connection := connListMessage.Connection
+		//connection := connListMessage.WSConnection
+		server := connListMessage.Server
 		label, message := ProcessRelayMessage(connListMessage.Message)
 		numOfMessages++
 
@@ -81,8 +83,8 @@ func main() {
 			if err != nil {
 				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
-			connection.EoseSubscription(eoseMessage.SubscriptionId)
-			connList.CloseConnection(connection.Server)
+			connList.EoseSubscription(server, eoseMessage.SubscriptionId)
+			connList.CloseConnection(server)
 
 		case "OK":
 			var okMessage RelayOkMessage

@@ -1,6 +1,9 @@
 package main
 
-import "log"
+import (
+	"log"
+	"mmyoungman/nostr_backup/internal/websocket"
+)
 
 type ConnectionListMessage struct {
 	Connection *Connection
@@ -10,48 +13,23 @@ type ConnectionListMessage struct {
 type ConnectionList struct {
 	Connections [](*Connection)
 	DoneChans   []chan error
-	MessageChan chan ConnectionListMessage
+	MessageChan chan websocket.WSConnectionMessage
 }
 
 func CreateConnectionList() *ConnectionList {
 	var connList ConnectionList
-	connList.MessageChan = make(chan ConnectionListMessage, 100)
+	connList.MessageChan = make(chan websocket.WSConnectionMessage, 100)
 	return &connList
 }
 
-func messageAggregator(cpMessageChan chan ConnectionListMessage,
-	conn *Connection, doneChan chan error) {
-	for {
-		select {
-		case newMessage := <-conn.MessageChan:
-			cpMessage := ConnectionListMessage{
-				Connection: conn,
-				Message:    newMessage,
-			}
-			cpMessageChan <- cpMessage
-		case err := <-doneChan:
-			if err != nil {
-				log.Fatal("messageAggregator failed", err)
-			}
-			return
-		}
-	}
-}
-
-func (cp *ConnectionList) AddConnection(server string) {
-	newConn := Connect(server)
-	cp.Connections = append(cp.Connections, newConn)
-	doneChan := make(chan error)
-	cp.DoneChans = append(cp.DoneChans, doneChan)
-
-	//assert len(Connections) == len(DoneChans)
-
-	go messageAggregator(cp.MessageChan, newConn, doneChan)
+func (cl *ConnectionList) AddConnection(server string) {
+	newConn := Connect(server, cl.MessageChan)
+	newConn.Server = server
+	cl.Connections = append(cl.Connections, newConn)
 }
 
 func (cp *ConnectionList) Close() {
 	for i := range cp.Connections {
-		cp.DoneChans[i] <- nil
 		cp.Connections[i].Close()
 	}
 	close(cp.MessageChan)
@@ -60,7 +38,6 @@ func (cp *ConnectionList) Close() {
 func (cp *ConnectionList) CloseConnection(server string) {
 	for i := range cp.Connections {
 		if cp.Connections[i].Server == server {
-			cp.DoneChans[i] <- nil
 			cp.Connections[i].Close()
 
 			//assert len(Connections) == len(DoneChans)
@@ -68,9 +45,7 @@ func (cp *ConnectionList) CloseConnection(server string) {
 			// remove connection from connList arrays
 			numConns := len(cp.Connections)
 			cp.Connections[i] = cp.Connections[numConns-1]
-			cp.DoneChans[i] = cp.DoneChans[numConns-1]
 			cp.Connections = cp.Connections[:numConns-1]
-			cp.DoneChans = cp.DoneChans[:numConns-1]
 			return
 		}
 	}
@@ -90,7 +65,22 @@ func (cp *ConnectionList) CloseSubscription(server string, subscriptionId string
 			return
 		}
 	}
-	log.Fatal("CloseSubscription fail! Could not find subscriptionId", subscriptionId, "for server", server)
+	log.Fatal("CloseSubscription fail! Could not find subscriptionId", subscriptionId, " for server", server)
+}
+
+func (cp *ConnectionList) EoseSubscription(server string, subscriptionId string) {
+	for i := range cp.Connections {
+		if cp.Connections[i].Server == server {
+			for j := range cp.Connections[i].Subscriptions {
+				if cp.Connections[i].Subscriptions[j].Id == subscriptionId {
+					cp.Connections[i].Subscriptions[j].Eose = true
+					return
+				}
+			}
+			log.Fatal("EoseSubscription fail! Could not find subscription", subscriptionId, " for server", server)
+		}
+	}
+	log.Fatal("EoseSubscription fail! Could not find server", server)
 }
 
 func (cp *ConnectionList) HasAllSubsEosed() bool {
