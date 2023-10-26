@@ -2,29 +2,29 @@ package main
 
 import "log"
 
-type ConnectionPoolMessage struct {
+type ConnectionListMessage struct {
 	Connection *Connection
 	Message    string
 }
 
-type ConnectionPool struct {
+type ConnectionList struct {
 	Connections [](*Connection)
 	DoneChans   []chan error
-	MessageChan chan ConnectionPoolMessage
+	MessageChan chan ConnectionListMessage
 }
 
-func CreateConnectionPool() *ConnectionPool {
-	var connPool ConnectionPool
-	connPool.MessageChan = make(chan ConnectionPoolMessage, 100)
-	return &connPool
+func CreateConnectionList() *ConnectionList {
+	var connList ConnectionList
+	connList.MessageChan = make(chan ConnectionListMessage, 100)
+	return &connList
 }
 
-func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
+func messageAggregator(cpMessageChan chan ConnectionListMessage,
 	conn *Connection, doneChan chan error) {
 	for {
 		select {
 		case newMessage := <-conn.MessageChan:
-			cpMessage := ConnectionPoolMessage{
+			cpMessage := ConnectionListMessage{
 				Connection: conn,
 				Message:    newMessage,
 			}
@@ -38,7 +38,7 @@ func messageAggregator(cpMessageChan chan ConnectionPoolMessage,
 	}
 }
 
-func (cp *ConnectionPool) AddConnection(server string) {
+func (cp *ConnectionList) AddConnection(server string) {
 	newConn := Connect(server)
 	cp.Connections = append(cp.Connections, newConn)
 	doneChan := make(chan error)
@@ -49,7 +49,7 @@ func (cp *ConnectionPool) AddConnection(server string) {
 	go messageAggregator(cp.MessageChan, newConn, doneChan)
 }
 
-func (cp *ConnectionPool) Close() {
+func (cp *ConnectionList) Close() {
 	for i := range cp.Connections {
 		cp.DoneChans[i] <- nil
 		cp.Connections[i].Close()
@@ -57,7 +57,7 @@ func (cp *ConnectionPool) Close() {
 	close(cp.MessageChan)
 }
 
-func (cp *ConnectionPool) CloseConnection(server string) {
+func (cp *ConnectionList) CloseConnection(server string) {
 	for i := range cp.Connections {
 		if cp.Connections[i].Server == server {
 			cp.DoneChans[i] <- nil
@@ -65,7 +65,7 @@ func (cp *ConnectionPool) CloseConnection(server string) {
 
 			//assert len(Connections) == len(DoneChans)
 
-			// remove connection from pool arrays
+			// remove connection from connList arrays
 			numConns := len(cp.Connections)
 			cp.Connections[i] = cp.Connections[numConns-1]
 			cp.DoneChans[i] = cp.DoneChans[numConns-1]
@@ -74,16 +74,16 @@ func (cp *ConnectionPool) CloseConnection(server string) {
 			return
 		}
 	}
-	log.Fatal("Cannot close connection", server, " as not in connection pool")
+	log.Fatal("Cannot close connection", server, " as not in connection list")
 }
 
-func (cp *ConnectionPool) CreateSubscriptions(subscriptionId string, filters Filters) {
+func (cp *ConnectionList) CreateSubscriptions(subscriptionId string, filters Filters) {
 	for i := range cp.Connections {
 		cp.Connections[i].CreateSubscription(subscriptionId, filters)
 	}
 }
 
-func (cp *ConnectionPool) CloseSubscription(server string, subscriptionId string) {
+func (cp *ConnectionList) CloseSubscription(server string, subscriptionId string) {
 	for i := range cp.Connections {
 		if cp.Connections[i].Server == server {
 			cp.Connections[i].CloseSubscription(subscriptionId)
@@ -93,7 +93,7 @@ func (cp *ConnectionPool) CloseSubscription(server string, subscriptionId string
 	log.Fatal("CloseSubscription fail! Could not find subscriptionId", subscriptionId, "for server", server)
 }
 
-func (cp *ConnectionPool) HasAllSubsEosed() bool {
+func (cp *ConnectionList) HasAllSubsEosed() bool {
 	for i := range cp.Connections {
 		if !cp.Connections[i].HasAllSubsEosed() {
 			return false

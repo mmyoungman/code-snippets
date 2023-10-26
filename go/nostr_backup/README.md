@@ -5,7 +5,7 @@
 - Add priv/pub key generation
 - Add bech32 encoding/decoding
 - Fetch other referenced events?
-- Check ConnectionPool stuff is right
+- Check ConnectionList stuff is right
 - Sort out tags -> JSON in `writeFilter`
 
 ### To run

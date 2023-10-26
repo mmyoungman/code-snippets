@@ -27,7 +27,7 @@ func ReceiveMessages(conn WSConnection, messageChan chan string, doneChan chan e
 				doneChan <- nil
 				return
 			}
-			doneChan <- err
+			doneChan <- err // @MarkFix we don't necessarily handle this?
 			return
 		}
 

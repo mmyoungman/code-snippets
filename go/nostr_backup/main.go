@@ -15,37 +15,37 @@ func main() {
 	db := DBConnect()
 	defer db.Close()
 
-	connPool := CreateConnectionPool()
+	connList := CreateConnectionList()
 	servers := []string{"nos.lol", "nostr.mom"}
 	for _, server := range servers {
-		connPool.AddConnection(server)
+		connList.AddConnection(server)
 	}
-	defer connPool.Close()
+	defer connList.Close()
 
 	filters := Filters{{
 		Authors: []string{npubHex},
 		//Kinds: []int{KindTextNote,KindRepost,KindReaction},
 	}}
-	connPool.CreateSubscriptions(uuid.NewUuid(), filters)
+	connList.CreateSubscriptions(uuid.NewUuid(), filters)
 
 	numOfMessages := 0
 	numOfEventMessages := 0
 	numOfNewEvents := 0
 
 	for {
-		if connPool.HasAllSubsEosed() {
+		if connList.HasAllSubsEosed() {
 			goto end
 		}
 
-		var poolMessage ConnectionPoolMessage
+		var connListMessage ConnectionListMessage
 		select {
-		case poolMessage = <-connPool.MessageChan:
+		case connListMessage = <-connList.MessageChan:
 		case <-time.After(5 * time.Second):
 			fmt.Println("No new message received in 5 seconds")
 			goto end
 		}
-		connection := poolMessage.Connection
-		label, message := ProcessRelayMessage(poolMessage.Message)
+		connection := connListMessage.Connection
+		label, message := ProcessRelayMessage(connListMessage.Message)
 		numOfMessages++
 
 		switch label {
@@ -82,7 +82,7 @@ func main() {
 				log.Fatal("Failed to unmarshal RelayEoseMessage.SubscriptionId", err)
 			}
 			connection.EoseSubscription(eoseMessage.SubscriptionId)
-			connPool.CloseConnection(connection.Server)
+			connList.CloseConnection(connection.Server)
 
 		case "OK":
 			var okMessage RelayOkMessage

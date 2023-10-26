@@ -83,14 +83,13 @@ func (conn *Connection) CloseSubscription(subscriptionId string) {
 			numSubscriptions := len(conn.Subscriptions)
 			conn.Subscriptions[i] = conn.Subscriptions[numSubscriptions-1]
 			conn.Subscriptions = conn.Subscriptions[:numSubscriptions-1]
-			goto closeWSConnection
+
+			clientCloseMessage := ClientCloseMessage{
+				SubscriptionId: subscriptionId,
+			}
+			websocket.WriteMessage(conn.WSConnection, clientCloseMessage.ToJson())
+			return
 		}
 	}
 	log.Fatal("Subscription not found", subscriptionId, "for connection", conn.Server)
-
-closeWSConnection:
-	clientCloseMessage := ClientCloseMessage{
-		SubscriptionId: subscriptionId,
-	}
-	websocket.WriteMessage(conn.WSConnection, clientCloseMessage.ToJson())
 }
