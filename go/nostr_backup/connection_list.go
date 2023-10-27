@@ -12,7 +12,6 @@ type ConnectionListMessage struct {
 
 type ConnectionList struct {
 	Connections [](*Connection)
-	DoneChans   []chan error
 	MessageChan chan websocket.WSConnectionMessage
 }
 

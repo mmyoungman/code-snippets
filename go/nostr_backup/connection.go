@@ -9,21 +9,16 @@ import (
 type Connection struct {
 	Server        string
 	WSConnection  websocket.WSConnection
-	Subscriptions []Subscription
 	DoneChan      chan error
+	Subscriptions []Subscription
 }
 
 func Connect(server string, messageChan chan websocket.WSConnectionMessage) *Connection {
 	var conn Connection
 	conn.Server = server
-	conn.WSConnection = websocket.Connect(server)
 	conn.DoneChan = make(chan error)
 
-	go websocket.ReceiveMessages(
-		server,
-		conn.WSConnection,
-		messageChan,
-		conn.DoneChan)
+	conn.WSConnection = websocket.Connect(server, messageChan, conn.DoneChan)
 
 	return &conn
 }

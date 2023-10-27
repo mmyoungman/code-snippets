@@ -8,23 +8,25 @@ import (
 )
 
 type WSConnectionMessage struct {
-	Server string
+	Server  string
 	Message string
 }
 
 type WSConnection = *websocket.Conn
 
-func Connect(server string) WSConnection {
+func Connect(server string, messageChan chan WSConnectionMessage, doneChan chan error) WSConnection {
 	URL := url.URL{Scheme: "wss", Host: server}
 	conn, _, err := websocket.DefaultDialer.Dial(URL.String(), nil)
 	if err != nil {
 		log.Fatal("Failed to connect to websocket", server, err)
 	}
 
+	go receiveMessages(server, conn, messageChan, doneChan)
+
 	return conn
 }
 
-func ReceiveMessages(server string, conn WSConnection, messageChan chan WSConnectionMessage, doneChan chan error) {
+func receiveMessages(server string, conn WSConnection, messageChan chan WSConnectionMessage, doneChan chan error) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -32,7 +34,7 @@ func ReceiveMessages(server string, conn WSConnection, messageChan chan WSConnec
 				doneChan <- nil
 				return
 			}
-			doneChan <- err // @MarkFix we don't necessarily handle this?
+			doneChan <- err
 			return
 		}
 

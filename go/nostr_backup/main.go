@@ -45,7 +45,6 @@ func main() {
 			fmt.Println("No new message received in 5 seconds")
 			goto end
 		}
-		//connection := connListMessage.WSConnection
 		server := connListMessage.Server
 		label, message := ProcessRelayMessage(connListMessage.Message)
 		numOfMessages++
