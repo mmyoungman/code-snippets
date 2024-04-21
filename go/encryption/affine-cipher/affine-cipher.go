@@ -14,7 +14,7 @@ func mod(value int, mod int) int {
 }
 
 func main() {
-	fmt.Println("Enter plain text you wish to encrypt:")
+	fmt.Println("Enter text you wish to encrypt:")
 
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
@@ -24,15 +24,26 @@ func main() {
 
 	for i, char := range text {
 		if (char < 'a' || char > 'z') && char != ' ' {
-			fmt.Printf("Plain text contains character '%c' at index %d\n", char, i)
-			fmt.Println("Plain text should only contain alphabetic characters and spaces")
+			fmt.Printf("Text contains character '%c' at index %d\n", char, i)
+			fmt.Println("Text should only contain alphabetic characters and spaces")
 			os.Exit(1)
 		}
 	}
 
-	cipherText := ""
 	key1 := -19
 	key2 := -21
+
+	key1_inverse := 0
+	for i := 0; i < 26; i++ {
+		if mod(key1 * i, 26) == 1 {
+			key1_inverse = i
+			break
+		}
+	}
+
+	cipherText := ""
+
+	// encrypt
 	{
 		strBuilder := strings.Builder{}
 		for i := 0; i < len(text); i++ {
@@ -47,22 +58,15 @@ func main() {
 		fmt.Printf("Key '%d/%d': %s\n", key1, key2, cipherText)
 	}
 
-	fmt.Println("And now to decrypt...")
-
+	// decrypt
 	strBuilder := strings.Builder{}
 	for i := 0; i < len(cipherText); i++ {
 		if text[i] == ' ' {
 			strBuilder.WriteString(string(cipherText[i]))
 			continue
 		}
-		newChar := mod(int(cipherText[i] - 'a') - key2, 26)
-		for j := 0; j < 26; j++ {
-			if mod(key1 * j, 26) == 1 {
-				newChar = mod(newChar * j, 26)
-				strBuilder.WriteString(string(newChar + 'a'))
-				break
-			}
-		}
+		newChar := mod((int(cipherText[i] - 'a') - key2) * key1_inverse, 26)
+		strBuilder.WriteString(string(newChar + 'a'))
 	}
 	fmt.Println(strBuilder.String())
 }
