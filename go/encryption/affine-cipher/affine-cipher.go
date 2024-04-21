@@ -5,6 +5,14 @@ import "bufio"
 import "os"
 import "strings"
 
+func mod(value int, mod int) int {
+	value = value % mod
+	if value < 0 {
+		value += mod
+	}
+	return value
+}
+
 func main() {
 	fmt.Println("Enter plain text you wish to encrypt:")
 
@@ -23,8 +31,8 @@ func main() {
 	}
 
 	cipherText := ""
-	key1 := 1
-	key2 := 1
+	key1 := -19
+	key2 := -21
 	{
 		strBuilder := strings.Builder{}
 		for i := 0; i < len(text); i++ {
@@ -32,7 +40,7 @@ func main() {
 				strBuilder.WriteString(string(text[i]))
 				continue
 			}
-			newChar := (((int(text[i]) - 'a') * key1) + key2) % 26
+			newChar := mod(((int(text[i]) - 'a') * key1) + key2, 26)
 			strBuilder.WriteString(string(newChar + 'a'))
 		}
 		cipherText = strBuilder.String()
@@ -47,13 +55,10 @@ func main() {
 			strBuilder.WriteString(string(cipherText[i]))
 			continue
 		}
-		newChar := (int(cipherText[i] - 'a') - key2) % 26
-		if newChar < 0 {
-			newChar = newChar + 26
-		}
+		newChar := mod(int(cipherText[i] - 'a') - key2, 26)
 		for j := 0; j < 26; j++ {
-			if ((key1 * j) % 26) == 1 {
-				newChar = (newChar * j) % 26
+			if mod(key1 * j, 26) == 1 {
+				newChar = mod(newChar * j, 26)
 				strBuilder.WriteString(string(newChar + 'a'))
 				break
 			}
