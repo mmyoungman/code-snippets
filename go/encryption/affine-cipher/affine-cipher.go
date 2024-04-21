@@ -47,8 +47,17 @@ func main() {
 			strBuilder.WriteString(string(cipherText[i]))
 			continue
 		}
-		newChar := ((int(cipherText[i] - 'a') - key2) % 26) / key1
-		strBuilder.WriteString(string(newChar + 'a'))
+		newChar := (int(cipherText[i] - 'a') - key2) % 26
+		if newChar < 0 {
+			newChar = newChar + 26
+		}
+		for j := 0; j < 26; j++ {
+			if ((key1 * j) % 26) == 1 {
+				newChar = (newChar * j) % 26
+				strBuilder.WriteString(string(newChar + 'a'))
+				break
+			}
+		}
 	}
 	fmt.Println(strBuilder.String())
 }
