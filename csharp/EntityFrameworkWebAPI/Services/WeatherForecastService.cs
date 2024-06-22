@@ -1,42 +1,59 @@
+using System.Net;
 using EntityFrameworkWebAPI.Models;
 using EntityFrameworkWebAPI.Models.Requests;
-using EntityFrameworkWebAPI.Services.Interfaces;
-using EntityFrameworkWebAPI.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using EntityFrameworkWebAPI.Exceptions;
 
 namespace EntityFrameworkWebAPI.Services;
 
-public class WeatherForecastService : IWeatherForecastService
+public interface IWeatherForecastService
 {
-    private readonly WeatherForecastContext _context;
+    Task<IEnumerable<WeatherForecast>> List();
 
-    public WeatherForecastService(
-        WeatherForecastContext context)
-    {
-        _context = context;
-    }
+    Task<WeatherForecast> Get(int id);
+
+    Task<WeatherForecast> Create(WeatherForecastRequest request);
+}
+
+public class WeatherForecastService(
+    IActionContextAccessor actionContextAccessor,
+    WeatherForecastContext context
+        ) : IWeatherForecastService
+{
+    private readonly IActionContextAccessor _actionContextAccessor = actionContextAccessor;
+    private readonly WeatherForecastContext _context = context;
 
     public async Task<IEnumerable<WeatherForecast>> List()
     {
         return await _context.Forecasts.ToArrayAsync();
     }
 
-    public async Task<Result<WeatherForecast>> Get(int id)
+    public async Task<WeatherForecast> Get(int id)
     {
         var result = await _context.Forecasts
             .SingleOrDefaultAsync(forecast => forecast.WeatherForecastId == id);
 
-        // should be in WeatherForecastRequest#Validate, but
-        // simulating need for multiple errors to be generated in a service
+        if (id == 2)
+        {
+            var modelState = _actionContextAccessor.ActionContext.ModelState;
+            modelState.AddModelError("YouDidThisWrong", "You did this wrong!");
+            modelState.AddModelError("YouDidThisWrong", "And this!");
+            modelState.AddModelError("YouDidThatWrong", "You did that wrong!");
+
+            throw new HttpValidationResponseException(HttpStatusCode.BadRequest);
+        }
+
         if (id > 3)
         {
-            return ResultError.InvalidForecastId;
+            throw new HttpResponseException(HttpStatusCode.BadRequest, "Invalid forecast id");
         }
 
         if (result == null)
         {
-            return ResultError.ForecastNotFound;
+            throw new HttpResponseException(HttpStatusCode.NotFound, "Forecast not found");
         }
+
 
         return result;
     }

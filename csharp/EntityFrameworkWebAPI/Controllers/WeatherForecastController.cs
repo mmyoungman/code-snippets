@@ -1,8 +1,6 @@
-using System.Net;
 using EntityFrameworkWebAPI.Models;
 using EntityFrameworkWebAPI.Models.Requests;
-using EntityFrameworkWebAPI.Services.Interfaces;
-using EntityFrameworkWebAPI.Utils;
+using EntityFrameworkWebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EntityFrameworkWebAPI.Controllers;
@@ -26,11 +24,9 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet("weather-forecast/{id:int}")]
-    public async Task<ActionResult<WeatherForecast>> Get(int id)
+    public async Task<WeatherForecast> Get(int id)
     {
-        var result = await _weatherForecastService.Get(id);
-
-        return Result<WeatherForecast>.GetResponse(result, HttpContext, ProblemDetailsFactory);
+        return await _weatherForecastService.Get(id);
     }
 
     [HttpPost("weather-forecast")]
