@@ -5,6 +5,7 @@ namespace EntityFrameworkWebAPI.Services;
 public interface IValidationService
 {
     void AddModelError(string key, string errorMessage);
+    bool ModelIsValid();
 }
 
 public class ValidationService : IValidationService
@@ -19,5 +20,10 @@ public class ValidationService : IValidationService
     public void AddModelError(string key, string errorMessage)
     {
         _actionContextAccessor.ActionContext!.ModelState.AddModelError(key, errorMessage);
+    }
+
+    public bool ModelIsValid()
+    {
+        return _actionContextAccessor.ActionContext!.ModelState.IsValid;
     }
 }

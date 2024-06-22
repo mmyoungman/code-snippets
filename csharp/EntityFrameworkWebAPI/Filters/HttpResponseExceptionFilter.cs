@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace EntityFrameworkWebAPI.ExceptionFilters;
+namespace EntityFrameworkWebAPI.Filters;
 
 public class HttpResponseExceptionFilter : IActionFilter, IOrderedFilter
 {
     private readonly ProblemDetailsFactory _problemDetailsFactory;
-
     public int Order => int.MaxValue - 10;
     
     public HttpResponseExceptionFilter(
@@ -22,12 +21,12 @@ public class HttpResponseExceptionFilter : IActionFilter, IOrderedFilter
         if (context.Exception is HttpResponseException exception)
         {
             if (context.ModelState.IsValid) // i.e. no ValidationService.AddModelError calls
-                {
+            {
                 var problemDetails = _problemDetailsFactory.CreateProblemDetails(
                     context.HttpContext,
                     statusCode: (int)exception.StatusCode,
-                    detail: exception.Detail
-                );
+                    detail: exception.Detail);
+
                 context.Result = new ObjectResult(problemDetails);
 
                 context.ExceptionHandled = true;

@@ -1,5 +1,5 @@
 using EntityFrameworkWebAPI;
-using EntityFrameworkWebAPI.ExceptionFilters;
+using EntityFrameworkWebAPI.Filters;
 using EntityFrameworkWebAPI.Services;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
@@ -14,6 +14,7 @@ services
 services.AddControllers(options => 
 {
     options.Filters.Add<HttpResponseExceptionFilter>();
+    options.Filters.Add<InvalidModelStateFilter>();
 });
 
 services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // for ValidationService

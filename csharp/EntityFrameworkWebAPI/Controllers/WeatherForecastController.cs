@@ -7,6 +7,7 @@ namespace EntityFrameworkWebAPI.Controllers;
 [ApiController]
 [Route("api")]
 public class WeatherForecastController : ControllerBase
+
 {
     private readonly IWeatherForecastService _weatherForecastService;
 
