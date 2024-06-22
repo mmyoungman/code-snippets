@@ -1,4 +1,3 @@
-using EntityFrameworkWebAPI.Models;
 using EntityFrameworkWebAPI.Models.Requests;
 using EntityFrameworkWebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +29,7 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpPost("weather-forecast")]
-    public async Task<ActionResult<WeatherForecastView>> Create(WeatherForecastRequest request)
+    public async Task<WeatherForecastView> Create(WeatherForecastRequest request)
     {
         return await _weatherForecastService.Create(request);
     }
