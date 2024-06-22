@@ -18,19 +18,19 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet("weather-forecast")]
-    public async Task<IEnumerable<WeatherForecast>> List()
+    public async Task<IEnumerable<WeatherForecastView>> List()
     {
         return await _weatherForecastService.List();
     }
 
     [HttpGet("weather-forecast/{id:int}")]
-    public async Task<WeatherForecast> Get(int id)
+    public async Task<WeatherForecastView> Get(int id)
     {
         return await _weatherForecastService.Get(id);
     }
 
     [HttpPost("weather-forecast")]
-    public async Task<ActionResult<WeatherForecast>> Create(WeatherForecastRequest request)
+    public async Task<ActionResult<WeatherForecastView>> Create(WeatherForecastRequest request)
     {
         return await _weatherForecastService.Create(request);
     }

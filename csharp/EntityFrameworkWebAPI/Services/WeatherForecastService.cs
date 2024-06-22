@@ -2,63 +2,62 @@ using System.Net;
 using EntityFrameworkWebAPI.Models;
 using EntityFrameworkWebAPI.Models.Requests;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using EntityFrameworkWebAPI.Exceptions;
 
 namespace EntityFrameworkWebAPI.Services;
 
 public interface IWeatherForecastService
 {
-    Task<IEnumerable<WeatherForecast>> List();
+    Task<IEnumerable<WeatherForecastView>> List();
 
-    Task<WeatherForecast> Get(int id);
+    Task<WeatherForecastView> Get(int id);
 
-    Task<WeatherForecast> Create(WeatherForecastRequest request);
+    Task<WeatherForecastView> Create(WeatherForecastRequest request);
 }
 
 public class WeatherForecastService(
-    IActionContextAccessor actionContextAccessor,
-    WeatherForecastContext context
+    WeatherForecastContext context,
+    IValidationService validationService
         ) : IWeatherForecastService
 {
-    private readonly IActionContextAccessor _actionContextAccessor = actionContextAccessor;
     private readonly WeatherForecastContext _context = context;
+    private readonly IValidationService _validationService = validationService;
 
-    public async Task<IEnumerable<WeatherForecast>> List()
+    public async Task<IEnumerable<WeatherForecastView>> List()
     {
-        return await _context.Forecasts.ToArrayAsync();
+        return await _context.Forecasts
+            .Select(f => f.AsView())
+            .ToArrayAsync();
     }
 
-    public async Task<WeatherForecast> Get(int id)
+    public async Task<WeatherForecastView> Get(int id)
     {
-        var result = await _context.Forecasts
+        var forecast = await _context.Forecasts
             .SingleOrDefaultAsync(forecast => forecast.WeatherForecastId == id);
 
         if (id == 2)
         {
-            var modelState = _actionContextAccessor.ActionContext.ModelState;
-            modelState.AddModelError("YouDidThisWrong", "You did this wrong!");
-            modelState.AddModelError("YouDidThisWrong", "And this!");
-            modelState.AddModelError("YouDidThatWrong", "You did that wrong!");
-
-            throw new HttpValidationResponseException(HttpStatusCode.BadRequest);
-        }
-
-        if (id > 3)
-        {
             throw new HttpResponseException(HttpStatusCode.BadRequest, "Invalid forecast id");
         }
 
-        if (result == null)
+        if (id == 3)
+        {
+            _validationService.AddModelError("YouDidThisWrong", "You did this wrong!");
+            _validationService.AddModelError("YouDidThisWrong", "And this!");
+            _validationService.AddModelError("YouDidThatWrong", "You did that wrong!");
+
+            throw new HttpResponseException(HttpStatusCode.BadRequest);
+        }
+
+        if (forecast == null)
         {
             throw new HttpResponseException(HttpStatusCode.NotFound, "Forecast not found");
         }
 
-
-        return result;
+        return forecast.AsView();
     }
 
-    public async Task<WeatherForecast> Create(WeatherForecastRequest request)
+    public async Task<WeatherForecastView> Create(WeatherForecastRequest request)
     {
         var newForecast = new WeatherForecast
         {
@@ -69,6 +68,6 @@ public class WeatherForecastService(
         await _context.Forecasts.AddAsync(newForecast);
         await _context.SaveChangesAsync();
 
-        return newForecast;
+        return newForecast.AsView();
     }
 }

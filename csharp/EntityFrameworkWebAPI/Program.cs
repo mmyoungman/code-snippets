@@ -10,12 +10,14 @@ var services = builder.Services;
 services
     .AddEntityFrameworkSqlite()
     .AddDbContext<WeatherForecastContext>();
+
 services.AddControllers(options => 
 {
     options.Filters.Add<HttpResponseExceptionFilter>();
-    options.Filters.Add<HttpValidationResponseExceptionFilter>();
 });
-services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // for ModelStateDictionary injection
+
+services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // for ValidationService
+services.AddSingleton<IValidationService, ValidationService>();
 
 services.AddTransient<IWeatherForecastService, WeatherForecastService>();
 
@@ -24,6 +26,6 @@ if (app.Environment.IsDevelopment())
 {
 }
 app.UseHttpsRedirection();
-app.UseAuthorization();
+//app.UseAuthorization();
 app.MapControllers();
 app.Run();

@@ -17,16 +17,3 @@ public class HttpResponseException : Exception
 
     public ModelStateDictionary? ModelState { get; }
 }
-
-public class HttpValidationResponseException : Exception
-{
-    public HttpValidationResponseException(HttpStatusCode statusCode, string? detail = null)
-    {
-        this.StatusCode = statusCode;
-        this.Detail = detail;
-    }
-
-    public HttpStatusCode StatusCode { get; }
-
-    public string? Detail { get; }
-}
