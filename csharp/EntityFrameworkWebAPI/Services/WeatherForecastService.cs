@@ -62,7 +62,7 @@ public class WeatherForecastService(
         var newForecast = new WeatherForecast
         {
             Date = DateTime.UtcNow,
-            TemperatureC = request.TemperatureC,
+            TemperatureC = request.TemperatureC!.Value,
             Summary = request.Summary,
         };
         await _context.Forecasts.AddAsync(newForecast);
