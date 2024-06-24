@@ -14,7 +14,7 @@ services
 services.AddControllers(options => 
 {
     options.Filters.Add<HttpResponseExceptionFilter>();
-    options.Filters.Add<InvalidModelStateFilter>();
+    options.Filters.Add<ModelStateValidationFilter>();
 });
 
 services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // for ValidationService

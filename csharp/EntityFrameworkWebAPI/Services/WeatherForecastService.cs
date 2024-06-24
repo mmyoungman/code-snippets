@@ -33,10 +33,6 @@ public class WeatherForecastService(
         var forecast = await _context.Forecasts
             .SingleOrDefaultAsync(forecast => forecast.WeatherForecastId == id);
 
-        if (id == 2)
-            throw new HttpResponseException(HttpStatusCode.BadRequest, "Invalid forecast id");
-            // Exception caught by HttpResponseExceptionFilter
-
         if (id == 3)
         {
             Random random = new();
@@ -55,10 +51,11 @@ public class WeatherForecastService(
             if(random.Next() < Int32.MaxValue / 2)
                 _validationService.AddModelError("YouDidThatWrong", "And that!");
             
-            // If you can continue execution after errors, they will still be caught by InvalidModelStateFilter
+            // If you can continue execution after errors, they will still be caught by ModelStateValidationFilter
         }
 
         if (forecast == null)
+            // Will be caught by HttpResponseExceptionFilter
             throw new HttpResponseException(HttpStatusCode.NotFound, "Forecast not found");
 
         return forecast.AsView();

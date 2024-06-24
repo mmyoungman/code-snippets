@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace EntityFrameworkWebAPI.Filters;
 
-public class InvalidModelStateFilter : IActionFilter, IOrderedFilter
+public class ModelStateValidationFilter : IActionFilter, IOrderedFilter
 {
     private readonly ProblemDetailsFactory _problemDetailsFactory;
     public int Order => int.MaxValue - 10;
 
-    public InvalidModelStateFilter(
+    public ModelStateValidationFilter(
         ProblemDetailsFactory problemDetailsFactory)
         => _problemDetailsFactory = problemDetailsFactory;
 
@@ -18,6 +18,9 @@ public class InvalidModelStateFilter : IActionFilter, IOrderedFilter
 
     public void OnActionExecuted(ActionExecutedContext context) 
     {
+        // This filter is only necessary because ApiControllerAttribute's 
+        // ModelStateInvalidFilter only executes if context.Result == null (I believe).
+        // We want to return a BadRequest any time there is a model state error.
         if (!context.ModelState.IsValid)
         {
             var validationProblemDetails = _problemDetailsFactory.CreateValidationProblemDetails(
