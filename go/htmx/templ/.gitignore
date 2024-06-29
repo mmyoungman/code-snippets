@@ -1,2 +1,6 @@
 bin
 tmp
+node_modules
+public/styles.css
+**/*_templ.go
+**/*_templ.txt

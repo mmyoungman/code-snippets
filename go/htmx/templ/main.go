@@ -19,6 +19,8 @@ func main() {
 
 	router := chi.NewMux()
 
+	router.Handle("/*", public())
+
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
 	listenAddr := os.Getenv("LISTEN_ADDR")
