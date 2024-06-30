@@ -4,9 +4,7 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"net/http"
-	"os"
 )
 
 //go:embed public

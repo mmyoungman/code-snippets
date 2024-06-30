@@ -23,11 +23,14 @@ func main() {
 
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
-	listenAddr := os.Getenv("LISTEN_ADDR")
+	listenPort := os.Getenv("LISTEN_PORT")
+	//if listenPort == "" {
+	//	log.Fatal("LISTEN_PORT not defined in .env file")
+	//}
 
-	slog.Info("Starting http server", "listenAddr", listenAddr)
+	slog.Info("Starting http server", "listenPort", listenPort)
 
-	err := http.ListenAndServe(listenAddr, router)
+	err := http.ListenAndServe(":" + listenPort, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}

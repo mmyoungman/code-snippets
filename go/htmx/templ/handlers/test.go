@@ -5,6 +5,6 @@ import (
 	"net/http"
 )
 
-func HandleTest(w http.ResponseWriter, r *http.Request) error {
-	return Render(w, r, test.Index())
+func HandleTest(writer http.ResponseWriter, request *http.Request) error {
+	return test.Index().Render(request.Context(), writer)
 }
