@@ -1,6 +1,18 @@
+### Dependencies
+
+- make
+- go
+- npm
+- installed go binaries to be in $PATH (for templ, air)
+
 ### To install
 
 `make install`
+
+### To build
+
+`cp .env-example .env`
+`make build`
 
 ### For watch / hot reloading
 

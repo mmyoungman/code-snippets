@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"mmyoungman/templ/database"
 	"mmyoungman/templ/handlers"
 	"mmyoungman/templ/utils"
 	"net/http"
@@ -16,6 +17,9 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal(err)
 	}
+
+	db := database.DBConnect()
+	defer db.Close()
 
 	router := chi.NewMux()
 
