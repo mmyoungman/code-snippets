@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-func HandleIndex(writer http.ResponseWriter, request *http.Request) error {
-	return pages.Index().Render(request.Context(), writer)
+func HandleHome(writer http.ResponseWriter, request *http.Request) error {
+	return pages.Home().Render(request.Context(), writer)
 }
 
 func HandleLogin(writer http.ResponseWriter, request *http.Request) error {

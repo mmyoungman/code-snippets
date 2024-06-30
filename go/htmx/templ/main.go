@@ -19,16 +19,19 @@ func main() {
 
 	router := chi.NewMux()
 
+	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())
 
-	router.Get("/", handlers.Make(handlers.HandleIndex))
+	// pages
+	router.Get("/", handlers.Make(handlers.HandleHome))
 	router.Get("/login", handlers.Make(handlers.HandleLogin))
 	router.Get("/sign-up", handlers.Make(handlers.HandleSignUp))
 
+	// partials
+	router.Get("/test", handlers.Make(handlers.HandleTest))
+
 	listenPort := utils.Getenv("LISTEN_PORT")
-
 	slog.Info("Starting http server", "listenPort", listenPort)
-
 	err := http.ListenAndServe(":" + listenPort, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)

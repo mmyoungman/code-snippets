@@ -1,0 +1,13 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ Home() {
+	@layouts.Base("Home") {
+		<div class="text-xl text-blue-500">Home page</div>
+		<hr />
+		<div hx-get="/test" class="bg-center">
+			<button class="btn">Click this!</button>
+		</div>
+	}
+}
