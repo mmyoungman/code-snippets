@@ -5,8 +5,8 @@ import (
 	"log"
 	"log/slog"
 	"mmyoungman/templ/handlers"
+	"mmyoungman/templ/utils"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -21,12 +21,11 @@ func main() {
 
 	router.Handle("/*", public())
 
-	router.Get("/test", handlers.Make(handlers.HandleTest))
+	router.Get("/", handlers.Make(handlers.HandleIndex))
+	router.Get("/login", handlers.Make(handlers.HandleLogin))
+	router.Get("/sign-up", handlers.Make(handlers.HandleSignUp))
 
-	listenPort := os.Getenv("LISTEN_PORT")
-	//if listenPort == "" {
-	//	log.Fatal("LISTEN_PORT not defined in .env file")
-	//}
+	listenPort := utils.Getenv("LISTEN_PORT")
 
 	slog.Info("Starting http server", "listenPort", listenPort)
 
@@ -36,4 +35,3 @@ func main() {
 	}
 	fmt.Println("http server stopped")
 }
-
