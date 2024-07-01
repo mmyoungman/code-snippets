@@ -14,7 +14,8 @@ templ Nav() {
 					<a>link</a>
 				</div>
 				<div class="flex space-x-3">
-					@components.Button("Login", "/login")
+					@components.Button("Login", "/auth?provider=openid-connect")
+					@components.Button("Log out", "/auth/logout?provider=openid-connect")
 					@components.Button("Sign up", "/sign-up")
 				</div>
 			</div>

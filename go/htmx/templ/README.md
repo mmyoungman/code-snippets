@@ -12,7 +12,16 @@
 ### To build
 
 `cp .env-example .env`
+
+Update .env as necessary
+
 `make build`
+
+### To configure keycloak realm etc.
+
+Use this guide `https://www.keycloak.org/getting-started/getting-started-docker`
+
+@MarkFix Save keycloak config to json and config it on starting the docker container
 
 ### For watch / hot reloading
 

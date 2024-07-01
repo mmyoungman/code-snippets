@@ -19,7 +19,8 @@ clean:
 	@rm public/styles.css
 
 watch:
-	${MAKE} -j4 watch-tailwindcss watch-templ watch-go
+	#${MAKE} -j4 watch-tailwindcss watch-templ watch-go
+	${MAKE} -j4 watch-tailwindcss watch-go
 
 watch-tailwindcss:
 	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css --watch
