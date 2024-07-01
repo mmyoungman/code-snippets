@@ -3,7 +3,7 @@
 - make
 - go
 - npm
-- installed go binaries to be in $PATH (for templ, air)
+- go binaries templ and air to be in $PATH (Found in $HOME/go/bin on my linux machine)
 
 ### To install
 
@@ -19,6 +19,10 @@
 `make watch`
 
 ### For VSCode
+
+Install `Go` plugin
+
+Install `templ-vscode` plugin
 
 Install `HTMX Attributes` for htmx autocompletion
 

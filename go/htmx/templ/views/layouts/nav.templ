@@ -1,25 +1,23 @@
 package layouts
 
-import (
-    "mmyoungman/templ/views/components"
-)
+import "mmyoungman/templ/views/components"
 
 templ Nav() {
-    <div class="border-b border-gray-800 py-2">
-        <div class="container mx-auto">
-            <div class="flex justify-between">
-                <a href="/">Templ test</a>
-                <div class="flex space-x-3 text-blue-500">
-                    <a>link</a>
-                    <a>link</a>
-                    <a>link</a>
-                    <a>link</a>
-                </div>
-                <div class="flex space-x-3">
-                    @components.Button("Login", "/login")
-                    @components.Button("Sign up", "/sign-up")
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="border-b border-gray-800 py-2">
+		<div class="container mx-auto">
+			<div class="flex justify-between">
+				<a href="/">Templ test</a>
+				<div class="flex space-x-3 text-blue-500">
+					<a>link</a>
+					<a>link</a>
+					<a>link</a>
+					<a>link</a>
+				</div>
+				<div class="flex space-x-3">
+					@components.Button("Login", "/login")
+					@components.Button("Sign up", "/sign-up")
+				</div>
+			</div>
+		</div>
+	</div>
 }
