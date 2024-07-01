@@ -4,6 +4,7 @@ install:
 	@npm install
 
 run: build
+	@docker-compose up keycloak
 	@./bin/app
 
 build:
@@ -19,14 +20,14 @@ clean:
 	@rm public/styles.css
 
 watch:
-	#${MAKE} -j4 watch-tailwindcss watch-templ watch-go
+#	${MAKE} -j4 watch-tailwindcss watch-templ watch-go
 	${MAKE} -j4 watch-tailwindcss watch-go
 
 watch-tailwindcss:
 	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css --watch
 
-watch-templ:
-	@templ generate -watch -proxy=http://localhost:${LISTEN_PORT}
+#watch-templ:
+#	@templ generate -watch -proxy=${LISTEN_PORT}
 
 watch-go:
 	@air

@@ -23,9 +23,6 @@ var userTemplate = `
 `
 
 func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	//provider := chi.URLParam(r, "provider")
-	//r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
-
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		fmt.Fprintln(w, err)
@@ -33,13 +30,11 @@ func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
 	}
 	t, _ := template.New("foo").Parse(userTemplate)
 	t.Execute(w, user)
+
 	return nil
 }
 
 func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	//provider := chi.URLParam(r, "provider")
-	//r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
-
 	gothic.Logout(w, r)
 	w.Header().Set("Location", "/")
 	w.WriteHeader(http.StatusTemporaryRedirect)
@@ -47,9 +42,6 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 }
 
 func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
-	//provider := chi.URLParam(r, "provider")
-	//r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
-
 	// try to get the user without re-authenticating
 	if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
 		t, _ := template.New("foo").Parse(userTemplate)

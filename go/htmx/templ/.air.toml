@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/app"
-  cmd = "templ generate & go build -o ./tmp/app ."
+  cmd = "docker-compose up keycloak & templ generate & go build -o ./tmp/app ."
 
   delay = 20
   exclude_dir = ["bin", "tmp", "node-modules"]

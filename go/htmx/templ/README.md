@@ -17,15 +17,17 @@ Update .env as necessary
 
 `make build`
 
-### To configure keycloak realm etc.
-
-Use this guide `https://www.keycloak.org/getting-started/getting-started-docker`
-
-@MarkFix Save keycloak config to json and config it on starting the docker container
-
 ### For watch / hot reloading
 
 `make watch`
+
+### To configure keycloak realm etc.
+
+Keycloak should use the backup templ.json found in ./keycloak/, but if you need to recreate it:
+
+- Use this guide for setting up a new realm/client/users/etc. `https://www.keycloak.org/getting-started/getting-started-docker`
+- Once setup to your satisfaction, then `docker exec -it keycloak /bin/bash` and then inside the container `./opt/keycloak/bin/kc.sh export --file /opt/keycloak/data/import/templ-realm.json --realm templ-realm`
+- The new backup file should be in the ./keycloak directory
 
 ### For VSCode
 

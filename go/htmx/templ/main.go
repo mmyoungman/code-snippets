@@ -31,7 +31,7 @@ func main() {
 	router.Handle("/*", public())
 
 	// @MarkFix auth routes
-	store := sessions.NewCookieStore([]byte("sessionkey"))
+	store := sessions.NewCookieStore([]byte(utils.Getenv("SESSION_KEY")))
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
 	store.Options.Secure = false
@@ -39,9 +39,9 @@ func main() {
 	gothic.Store = store
 
 	openidConnect, err := openidConnect.New(
-		utils.Getenv("KEYCLOAK_CLIENTID"),
-		utils.Getenv("KEYCLOAK_OIDC_SECRET"),
-		"http://localhost:3000/auth/callback?provider=openid-connect",
+		utils.Getenv("KEYCLOAK_CLIENT_ID"),
+		utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
+		utils.Getenv("PUBLIC_URL") + "/auth/callback?provider=openid-connect",
 		utils.Getenv("KEYCLOAK_DISCOVERY_URL"))
 	if err != nil {
 		log.Fatal("Is keycloak started? Error:\n", err)
@@ -62,6 +62,8 @@ func main() {
 
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
+
+	// @MarkFix CORS?
 
 	listenPort := utils.Getenv("LISTEN_PORT")
 	slog.Info("Starting http server", "listenPort", listenPort)
