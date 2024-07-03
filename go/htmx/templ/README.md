@@ -28,13 +28,20 @@ and then
 
 `make watch`
 
+That will not give you browser hot reloading with the templ templates.
+For that, you should run
+
+`make watchProxy`
+
+and use http://127.0.0.1:7331
+
 ### To configure keycloak realm etc.
 
-Keycloak should use the backup templ.json found in ./keycloak/, but if you need to recreate it:
+Keycloak should use the backup templ-realm.json found in ./keycloak/, but if you need to recreate it:
 
 - Use this guide for setting up a new realm/client/users/etc. `https://www.keycloak.org/getting-started/getting-started-docker`
-- Once setup to your satisfaction, then `docker exec -it keycloak /bin/bash` and then inside the container `./opt/keycloak/bin/kc.sh export --file /opt/keycloak/data/import/templ-realm.json --realm templ-realm`
-- The new backup file should be in the ./keycloak directory
+- Once setup to your satisfaction, then `docker exec -it keycloak /bin/bash` to get a prompt inside the keycloak container and then `./opt/keycloak/bin/kc.sh export --file /opt/keycloak/data/import/templ-realm.json --realm templ-realm`
+- The new backup file will be in ./keycloak/. It will overwrite the existing ./keycloak/templ-realm.json file
 
 ### For VSCode
 

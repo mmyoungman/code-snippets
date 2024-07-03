@@ -27,6 +27,7 @@ clean:
 	@rm public/styles.css
 
 watch:
+# air handles running templ generate for us - see cmd in .air.toml
 	@${MAKE} -j4 watchTailwindcss watchGo
 
 watchTailwindcss:
@@ -35,7 +36,7 @@ watchTailwindcss:
 watchGo:
 	@air -c .air.toml
 
-# To have templ browser hot reloading working with auth - search for @hotreload to see how it works
+# Below options are to get templ browser hot reloading working with auth - search for @hotreload to see how it works
 watchProxy:
 	@${MAKE} -j4 watchTailwindcss watchTemplProxy watchGoProxy
 

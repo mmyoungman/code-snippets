@@ -23,6 +23,7 @@ func main() {
 	db := database.DBConnect()
 	db.Close()
 
+	// @MarkFix the site is currently vulnerable to CSRF attacks?
 	auth.Setup(db) // @MarkFix we're not defer closing sqlitestore stuff
 
 	// Routes

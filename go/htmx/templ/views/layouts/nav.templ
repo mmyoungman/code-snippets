@@ -19,6 +19,7 @@ templ Nav(username string) {
 						@components.Button("Log out", "/auth/logout?provider=openid-connect")
 					} else {
 						@components.Button("Login", "/auth?provider=openid-connect")
+						<!-- @MarkFix make sign up work -->
 						@components.Button("Sign up", "/sign-up")
 					}
 				</div>
