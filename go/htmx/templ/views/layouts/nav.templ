@@ -2,7 +2,7 @@ package layouts
 
 import "mmyoungman/templ/views/components"
 
-templ Nav() {
+templ Nav(username string) {
 	<div class="border-b border-gray-800 py-2">
 		<div class="container mx-auto">
 			<div class="flex justify-between">
@@ -14,9 +14,13 @@ templ Nav() {
 					<a>link</a>
 				</div>
 				<div class="flex space-x-3">
-					@components.Button("Login", "/auth?provider=openid-connect")
-					@components.Button("Log out", "/auth/logout?provider=openid-connect")
-					@components.Button("Sign up", "/sign-up")
+					if username != "" {
+						Hello, { username }
+						@components.Button("Log out", "/auth/logout?provider=openid-connect")
+					} else {
+						@components.Button("Login", "/auth?provider=openid-connect")
+						@components.Button("Sign up", "/sign-up")
+					}
 				</div>
 			</div>
 		</div>

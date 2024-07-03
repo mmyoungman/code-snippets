@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"mmyoungman/templ/utils"
 	"net/http"
 	"text/template"
 
@@ -41,16 +40,26 @@ func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	// @MarkFix Instead of executing template, save user info and redirect?
-	t, _ := template.New("foo").Parse(userTemplate)
-	t.Execute(w, user)
+	//user.RawData = nil
+	//userJson, err := json.Marshal(user)
+	//if err != nil {
+	//	fmt.Println("Failed to marshall json for user")
+	//	fmt.Fprintln(w, err)
+	//	return err
+	//}
 
-	//http.Redirect(w, r, "/", http.StatusFound)
+	gothic.StoreInSession("username", user.FirstName, r, w)
+
+	// @MarkFix redirect back to page they logged in from
+	http.Redirect(w, r, "/", http.StatusFound)
 	return nil
 }
 
 func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 	gothic.Logout(w, r)
+
+	gothic.StoreInSession("username", "", r, w)
+
 	w.Header().Set("Location", "/")
 	w.WriteHeader(http.StatusTemporaryRedirect)
 	return nil

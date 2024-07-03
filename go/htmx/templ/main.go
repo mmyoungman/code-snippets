@@ -4,17 +4,14 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/handlers"
 	"mmyoungman/templ/utils"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/openidConnect"
 )
 
 func main() {
@@ -23,7 +20,7 @@ func main() {
 	}
 
 	db := database.DBConnect()
-	defer db.Close()
+	// NOTE: db.Close() called by sqliteStore
 
 	router := chi.NewMux()
 
@@ -31,22 +28,8 @@ func main() {
 	router.Handle("/*", public())
 
 	// auth
-	fileStore := sessions.NewFilesystemStore("./tmp/", []byte(utils.Getenv("SESSION_SECRET")))
-	fileStore.MaxLength(8192)
-	gothic.Store = fileStore
-
-	openidConnect, err := openidConnect.New(
-		utils.Getenv("KEYCLOAK_CLIENT_ID"),
-		utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
-		utils.Getenv("PUBLIC_URL") + "/auth/callback?provider=openid-connect",
-		utils.Getenv("KEYCLOAK_DISCOVERY_URL"))
-	if err != nil {
-		log.Fatal("Error creating openidConnect provider. Is keycloak started? Error:\n", err)
-	}
-	if openidConnect != nil {
-		goth.UseProviders(openidConnect)
-	}
-
+	sqliteStore := auth.Setup(db)
+	defer sqliteStore.Close()
 	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin))
 	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
@@ -64,7 +47,7 @@ func main() {
 	listenPort := utils.Getenv("PUBLIC_PORT")
 	slog.Info("Starting http server", "listenPort", listenPort)
 	// @MarkFix use ListenAndServeTLS
-	err = http.ListenAndServe(":"+listenPort, router)
+	err := http.ListenAndServe(":"+listenPort, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}
