@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/main"
-  cmd = "templ generate & go build -o ./tmp/main ."
+  cmd = "go build -o ./tmp/main ." # @hotreload assume templ watch proxy is running, so don't run it here like in .air.toml
 
 
   delay = 20

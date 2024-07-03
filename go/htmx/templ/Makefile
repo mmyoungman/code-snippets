@@ -4,13 +4,20 @@ install:
 	@npm install
 
 run: build
-#	@docker-compose up keycloak
-	@./bin/app
+	@./bin/main
+
+kc:
+	@docker-compose up keycloak
 
 build:
+	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css
+	@templ generate
+	@go build -o bin/main .
+
+buildProd:
 	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css --minify
 	@templ generate
-	@go build -tags=prod -o bin/app .
+	@go build -tags=prod -o bin/main .
 
 clean:
 	@rm -rf bin
@@ -19,18 +26,21 @@ clean:
 	@find . -name '*_templ.txt' -delete
 	@rm public/styles.css
 
-#keycloak:
-#	@docker-compose up keycloak
-
 watch:
-#	${MAKE} -j4 watch-tailwindcss watch-templ watch-go
-	${MAKE} -j4 watch-tailwindcss watch-go
+	@${MAKE} -j4 watchTailwindcss watchGo
 
-watch-tailwindcss:
+watchTailwindcss:
 	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css --watch
 
-#watch-templ:
-#	@templ generate -watch -proxy=${PUBLIC_PORT}
+watchGo:
+	@air -c .air.toml
 
-watch-go:
-	@air
+# To have templ browser hot reloading working with auth - search for @hotreload to see how it works
+watchProxy:
+	@${MAKE} -j4 watchTailwindcss watchTemplProxy watchGoProxy
+
+watchTemplProxy:
+	@templ generate -watch -proxy=${PUBLIC_HOST}:${PUBLIC_PORT} -v
+
+watchGoProxy:
+	TEMPL_WATCH_PROXY_URL=://127.0.0.1:7331 air -c .air.proxy.toml

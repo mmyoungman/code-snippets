@@ -9,6 +9,7 @@ import (
 	"mmyoungman/templ/handlers"
 	"mmyoungman/templ/utils"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -16,20 +17,21 @@ import (
 
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
-		log.Fatal(err)
+		log.Fatal("Didn't load env file", err)
 	}
 
 	db := database.DBConnect()
-	// NOTE: db.Close() called by sqliteStore
+	db.Close()
 
+	auth.Setup(db) // @MarkFix we're not defer closing sqlitestore stuff
+
+	// Routes
 	router := chi.NewMux()
 
 	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())
 
 	// auth
-	sqliteStore := auth.Setup(db)
-	defer sqliteStore.Close()
 	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin))
 	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
@@ -44,10 +46,13 @@ func main() {
 
 	// @MarkFix CORS?
 
-	listenPort := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "listenPort", listenPort)
+	port := utils.Getenv("PUBLIC_PORT")
+	slog.Info("Starting http server", "URL", utils.Getenv("PUBLIC_HOST") + ":" + port)
+	if os.Getenv("TEMPL_WATCH_PROXY_URL") != "" {
+		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", utils.Getenv("TEMPL_WATCH_PROXY_URL"))
+	}
 	// @MarkFix use ListenAndServeTLS
-	err := http.ListenAndServe(":"+listenPort, router)
+	err := http.ListenAndServe(":" + port, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}

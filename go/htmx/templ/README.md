@@ -1,9 +1,10 @@
 ### Dependencies
 
-- make
 - go
-- npm
 - go binaries templ and air to be in $PATH (Found in $HOME/go/bin on my linux machine)
+- make
+- npm
+- docker
 
 ### To install
 
@@ -16,6 +17,12 @@
 Update .env as necessary
 
 `make build`
+
+### To run
+
+`docker-compose up keycloak`
+and then
+`make run`
 
 ### For watch / hot reloading
 
