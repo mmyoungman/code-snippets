@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"mmyoungman/templ/utils"
 	"net/http"
 	"text/template"
 
@@ -22,25 +23,6 @@ var userTemplate = `
 <p>RefreshToken: {{.RefreshToken}}</p>
 `
 
-func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	user, err := gothic.CompleteUserAuth(w, r)
-	if err != nil {
-		fmt.Fprintln(w, err)
-		return err
-	}
-	t, _ := template.New("foo").Parse(userTemplate)
-	t.Execute(w, user)
-
-	return nil
-}
-
-func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	gothic.Logout(w, r)
-	w.Header().Set("Location", "/")
-	w.WriteHeader(http.StatusTemporaryRedirect)
-	return nil
-}
-
 func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
 	// try to get the user without re-authenticating
 	if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
@@ -49,5 +31,27 @@ func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		gothic.BeginAuthHandler(w, r)
 	}
+	return nil
+}
+
+func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
+	user, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return err
+	}
+
+	// @MarkFix Instead of executing template, save user info and redirect?
+	t, _ := template.New("foo").Parse(userTemplate)
+	t.Execute(w, user)
+
+	//http.Redirect(w, r, "/", http.StatusFound)
+	return nil
+}
+
+func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
+	gothic.Logout(w, r)
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusTemporaryRedirect)
 	return nil
 }

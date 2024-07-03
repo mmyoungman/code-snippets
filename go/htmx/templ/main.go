@@ -30,13 +30,10 @@ func main() {
 	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())
 
-	// @MarkFix auth routes
-	store := sessions.NewCookieStore([]byte(utils.Getenv("SESSION_KEY")))
-	store.Options.Path = "/"
-	store.Options.HttpOnly = true
-	store.Options.Secure = false
-
-	gothic.Store = store
+	// auth
+	fileStore := sessions.NewFilesystemStore("./tmp/", []byte(utils.Getenv("SESSION_SECRET")))
+	fileStore.MaxLength(8192)
+	gothic.Store = fileStore
 
 	openidConnect, err := openidConnect.New(
 		utils.Getenv("KEYCLOAK_CLIENT_ID"),
@@ -44,16 +41,15 @@ func main() {
 		utils.Getenv("PUBLIC_URL") + "/auth/callback?provider=openid-connect",
 		utils.Getenv("KEYCLOAK_DISCOVERY_URL"))
 	if err != nil {
-		log.Fatal("Is keycloak started? Error:\n", err)
+		log.Fatal("Error creating openidConnect provider. Is keycloak started? Error:\n", err)
 	}
 	if openidConnect != nil {
 		goth.UseProviders(openidConnect)
 	}
 
-	// auth
+	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin))
 	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
-	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin))
 
 	// pages
 	router.Get("/", handlers.Make(handlers.HandleHome))
@@ -65,7 +61,7 @@ func main() {
 
 	// @MarkFix CORS?
 
-	listenPort := utils.Getenv("LISTEN_PORT")
+	listenPort := utils.Getenv("PUBLIC_PORT")
 	slog.Info("Starting http server", "listenPort", listenPort)
 	// @MarkFix use ListenAndServeTLS
 	err = http.ListenAndServe(":"+listenPort, router)

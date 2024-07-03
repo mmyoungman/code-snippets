@@ -3,3 +3,5 @@
 package utils
 
 var IsDev = true
+
+func UNUSED(x ...interface{}) {}
