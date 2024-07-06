@@ -52,7 +52,7 @@ func Setup(db *sql.DB) (session *sessions.Store) {
 		utils.Getenv("KEYCLOAK_CLIENT_ID"),
 		utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
 		callbackHost + "/auth/callback?provider=openid-connect",
-		utils.Getenv("KEYCLOAK_DISCOVERY_URL"))
+		utils.Getenv("KEYCLOAK_CALLBACK_URL"))
 	if err != nil {
 		log.Fatal("Error creating openidConnect provider. Error:\n", err)
 	}

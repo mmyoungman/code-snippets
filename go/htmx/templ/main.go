@@ -16,6 +16,9 @@ import (
 )
 
 func main() {
+	// include file and line in log messages
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Didn't load env file", err)
 	}
@@ -28,6 +31,9 @@ func main() {
 
 	// Routes
 	router := chi.NewMux()
+
+	// @MarkFix use other middleware - logger? recoverer?
+	// @MarkFix CORS? Use middleware
 
 	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())
@@ -45,7 +51,6 @@ func main() {
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
-	// @MarkFix CORS?
 
 	port := utils.Getenv("PUBLIC_PORT")
 	slog.Info("Starting http server", "URL", utils.Getenv("PUBLIC_HOST") + ":" + port)

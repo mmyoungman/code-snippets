@@ -44,4 +44,4 @@ watchTemplProxy:
 	@templ generate -watch -proxy=${PUBLIC_HOST}:${PUBLIC_PORT} -v
 
 watchGoProxy:
-	TEMPL_WATCH_PROXY_URL=://127.0.0.1:7331 air -c .air.proxy.toml
+	TEMPL_WATCH_PROXY_URL=http://127.0.0.1:7331 air -c .air.proxy.toml
