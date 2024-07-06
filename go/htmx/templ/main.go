@@ -7,6 +7,7 @@ import (
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/handlers"
+	"mmyoungman/templ/store"
 	"mmyoungman/templ/utils"
 	"net/http"
 	"os"
@@ -24,12 +25,34 @@ func main() {
 	}
 
 	db := database.DBConnect()
-	db.Close()
+	defer db.Close()
 
 	// @MarkFix the site is currently vulnerable to CSRF attacks?
-	auth.Setup(db) // @MarkFix we're not defer closing sqlitestore stuff
+	_, err := auth.Setup() // @MarkFix we're not defer closing sqlitestore stuff
+	if err != nil {
+		log.Fatal("Auth setup failed: ", err)
+	}
 
-	// Routes
+	store.Setup()
+
+	//sessions.NewCookieStore()
+	//
+	//fileStore := sessions.NewFilesystemStore(
+	//	"./tmp",
+	//	[]byte(utils.Getenv("SESSION_SECRET")))
+	//fileStore.MaxLength(8192)
+	//sqliteStore, err := sqlitestore.NewSqliteStoreFromConnection(
+	//	db,
+	//	"goth_sessions", // @MarkFix Do old sessions ever get removed from this table?
+	//	"/",
+	//	3600,
+	//	[]byte(utils.Getenv("SESSION_SECRET")))
+	//if err != nil {
+	//	log.Fatal("Failed to create sqlite store", err)
+	//}
+	//sqliteStore.MaxLength(8192)
+	//defer sqliteStore.Close()
+
 	router := chi.NewMux()
 
 	// @MarkFix use other middleware - logger? recoverer?
@@ -45,20 +68,17 @@ func main() {
 
 	// pages
 	router.Get("/", handlers.Make(handlers.HandleHome))
-	router.Get("/login", handlers.Make(handlers.HandleLogin))
-	router.Get("/sign-up", handlers.Make(handlers.HandleSignUp))
 
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
-
 	port := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "URL", utils.Getenv("PUBLIC_HOST") + ":" + port)
+	slog.Info("Starting http server", "URL", utils.Getenv("PUBLIC_HOST")+":"+port)
 	if os.Getenv("TEMPL_WATCH_PROXY_URL") != "" {
 		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", utils.Getenv("TEMPL_WATCH_PROXY_URL"))
 	}
 	// @MarkFix use ListenAndServeTLS
-	err := http.ListenAndServe(":" + port, router)
+	err = http.ListenAndServe(":"+port, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}

@@ -1,66 +1,107 @@
 package handlers
 
 import (
-	"fmt"
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"log"
+	"mmyoungman/templ/auth"
+	"mmyoungman/templ/utils"
 	"net/http"
-	"text/template"
+	"net/url"
 
-	"github.com/markbates/goth/gothic"
+	"github.com/go-chi/render"
 )
 
-var userTemplate = `
-<p><a href="/auth/logout?provider={{.Provider}}">logout</a></p>
-<p>Name: {{.Name}} [{{.LastName}}, {{.FirstName}}]</p>
-<p>Email: {{.Email}}</p>
-<p>NickName: {{.NickName}}</p>
-<p>Location: {{.Location}}</p>
-<p>AvatarURL: {{.AvatarURL}} <img src="{{.AvatarURL}}"></p>
-<p>Description: {{.Description}}</p>
-<p>UserID: {{.UserID}}</p>
-<p>AccessToken: {{.AccessToken}}</p>
-<p>ExpiresAt: {{.ExpiresAt}}</p>
-<p>RefreshToken: {{.RefreshToken}}</p>
-`
 
 func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
-	// try to get the user without re-authenticating
-	if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
-		t, _ := template.New("foo").Parse(userTemplate)
-		t.Execute(w, gothUser)
-	} else {
-		gothic.BeginAuthHandler(w, r)
+	state, err := generateRandomState()
+	if err != nil {
+		// @MarkFix log err
+		render.Status(r, http.StatusInternalServerError)
 	}
+
+	auth.State = state
+
+	authCodeURL := auth.Auth.AuthCodeURL(state) // @MarkFix better way to pass Authenticator here?
+
+	http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)
 	return nil
 }
 
 func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	user, err := gothic.CompleteUserAuth(w, r)
+	reqState := r.URL.Query().Get("state")
+	if reqState != auth.State {
+		render.Status(r, http.StatusBadRequest)
+		return errors.New("invalid state parameter")
+	}
+
+	token, err := auth.Auth.Exchange(r.Context(), r.URL.Query().Get("code"))
 	if err != nil {
-		fmt.Fprintln(w, err)
+		render.Status(r, http.StatusUnauthorized)
+		//return errors.New("Failed to convert authorization code into a token")
 		return err
 	}
 
-	//user.RawData = nil
-	//userJson, err := json.Marshal(user)
-	//if err != nil {
-	//	fmt.Println("Failed to marshall json for user")
-	//	fmt.Fprintln(w, err)
-	//	return err
-	//}
+	idToken, err := auth.Auth.VerifyIDToken(r.Context(), token)
+	if err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		//return errors.New("Failed to verify ID Token")
+		return err
+	}
 
-	gothic.StoreInSession("username", user.FirstName, r, w)
+	var profile map[string]interface{}
+	if err := idToken.Claims(&profile); err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		return err
+	}
 
-	// @MarkFix redirect back to page they logged in from
-	http.Redirect(w, r, "/", http.StatusFound)
+	log.Print(profile)
+
+	auth.AccessToken = token.AccessToken
+	auth.Profile = profile
+
+	// @MarkFix redirect back to page they logged in from or to a logged in user page
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil
 }
 
 func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	gothic.Logout(w, r)
+	logoutUrl, err := url.Parse(utils.Getenv("KEYCLOAK_URL") + "/v2/logout") // @MarkFix almost definitely wrong
+	if err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		return err
+	}
 
-	gothic.StoreInSession("username", "", r, w)
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
 
-	w.Header().Set("Location", "/")
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	returnTo, err := url.Parse(scheme + "://" + r.Host)
+	if err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		return err
+	}
+
+	parameters := url.Values{}
+	parameters.Add("returnTo", returnTo.String())
+	parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
+	logoutUrl.RawQuery = parameters.Encode()
+
+	http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)
 	return nil
 }
+
+func generateRandomState() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	state := base64.StdEncoding.EncodeToString(b)
+
+	return state, nil
+}
+

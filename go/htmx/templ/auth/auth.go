@@ -1,64 +1,59 @@
 package auth
 
 import (
-	"database/sql"
-	"log"
+	"context"
+	"errors"
 	"mmyoungman/templ/utils"
-	"os"
 
-	"github.com/gorilla/sessions"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/openidConnect"
-	"github.com/mmyoungman/sqlitestore"
+	"github.com/coreos/go-oidc/v3/oidc"
+	"golang.org/x/oauth2"
 )
 
-func Setup(db *sql.DB) (session *sessions.Store) {
-	var store sessions.Store
+type Authenticator struct {
+	*oidc.Provider
+	oauth2.Config
+}
 
-	if (utils.IsDev) { // @MarkFix Do I need to bother with this?
-		fileStore := sessions.NewFilesystemStore(
-			"./tmp",
-			[]byte(utils.Getenv("SESSION_SECRET")))
-		fileStore.MaxLength(8192)
+var Auth Authenticator
+var State string
+var AccessToken string
+var Profile map[string]interface{}
 
-		gothic.Store = fileStore
-		store = sessions.Store(fileStore)
-	} else {
-		sqliteStore, err := sqlitestore.NewSqliteStoreFromConnection(
-			db,
-			"goth_sessions", // @MarkFix Do old sessions ever get removed from this table?
-			"/",
-			3600,
-			[]byte(utils.Getenv("SESSION_SECRET")))
-		if err != nil {
-			log.Fatal("Failed to create sqlite store", err)
-		}
-		sqliteStore.MaxLength(8192)
-		gothic.Store = sqliteStore
-		store = sessions.Store(sqliteStore)
-	}
-
-	var callbackHost string
-	// Configure auth to work with templ watch proxy if we're using it @hotreload
-	templProxyURL := os.Getenv("TEMPL_WATCH_PROXY_URL") // use os.Getenv here becuase we don't want to trigger a log.Fatal
-	if templProxyURL == "" {
-		callbackHost = utils.Getenv("PUBLIC_HOST") + ":" + utils.Getenv("PUBLIC_PORT")
-	} else {
-		callbackHost = templProxyURL
-	}
-
-	keycloakOIDC, err := openidConnect.New(
-		utils.Getenv("KEYCLOAK_CLIENT_ID"),
-		utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
-		callbackHost + "/auth/callback?provider=openid-connect",
-		utils.Getenv("KEYCLOAK_CALLBACK_URL"))
+func Setup() (*Authenticator, error) {
+	provider, err := oidc.NewProvider(
+		context.Background(),
+		utils.Getenv("KEYCLOAK_URL") + "/realms/" + utils.Getenv("KEYCLOAK_REALM"),
+	)
 	if err != nil {
-		log.Fatal("Error creating openidConnect provider. Error:\n", err)
-	}
-	if keycloakOIDC != nil {
-		goth.UseProviders(keycloakOIDC)
+		return nil, err
 	}
 
-	return &store
+	conf := oauth2.Config{
+		ClientID: utils.Getenv("KEYCLOAK_CLIENT_ID"),
+		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
+		RedirectURL: utils.Getenv("KEYCLOAK_CALLBACK_URL"),
+		Endpoint: provider.Endpoint(),
+		Scopes: []string{oidc.ScopeOpenID, "profile"},
+	}
+
+	Auth = Authenticator{
+		Provider: provider,
+		Config: conf,
+	}
+
+	return &Auth, nil
+}
+
+// VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
+func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error) {
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, errors.New("no id_token field in oauth2 token")
+	}
+
+	oidcConfig := &oidc.Config{
+		ClientID: a.ClientID,
+	}
+
+	return a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
 }
