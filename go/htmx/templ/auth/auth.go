@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
 	"mmyoungman/templ/utils"
 	"time"
@@ -48,10 +49,12 @@ func Setup() (*Authenticator, error) {
 	}
 	EndSessionURL = claims.EndSessionURL
 
+	callbackURL := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/callback")
+
 	conf := oauth2.Config{
 		ClientID: utils.Getenv("KEYCLOAK_CLIENT_ID"),
 		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
-		RedirectURL: utils.Getenv("KEYCLOAK_CALLBACK_URL"),
+		RedirectURL: callbackURL,
 		Endpoint: provider.Endpoint(),
 		Scopes: []string{oidc.ScopeOpenID, "profile"},
 	}

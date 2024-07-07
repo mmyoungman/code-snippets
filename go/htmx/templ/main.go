@@ -55,7 +55,7 @@ func main() {
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
 	port := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "URL", utils.Getenv("PUBLIC_HOST")+":"+port)
+	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s",utils.Getenv("PUBLIC_HOST"), port))
 	if os.Getenv("TEMPL_WATCH_PROXY_URL") != "" {
 		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", utils.Getenv("TEMPL_WATCH_PROXY_URL"))
 	}

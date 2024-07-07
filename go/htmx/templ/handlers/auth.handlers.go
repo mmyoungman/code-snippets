@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/store"
@@ -103,13 +104,14 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		log.Fatal("Failed to save session during logout", err)
 	}
-	//auth.State = state
+
+	postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
 
 	parameters := url.Values{}
 	parameters.Add("state", state)
 	parameters.Add("id_token_hint", auth.RawIDToken)
 	parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
-	parameters.Add("post_logout_redirect_uri", utils.Getenv("PUBLIC_HOST") + ":" + utils.Getenv("PUBLIC_PORT") + "/auth/logout/callback")	
+	parameters.Add("post_logout_redirect_uri", postLogoutRedirect)	
 	logoutUrl.RawQuery = parameters.Encode()
 
 	http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)

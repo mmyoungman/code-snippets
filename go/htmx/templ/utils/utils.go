@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -13,4 +14,12 @@ func Getenv(key string) string {
 	}
 
 	return variable
+}
+
+func GetPublicURL() string {
+	if IsDev && os.Getenv("TEMPL_WATCH_PROXY_URL") != "" { // check IsDev for safety
+		return os.Getenv("TEMPL_WATCH_PROXY_URL")
+	}
+
+	return fmt.Sprintf("%s:%s", os.Getenv("PUBLIC_HOST"), os.Getenv("PUBLIC_PORT"))
 }
