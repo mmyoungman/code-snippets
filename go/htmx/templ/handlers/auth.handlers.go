@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/utils"
@@ -14,7 +12,7 @@ import (
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		state, err := generateRandomState()
+		state, err := auth.GenerateRandomState()
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			return errors.New("could not generate random state for auth login")
@@ -58,7 +56,12 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 		}
 
 		auth.RawIDToken = token.Extra("id_token").(string)
+
 		auth.AccessToken = token.AccessToken
+		auth.RefreshToken = token.RefreshToken
+		auth.TokenType = token.TokenType
+		auth.Expiry = token.Expiry
+
 		auth.Profile = profile
 
 		//log.Println("PROFILE: ", profile)
@@ -71,15 +74,14 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 }
 
 func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	// @MarkFix should use end_session_endpoint value here instead of manually constructing the URL
 	// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
-	logoutUrl, err := url.Parse(utils.Getenv("KEYCLOAK_URL") + "/realms/templ-realm/protocol/openid-connect/logout")
+	logoutUrl, err := url.Parse(auth.EndSessionURL)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		return err
 	}
 
-	state, err := generateRandomState()
+	state, err := auth.GenerateRandomState()
 	if err != nil {
 		return err
 	}
@@ -114,16 +116,4 @@ func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
 
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	return nil
-}
-
-func generateRandomState() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
 }

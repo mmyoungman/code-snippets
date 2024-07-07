@@ -6,11 +6,13 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-var Store *sessions.CookieStore
+var store *sessions.CookieStore
 
 func Setup() {
-	store := sessions.NewCookieStore(
+	newStore := sessions.NewCookieStore(
 		[]byte(utils.Getenv("SESSION_SECRET")))
 	//store.Options.HttpOnly = true
-	Store = store
+	store = newStore
+
+	utils.UNUSED(store)
 }
