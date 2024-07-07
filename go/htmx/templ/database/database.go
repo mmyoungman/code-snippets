@@ -12,9 +12,9 @@ import (
 // @MarkFix Use go-jet as SQL builder
 
 func DBConnect() *sql.DB {
-	dbPath := utils.Getenv("SQLITE3_PATH")
+	dbFilePath := utils.Getenv("SQLITE3_PATH")
 
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite3", dbFilePath)
 	if err != nil {
 		log.Fatal("Failed to open db", err)
 	}

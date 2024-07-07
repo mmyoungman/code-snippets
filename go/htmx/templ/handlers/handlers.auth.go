@@ -71,8 +71,16 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 		auth.Expiry = token.Expiry
 
 		auth.Profile = profile
+		// @MarkFix store profile in Users table
+		// @MarkFix store session info in Sessions table
 
-		//log.Println("PROFILE: ", profile)
+		log.Println("PROFILE: ", profile)
+		log.Println("UserID: ", profile["sub"])
+		log.Println("Email: ", profile["email"])
+		log.Println("Username: ", profile["preferred_username"])
+		log.Println("Firstname: ", profile["given_name"])
+		log.Println("Lastname: ", profile["family_name"])
+		// given_name family_name email preferred_username
 		//log.Println("RawIDToken: ", auth.RawIDToken)
 
 		// @MarkFix redirect back to page they logged in from or to a logged in user page

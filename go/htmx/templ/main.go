@@ -58,7 +58,7 @@ func main() {
 	// log details about host / ports / @hotreload dev watch proxies
 	publicPort := utils.Getenv("PUBLIC_PORT")
 	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s",utils.Getenv("PUBLIC_HOST"), publicPort))
-	if os.Getenv("TEMPL_WATCH_PROXY_URL") != "" {
+	if os.Getenv("TEMPL_WATCH_PROXY_URL") == utils.GetPublicURL() {
 		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", os.Getenv("TEMPL_WATCH_PROXY_URL"))
 		if utils.IsProd {
 			log.Fatal("Why is TEMPL_WATCH_PROXY_URL env variable set in prod?")
