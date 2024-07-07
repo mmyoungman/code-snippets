@@ -35,24 +35,6 @@ func main() {
 
 	store.Setup()
 
-	//sessions.NewCookieStore()
-	//
-	//fileStore := sessions.NewFilesystemStore(
-	//	"./tmp",
-	//	[]byte(utils.Getenv("SESSION_SECRET")))
-	//fileStore.MaxLength(8192)
-	//sqliteStore, err := sqlitestore.NewSqliteStoreFromConnection(
-	//	db,
-	//	"goth_sessions", // @MarkFix Do old sessions ever get removed from this table?
-	//	"/",
-	//	3600,
-	//	[]byte(utils.Getenv("SESSION_SECRET")))
-	//if err != nil {
-	//	log.Fatal("Failed to create sqlite store", err)
-	//}
-	//sqliteStore.MaxLength(8192)
-	//defer sqliteStore.Close()
-
 	router := chi.NewMux()
 
 	// @MarkFix use other middleware - logger? recoverer?
@@ -65,6 +47,7 @@ func main() {
 	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
 	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj)))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
+	router.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback))
 
 	// pages
 	router.Get("/", handlers.Make(handlers.HandleHome))

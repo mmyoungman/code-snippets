@@ -16,10 +16,11 @@ type Authenticator struct {
 
 var State string
 var AccessToken string
+var RawIDToken string
 var Profile map[string]interface{}
 
 func Setup() (*Authenticator, error) {
-	provider, err := oidc.NewProvider(
+	provider, err := oidc.NewProvider( // @MarkFix replace this with custom so I get things like end_session_endpoint from discovery url response?
 		context.Background(),
 		utils.Getenv("KEYCLOAK_URL") + "/realms/" + utils.Getenv("KEYCLOAK_REALM"),
 	)

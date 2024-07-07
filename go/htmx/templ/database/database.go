@@ -8,7 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// @MarkFix Add goose for migrations
+// @MarkFix Use goose (or something else) for migrations
 // @MarkFix Use go-jet as SQL builder
 
 func DBConnect() *sql.DB {

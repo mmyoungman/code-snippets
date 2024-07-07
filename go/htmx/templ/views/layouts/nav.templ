@@ -16,9 +16,9 @@ templ Nav(username string) {
 				<div class="flex space-x-3">
 					if username != "" {
 						Hello, { username }
-						@components.Button("Log out", "/auth/logout?provider=openid-connect")
+						@components.Button("Log out", "/auth/logout")
 					} else {
-						@components.Button("Login", "/auth?provider=openid-connect")
+						@components.Button("Login", "/auth")
 						<!-- @MarkFix make sign up work -->
 						@components.Button("Sign up", "/sign-up")
 					}
