@@ -13,61 +13,64 @@ import (
 	"github.com/go-chi/render"
 )
 
+func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		state, err := generateRandomState()
+		if err != nil {
+			// @MarkFix log err
+			render.Status(r, http.StatusInternalServerError)
+		}
 
-func HandleAuthLogin(w http.ResponseWriter, r *http.Request) error {
-	state, err := generateRandomState()
-	if err != nil {
-		// @MarkFix log err
-		render.Status(r, http.StatusInternalServerError)
+		auth.State = state
+
+		authCodeURL := authObj.AuthCodeURL(state) // @MarkFix better way to pass Authenticator here?
+
+		http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)
+		return nil
 	}
-
-	auth.State = state
-
-	authCodeURL := auth.Auth.AuthCodeURL(state) // @MarkFix better way to pass Authenticator here?
-
-	http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)
-	return nil
 }
 
-func HandleAuthCallback(w http.ResponseWriter, r *http.Request) error {
-	reqState := r.URL.Query().Get("state")
-	if reqState != auth.State {
-		render.Status(r, http.StatusBadRequest)
-		return errors.New("invalid state parameter")
+func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		reqState := r.URL.Query().Get("state")
+		if reqState != auth.State {
+			render.Status(r, http.StatusBadRequest)
+			return errors.New("invalid state parameter")
+		}
+
+		token, err := authObj.Exchange(r.Context(), r.URL.Query().Get("code"))
+		if err != nil {
+			render.Status(r, http.StatusUnauthorized)
+			//return errors.New("Failed to convert authorization code into a token")
+			return err
+		}
+
+		idToken, err := authObj.VerifyIDToken(r.Context(), token)
+		if err != nil {
+			render.Status(r, http.StatusInternalServerError)
+			//return errors.New("Failed to verify ID Token")
+			return err
+		}
+
+		var profile map[string]interface{}
+		if err := idToken.Claims(&profile); err != nil {
+			render.Status(r, http.StatusInternalServerError)
+			return err
+		}
+
+		log.Print(profile)
+
+		auth.AccessToken = token.AccessToken
+		auth.Profile = profile
+
+		// @MarkFix redirect back to page they logged in from or to a logged in user page
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return nil
 	}
-
-	token, err := auth.Auth.Exchange(r.Context(), r.URL.Query().Get("code"))
-	if err != nil {
-		render.Status(r, http.StatusUnauthorized)
-		//return errors.New("Failed to convert authorization code into a token")
-		return err
-	}
-
-	idToken, err := auth.Auth.VerifyIDToken(r.Context(), token)
-	if err != nil {
-		render.Status(r, http.StatusInternalServerError)
-		//return errors.New("Failed to verify ID Token")
-		return err
-	}
-
-	var profile map[string]interface{}
-	if err := idToken.Claims(&profile); err != nil {
-		render.Status(r, http.StatusInternalServerError)
-		return err
-	}
-
-	log.Print(profile)
-
-	auth.AccessToken = token.AccessToken
-	auth.Profile = profile
-
-	// @MarkFix redirect back to page they logged in from or to a logged in user page
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return nil
 }
 
 func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	logoutUrl, err := url.Parse(utils.Getenv("KEYCLOAK_URL") + "/v2/logout") // @MarkFix almost definitely wrong
+	logoutUrl, err := url.Parse(utils.Getenv("KEYCLOAK_URL") + "/realms/templ-realm/protocol/openid-connect/logout?redirect_uri=http%3A%2F%2Flocalhost%3A3000%0A%2F") // @MarkFix almost definitely wrong
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		return err
@@ -78,7 +81,7 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 		scheme = "https"
 	}
 
-	returnTo, err := url.Parse(scheme + "://" + r.Host)
+	returnTo, err := url.Parse(scheme + "://" + r.Host + "/")
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		return err
@@ -87,6 +90,7 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 	parameters := url.Values{}
 	parameters.Add("returnTo", returnTo.String())
 	parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
+	//parameters.Add("refresh_token", )
 	logoutUrl.RawQuery = parameters.Encode()
 
 	http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)
@@ -104,4 +108,3 @@ func generateRandomState() (string, error) {
 
 	return state, nil
 }
-

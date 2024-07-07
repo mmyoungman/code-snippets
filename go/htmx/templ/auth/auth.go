@@ -14,7 +14,6 @@ type Authenticator struct {
 	oauth2.Config
 }
 
-var Auth Authenticator
 var State string
 var AccessToken string
 var Profile map[string]interface{}
@@ -36,12 +35,12 @@ func Setup() (*Authenticator, error) {
 		Scopes: []string{oidc.ScopeOpenID, "profile"},
 	}
 
-	Auth = Authenticator{
+	authObj := Authenticator{
 		Provider: provider,
 		Config: conf,
 	}
 
-	return &Auth, nil
+	return &authObj, nil
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.

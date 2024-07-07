@@ -28,7 +28,7 @@ func main() {
 	defer db.Close()
 
 	// @MarkFix the site is currently vulnerable to CSRF attacks?
-	_, err := auth.Setup() // @MarkFix we're not defer closing sqlitestore stuff
+	authObj, err := auth.Setup()
 	if err != nil {
 		log.Fatal("Auth setup failed: ", err)
 	}
@@ -62,8 +62,8 @@ func main() {
 	router.Handle("/*", public())
 
 	// auth
-	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin))
-	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback))
+	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
+	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj)))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
 
 	// pages
