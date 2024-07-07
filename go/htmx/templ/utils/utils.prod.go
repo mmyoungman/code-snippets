@@ -2,6 +2,6 @@
 
 package utils
 
-var IsDev = false
+var IsProd = true
 
 // No declaration of UNUSED func here, as we don't want it used in prod builds

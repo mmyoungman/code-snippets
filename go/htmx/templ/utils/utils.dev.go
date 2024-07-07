@@ -2,6 +2,6 @@
 
 package utils
 
-var IsDev = true
+var IsProd = false
 
 func UNUSED(x ...interface{}) {}

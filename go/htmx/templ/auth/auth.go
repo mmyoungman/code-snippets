@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"mmyoungman/templ/utils"
 	"time"
 
@@ -81,14 +82,12 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 	return a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
 }
 
-func GenerateRandomState() (string, error) {
+func GenerateRandomState() string {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", err
+		slog.Error("Failed to generate random state", "error", err)
 	}
 
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
+	return base64.StdEncoding.EncodeToString(b)
 }

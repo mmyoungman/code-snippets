@@ -16,8 +16,8 @@ func Getenv(key string) string {
 	return variable
 }
 
-func GetPublicURL() string {
-	if IsDev && os.Getenv("TEMPL_WATCH_PROXY_URL") != "" { // check IsDev for safety
+func GetPublicURL() string { // @hotreload
+	if !IsProd && os.Getenv("TEMPL_WATCH_PROXY_URL") != "" { // ensure !IsProd to prevent shenanigans
 		return os.Getenv("TEMPL_WATCH_PROXY_URL")
 	}
 

@@ -5,7 +5,6 @@ tmp_dir = "tmp"
   bin = "./tmp/main"
   cmd = "templ generate & go build -o ./tmp/main ."
 
-
   delay = 20
   exclude_dir = ["bin", "tmp", "node-modules"]
   exclude_file = []
@@ -14,7 +13,7 @@ tmp_dir = "tmp"
   follow_symlink = false
   full_bin = ""
   include_dir = []
-  include_ext = ["go", "templ", "html"]
+  include_ext = ["go", "templ", "html", "env"]
   kill_delay = "0s"
   log = "build-errors.log"
   send_interrupt = false

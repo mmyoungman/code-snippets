@@ -15,15 +15,11 @@ import (
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		state, err := auth.GenerateRandomState()
-		if err != nil {
-			render.Status(r, http.StatusInternalServerError)
-			return errors.New("could not generate random state for auth login")
-		}
+		state := auth.GenerateRandomState()
 
 		session := store.GetSession(r)
 		session.Values["state"] = state
-		err = session.Save(r, w)
+		err := session.Save(r, w)
 		if err != nil {
 			log.Fatal("Failed to save session during login", err)
 		}
@@ -93,10 +89,7 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	state, err := auth.GenerateRandomState()
-	if err != nil {
-		return err
-	}
+	state := auth.GenerateRandomState()
 
 	session := store.GetSession(r)
 	session.Values["state"] = state

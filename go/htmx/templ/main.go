@@ -34,7 +34,8 @@ func main() {
 
 	store.Setup()
 
-	router := chi.NewMux()
+	// @MarkFix I suppose I could write some tests at some point...
+	router := chi.NewRouter()
 
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix CORS? Use middleware
@@ -54,13 +55,18 @@ func main() {
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
-	port := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s",utils.Getenv("PUBLIC_HOST"), port))
+	// log details about host / ports / @hotreload dev watch proxies
+	publicPort := utils.Getenv("PUBLIC_PORT")
+	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s",utils.Getenv("PUBLIC_HOST"), publicPort))
 	if os.Getenv("TEMPL_WATCH_PROXY_URL") != "" {
-		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", utils.Getenv("TEMPL_WATCH_PROXY_URL"))
+		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", os.Getenv("TEMPL_WATCH_PROXY_URL"))
+		if utils.IsProd {
+			log.Fatal("Why is TEMPL_WATCH_PROXY_URL env variable set in prod?")
+		}
 	}
+
 	// @MarkFix use ListenAndServeTLS
-	err = http.ListenAndServe(":"+port, router)
+	err = http.ListenAndServe(":"+publicPort, router)
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}
