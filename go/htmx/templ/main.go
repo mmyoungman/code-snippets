@@ -27,7 +27,6 @@ func main() {
 	db := database.DBConnect()
 	defer db.Close()
 
-	// @MarkFix the site is currently vulnerable to CSRF attacks?
 	authObj, err := auth.Setup()
 	if err != nil {
 		log.Fatal("Auth setup failed: ", err)

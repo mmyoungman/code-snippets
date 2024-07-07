@@ -19,7 +19,6 @@ type Authenticator struct {
 }
 
 // @MarkFix replace with session state
-var State string
 var AccessToken string
 var RefreshToken string
 var TokenType string
@@ -38,7 +37,7 @@ func Setup() (*Authenticator, error) {
 		return nil, err
 	}
 
-	// Hack to get end_session_endpoint https://github.com/coreos/go-oidc/pull/226#issuecomment-1130411016
+	// To get end_session_endpoint. See https://github.com/coreos/go-oidc/pull/226#issuecomment-1130411016
 	var claims struct {
 		EndSessionURL string `json:"end_session_endpoint"`
 	}

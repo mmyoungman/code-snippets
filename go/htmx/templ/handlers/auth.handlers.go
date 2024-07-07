@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"mmyoungman/templ/auth"
+	"mmyoungman/templ/store"
 	"mmyoungman/templ/utils"
 	"net/http"
 	"net/url"
@@ -18,9 +20,14 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 			return errors.New("could not generate random state for auth login")
 		}
 
-		auth.State = state
+		session := store.GetSession(r)
+		session.Values["state"] = state
+		err = session.Save(r, w)
+		if err != nil {
+			log.Fatal("Failed to save session during login", err)
+		}
 
-		authCodeURL := authObj.AuthCodeURL(auth.State) // @MarkFix better way to fetch authObj/Authenticator here?
+		authCodeURL := authObj.AuthCodeURL(state) // @MarkFix better way to fetch authObj/Authenticator here?
 
 		http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)
 		return nil
@@ -30,7 +37,11 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		reqState := r.URL.Query().Get("state")
-		if reqState != auth.State {
+
+		session := store.GetSession(r)
+		state := session.Values["state"]
+
+		if reqState != state {
 			render.Status(r, http.StatusBadRequest)
 			return errors.New("invalid state parameter")
 		}
@@ -85,10 +96,17 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	auth.State = state
+
+	session := store.GetSession(r)
+	session.Values["state"] = state
+	err = session.Save(r, w)
+	if err != nil {
+		log.Fatal("Failed to save session during logout", err)
+	}
+	//auth.State = state
 
 	parameters := url.Values{}
-	parameters.Add("state", auth.State)
+	parameters.Add("state", state)
 	parameters.Add("id_token_hint", auth.RawIDToken)
 	parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
 	parameters.Add("post_logout_redirect_uri", utils.Getenv("PUBLIC_HOST") + ":" + utils.Getenv("PUBLIC_PORT") + "/auth/logout/callback")	
@@ -101,13 +119,22 @@ func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
 
 func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
 	reqState := r.URL.Query().Get("state") // @MarkFix this is probably dodgy security wise
-	if reqState != auth.State {
+
+	session := store.GetSession(r)
+	state := session.Values["state"]
+
+	if reqState != state {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		//render.Status(r, http.StatusBadRequest) // @MarkFix these don't work?
 		return errors.New("invalid state parameter for logout callback")
 	}
 
-	auth.State = ""
+	session.Values["state"] = ""
+	err := session.Save(r, w)
+	if err != nil {
+		log.Fatal("Failed to save session during logout callback", err)
+	}
+
 	auth.AccessToken = ""
 	auth.RawIDToken = ""
 	auth.Profile = nil
