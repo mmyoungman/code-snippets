@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/main"
-  cmd = "templ generate & go build -o ./tmp/main ."
+  cmd = "time { templ generate; go build -o ./tmp/main .; }"
 
   delay = 20
   exclude_dir = ["bin", "tmp", "node-modules"]

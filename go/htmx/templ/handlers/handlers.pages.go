@@ -24,7 +24,7 @@ func HandleHome(authObj *auth.Authenticator) HTTPHandler {
 				// - wait for token to expire
 				// - visit home
 				// The token cannot refresh - so what should we do here?
-				// - Set auth.Token to null and/or delete all session data?
+				// - Set auth.Token to null and/or delete all session data? Maybe even delete user data?
 				// - Redirect to login and then back to this page?
 				// - Maybe both?
 			}
