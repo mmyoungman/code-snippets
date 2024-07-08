@@ -20,6 +20,8 @@ func main() {
 	// include file and line in log messages
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	// @MarkFix make the program print all logs etc. to a file
+
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Didn't load env file", err)
 	}
@@ -34,6 +36,7 @@ func main() {
 
 	store.Setup()
 
+	// @MarkFix build pipeline?
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
@@ -46,11 +49,12 @@ func main() {
 	// auth
 	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
 	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj)))
-	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout))
+	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
 	router.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback))
 
 	// pages
-	router.Get("/", handlers.Make(handlers.HandleHome))
+	router.Get("/", handlers.Make(handlers.HandleHome(authObj)))
+	// @MarkFix create user page
 
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
@@ -70,5 +74,5 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServer error: ", err)
 	}
-	fmt.Println("http server stopped")
+	log.Println("http server stopped")
 }

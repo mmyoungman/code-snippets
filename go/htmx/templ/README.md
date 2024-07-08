@@ -18,6 +18,10 @@ Update .env as necessary
 
 `make build`
 
+To make a prod build
+
+`make buildProd`
+
 ### To run
 
 `docker-compose up keycloak`

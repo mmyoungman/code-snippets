@@ -37,6 +37,11 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 
 		session := store.GetSession(r)
 		state := session.Values["state"]
+		session.Values["state"] = nil
+		err := session.Save(r, w)
+		if err != nil {
+			log.Fatal("Failed to save session during login callback - ", err)
+		}
 
 		if reqState != state {
 			render.Status(r, http.StatusBadRequest)
@@ -57,29 +62,36 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 			return err
 		}
 
+		//session.Values["access_token"] = token.AccessToken
+		//session.Values["refresh_token"] = token.RefreshToken
+		//session.Values["expiry"] = token.Expiry.Unix()
+		//session.Values["token_type"] = token.TokenType
+
 		var profile map[string]interface{}
-		if err := idToken.Claims(&profile); err != nil {
+		if err = idToken.Claims(&profile); err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			return err
 		}
+		//session.Values["profile"], err = json.Marshal(profile)
+		//if err != nil {
+		//	log.Fatal("Failed to marshal profile into json string")
+		//}
+
+		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
 
 		auth.RawIDToken = token.Extra("id_token").(string)
 
-		auth.AccessToken = token.AccessToken
-		auth.RefreshToken = token.RefreshToken
-		auth.TokenType = token.TokenType
-		auth.Expiry = token.Expiry
-
+		auth.Token = token
 		auth.Profile = profile
 		// @MarkFix store profile in Users table
 		// @MarkFix store session info in Sessions table
 
-		log.Println("PROFILE: ", profile)
-		log.Println("UserID: ", profile["sub"])
-		log.Println("Email: ", profile["email"])
-		log.Println("Username: ", profile["preferred_username"])
-		log.Println("Firstname: ", profile["given_name"])
-		log.Println("Lastname: ", profile["family_name"])
+		//log.Println("PROFILE: ", profile)
+		//log.Println("UserID: ", profile["sub"])
+		//log.Println("Email: ", profile["email"])
+		//log.Println("Username: ", profile["preferred_username"])
+		//log.Println("Firstname: ", profile["given_name"])
+		//log.Println("Lastname: ", profile["family_name"])
 		// given_name family_name email preferred_username
 		//log.Println("RawIDToken: ", auth.RawIDToken)
 
@@ -89,35 +101,37 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 	}
 }
 
-func HandleAuthLogout(w http.ResponseWriter, r *http.Request) error {
-	// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
-	logoutUrl, err := url.Parse(auth.EndSessionURL)
-	if err != nil {
-		render.Status(r, http.StatusInternalServerError)
-		return err
+func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
+		logoutUrl, err := url.Parse(authObj.EndSessionURL)
+		if err != nil {
+			render.Status(r, http.StatusInternalServerError)
+			return err
+		}
+
+		state := auth.GenerateRandomState()
+
+		session := store.GetSession(r)
+		session.Values["state"] = state
+		err = session.Save(r, w)
+		if err != nil {
+			log.Fatal("Failed to save session during logout", err)
+		}
+
+		postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
+
+		parameters := url.Values{}
+		parameters.Add("state", state)
+		parameters.Add("id_token_hint", auth.RawIDToken)
+		parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
+		parameters.Add("post_logout_redirect_uri", postLogoutRedirect)
+		logoutUrl.RawQuery = parameters.Encode()
+
+		http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)
+
+		return nil
 	}
-
-	state := auth.GenerateRandomState()
-
-	session := store.GetSession(r)
-	session.Values["state"] = state
-	err = session.Save(r, w)
-	if err != nil {
-		log.Fatal("Failed to save session during logout", err)
-	}
-
-	postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
-
-	parameters := url.Values{}
-	parameters.Add("state", state)
-	parameters.Add("id_token_hint", auth.RawIDToken)
-	parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
-	parameters.Add("post_logout_redirect_uri", postLogoutRedirect)	
-	logoutUrl.RawQuery = parameters.Encode()
-
-	http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)
-
-	return nil
 }
 
 func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
@@ -125,17 +139,16 @@ func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
 
 	session := store.GetSession(r)
 	state := session.Values["state"]
+	session.Values["state"] = nil
+	err := session.Save(r, w)
+	if err != nil {
+		log.Fatal("Failed to save session during logout callback", err)
+	}
 
 	if reqState != state {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		//render.Status(r, http.StatusBadRequest) // @MarkFix these don't work?
 		return errors.New("invalid state parameter for logout callback")
-	}
-
-	session.Values["state"] = ""
-	err := session.Save(r, w)
-	if err != nil {
-		log.Fatal("Failed to save session during logout callback", err)
 	}
 
 	auth.AccessToken = ""

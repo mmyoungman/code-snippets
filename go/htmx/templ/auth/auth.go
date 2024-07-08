@@ -18,6 +18,7 @@ import (
 type Authenticator struct {
 	*oidc.Provider
 	oauth2.Config
+	EndSessionURL string
 }
 
 // @MarkFix replace with session state
@@ -25,9 +26,9 @@ var AccessToken string
 var RefreshToken string
 var TokenType string
 var RawIDToken string
+var Token *oauth2.Token
 var Expiry time.Time
 var Profile map[string]interface{}
-var EndSessionURL string
 
 func Setup() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(
@@ -48,7 +49,6 @@ func Setup() (*Authenticator, error) {
 		log.Println("Didn't find end_session_endpoint in discovery?")
 		return nil, err
 	}
-	EndSessionURL = claims.EndSessionURL
 
 	callbackURL := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/callback")
 
@@ -63,6 +63,7 @@ func Setup() (*Authenticator, error) {
 	authObj := Authenticator{
 		Provider: provider,
 		Config: conf,
+		EndSessionURL: claims.EndSessionURL,
 	}
 
 	return &authObj, nil

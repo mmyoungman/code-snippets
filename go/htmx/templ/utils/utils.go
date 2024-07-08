@@ -10,7 +10,7 @@ func Getenv(key string) string {
 	variable := os.Getenv(key)
 
 	if variable == "" {
-		log.Fatal("Failed to get environment variable \"" + key + "\". Is it added to .env?")
+		log.Fatalf("Failed to get environment variable \"%s\". Is it added to .env?", key)
 	}
 
 	return variable
@@ -21,5 +21,5 @@ func GetPublicURL() string { // @hotreload
 		return os.Getenv("TEMPL_WATCH_PROXY_URL")
 	}
 
-	return fmt.Sprintf("%s:%s", os.Getenv("PUBLIC_HOST"), os.Getenv("PUBLIC_PORT"))
+	return fmt.Sprintf("%s:%s", Getenv("PUBLIC_HOST"), Getenv("PUBLIC_PORT"))
 }
