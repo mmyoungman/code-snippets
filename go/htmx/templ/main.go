@@ -7,6 +7,7 @@ import (
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/handlers"
+	"mmyoungman/templ/middleware"
 	"mmyoungman/templ/store"
 	"mmyoungman/templ/utils"
 	"net/http"
@@ -40,6 +41,7 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
+	router.Use(middleware.SessionCheck(authObj))
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix CORS? Use middleware
 
@@ -55,14 +57,13 @@ func main() {
 	// pages
 	router.Get("/", handlers.Make(handlers.HandleHome(authObj)))
 	router.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
-	// @MarkFix create user page
 
 	// partials
 	router.Get("/test", handlers.Make(handlers.HandleTest))
 
 	// log details about host / ports / @hotreload dev watch proxies
 	publicPort := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s",utils.Getenv("PUBLIC_HOST"), publicPort))
+	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s", utils.Getenv("PUBLIC_HOST"), publicPort))
 	if os.Getenv("TEMPL_WATCH_PROXY_URL") == utils.GetPublicURL() {
 		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", os.Getenv("TEMPL_WATCH_PROXY_URL"))
 		if utils.IsProd {
