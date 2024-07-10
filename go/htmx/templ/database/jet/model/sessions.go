@@ -8,7 +8,7 @@
 package model
 
 type Sessions struct {
-	ID           string
+	UserID       string
 	AccessToken  string
 	RefreshToken string
 	TokenType    string

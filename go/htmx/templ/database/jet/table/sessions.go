@@ -17,7 +17,7 @@ type sessionsTable struct {
 	sqlite.Table
 
 	// Columns
-	ID           sqlite.ColumnString
+	UserID       sqlite.ColumnString
 	AccessToken  sqlite.ColumnString
 	RefreshToken sqlite.ColumnString
 	TokenType    sqlite.ColumnString
@@ -61,19 +61,19 @@ func newSessionsTable(schemaName, tableName, alias string) *SessionsTable {
 
 func newSessionsTableImpl(schemaName, tableName, alias string) sessionsTable {
 	var (
-		IDColumn           = sqlite.StringColumn("ID")
+		UserIDColumn       = sqlite.StringColumn("UserID")
 		AccessTokenColumn  = sqlite.StringColumn("AccessToken")
 		RefreshTokenColumn = sqlite.StringColumn("RefreshToken")
 		TokenTypeColumn    = sqlite.StringColumn("TokenType")
-		allColumns         = sqlite.ColumnList{IDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
-		mutableColumns     = sqlite.ColumnList{IDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
+		allColumns         = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
+		mutableColumns     = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
 	)
 
 	return sessionsTable{
 		Table: sqlite.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:           IDColumn,
+		UserID:       UserIDColumn,
 		AccessToken:  AccessTokenColumn,
 		RefreshToken: RefreshTokenColumn,
 		TokenType:    TokenTypeColumn,

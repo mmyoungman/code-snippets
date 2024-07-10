@@ -2,11 +2,14 @@ include .env
 
 install:
 # @MarkFix specify versions?
+	@npm install
 	@go install github.com/a-h/templ/cmd/templ@latest
 	@go install github.com/air-verse/air@latest
 	@go install github.com/pressly/goose/v3/cmd/goose@latest
 	@go install github.com/go-jet/jet/v2/cmd/jet@latest
-	@npm install
+	@go mod download
+	@${MAKE} goose cmd="up"
+	@${MAKE} jet
 
 run: build
 	@./bin/main
@@ -27,6 +30,7 @@ buildProd:
 clean:
 	@rm -rf bin
 	@rm -rf tmp
+	@rm -rf database/jet
 	@find . -name '*_templ.go' -delete
 	@find . -name '*_templ.txt' -delete
 	@rm public/styles.css
@@ -55,7 +59,7 @@ goose:
 # make migration cmd="create new_migration_name sql"
 # make migration cmd="up"
 # see all goose commands here: https://github.com/pressly/goose?tab=readme-ov-file#usage
-	@goose -v -s -dir database/migrations sqlite ./database/database.db ${cmd}
+	@goose -v -s -dir database/migrations sqlite3 ./database/database.db ${cmd}
 
 jet:
 	@jet -source=sqlite -dsn="./database/database.db" -path="./database/jet"

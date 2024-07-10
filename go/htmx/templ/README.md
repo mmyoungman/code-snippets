@@ -12,20 +12,24 @@
 
 ### To build
 
+You must install first. Then...
+
 `cp .env-example .env`
 
 Update .env as necessary
 
 `make build`
 
-To make a prod build
+Or to make a prod build
 
 `make buildProd`
 
 ### To run
 
-`docker-compose up keycloak`
-and then
+`make kc`
+
+And then in separate terminal
+
 `make run`
 
 ### For watch / hot reloading

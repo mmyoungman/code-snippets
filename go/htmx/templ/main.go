@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"log"
 	"log/slog"
@@ -15,13 +16,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/pressly/goose/v3"
 )
+
+//go:embed database/migrations/*
+var embedMigrations embed.FS
 
 func main() {
 	// include file and line in log messages
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	// @MarkFix make the program print all logs etc. to a file
+	// @MarkFix make the program print all logs to a file
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Didn't load env file", err)
@@ -29,6 +34,14 @@ func main() {
 
 	db := database.Connect()
 	defer db.Close()
+
+	goose.SetBaseFS(embedMigrations)
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		log.Fatal("Failed to set goose dialect ", err)
+	}
+	if err := goose.Up(db, "database/migrations"); err != nil {
+		log.Fatal("Failed to apply migrations ", err)
+	}
 
 	authObj, err := auth.Setup()
 	if err != nil {
