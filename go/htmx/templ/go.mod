@@ -3,13 +3,14 @@ module mmyoungman/templ
 go 1.22.3
 
 require (
-	github.com/a-h/templ v0.2.731
+	github.com/a-h/templ v0.2.747
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/render v1.0.3
 	github.com/go-jet/jet/v2 v2.11.1
 	github.com/gorilla/sessions v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/pressly/goose/v3 v3.21.1
 )
 
 require (
@@ -20,7 +21,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/pressly/goose/v3 v3.21.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect

@@ -1,7 +1,7 @@
 ### Dependencies
 
 - go
-- go binaries templ and air to be in $PATH (Found in $HOME/go/bin on my linux machine)
+- go binaries (templ, air, etc.) to be in $PATH after install (Found in $HOME/go/bin on my linux machine)
 - make
 - npm
 - docker
@@ -9,6 +9,13 @@
 ### To install
 
 `make install`
+
+This will:
+- Install all node dependencies for tailwindcss *shudder*
+- Install all go binaries used
+- Install all go dependencies
+- Create ./database/database.db and run all migrations
+- Create ./database/jet files
 
 ### To build
 
@@ -50,6 +57,8 @@ Keycloak should use the backup templ-realm.json found in ./keycloak/, but if you
 - Use this guide for setting up a new realm/client/users/etc. `https://www.keycloak.org/getting-started/getting-started-docker`
 - Once setup to your satisfaction, then `docker exec -it keycloak /bin/bash` to get a prompt inside the keycloak container and then `./opt/keycloak/bin/kc.sh export --file /opt/keycloak/data/import/templ-realm.json --realm templ-realm`
 - The new backup file will be in ./keycloak/. It will overwrite the existing ./keycloak/templ-realm.json file
+
+The backup templ-realm.json contains an admin user/password admin/admin and a test user/password test/test
 
 ### For VSCode
 

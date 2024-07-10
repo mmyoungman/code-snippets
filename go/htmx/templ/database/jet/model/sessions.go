@@ -8,6 +8,7 @@
 package model
 
 type Sessions struct {
+	ID           int32 `sql:"primary_key"`
 	UserID       string
 	AccessToken  string
 	RefreshToken string
