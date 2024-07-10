@@ -39,7 +39,7 @@ func main() {
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		log.Fatal("Failed to set goose dialect ", err)
 	}
-	if err := goose.Up(db, "database/migrations"); err != nil {
+	if err := goose.Up(db, utils.Getenv("MIGRATIONS_PATH")); err != nil {
 		log.Fatal("Failed to apply migrations ", err)
 	}
 

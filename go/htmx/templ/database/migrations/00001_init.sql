@@ -2,12 +2,12 @@
 -- +goose StatementBegin
 
 CREATE TABLE "Sessions" (
-	"ID"	INTEGER NOT NULL UNIQUE,
+	"ID"	TEXT NOT NULL UNIQUE,
 	"UserID"	TEXT NOT NULL,
 	"AccessToken"	TEXT NOT NULL,
 	"RefreshToken"	TEXT NOT NULL,
 	"TokenType"	TEXT NOT NULL,
-	PRIMARY KEY("ID" AUTOINCREMENT)
+	PRIMARY KEY("ID")
 )
 
 -- +goose StatementEnd
