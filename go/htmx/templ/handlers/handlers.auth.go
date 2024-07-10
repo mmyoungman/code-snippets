@@ -9,6 +9,7 @@ import (
 	"mmyoungman/templ/utils"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/go-chi/render"
 )
@@ -19,6 +20,13 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 
 		session := store.GetSession(r)
 		session.Values["state"] = state
+
+		// get referrer URL/path so can redirect user to page they were previously on after login
+		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
+		if (strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL())) {
+			session.Values["referrer_path"] = referrer
+		}
+
 		err := session.Save(r, w)
 		if err != nil {
 			log.Fatal("Failed to save session during login", err)
@@ -36,8 +44,13 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 		reqState := r.URL.Query().Get("state")
 
 		session := store.GetSession(r)
+
 		state := session.Values["state"]
+		referrerPath := session.Values["referrer_path"]
+
 		session.Values["state"] = nil
+		session.Values["referrer_path"] = nil
+
 		err := session.Save(r, w)
 		if err != nil {
 			log.Fatal("Failed to save session during login callback - ", err)
@@ -48,12 +61,15 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 			return errors.New("invalid state parameter")
 		}
 
-		token, err := authObj.Exchange(r.Context(), r.URL.Query().Get("code"))
+		reqCode := r.URL.Query().Get("code")
+
+		token, err := authObj.Exchange(r.Context(), reqCode)
 		if err != nil {
 			render.Status(r, http.StatusUnauthorized)
 			//return errors.New("Failed to convert authorization code into a token")
 			return err
 		}
+
 
 		idToken, err := authObj.VerifyIDToken(r.Context(), token)
 		if err != nil {
@@ -80,7 +96,6 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
 
 		auth.RawIDToken = token.Extra("id_token").(string)
-
 		auth.Token = token
 		auth.Profile = profile
 		// @MarkFix store profile in Users table
@@ -92,11 +107,12 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 		//log.Println("Username: ", profile["preferred_username"])
 		//log.Println("Firstname: ", profile["given_name"])
 		//log.Println("Lastname: ", profile["family_name"])
-		// given_name family_name email preferred_username
 		//log.Println("RawIDToken: ", auth.RawIDToken)
 
-		// @MarkFix redirect back to page they logged in from or to a logged in user page
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		if referrerPath == nil || referrerPath.(string) == "" { // @MarkFix review the referrer thing entirely
+			referrerPath = "/"
+		}
+		http.Redirect(w, r, referrerPath.(string), http.StatusTemporaryRedirect)
 		return nil
 	}
 }
@@ -135,7 +151,7 @@ func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
 }
 
 func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
-	reqState := r.URL.Query().Get("state") // @MarkFix this is probably dodgy security wise
+	reqState := r.URL.Query().Get("state") // @MarkFix this ok in terms of security?
 
 	session := store.GetSession(r)
 	state := session.Values["state"]

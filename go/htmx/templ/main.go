@@ -54,6 +54,7 @@ func main() {
 
 	// pages
 	router.Get("/", handlers.Make(handlers.HandleHome(authObj)))
+	router.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
 	// @MarkFix create user page
 
 	// partials

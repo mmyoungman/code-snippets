@@ -57,7 +57,7 @@ func Setup() (*Authenticator, error) {
 		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
 		RedirectURL: callbackURL,
 		Endpoint: provider.Endpoint(),
-		Scopes: []string{oidc.ScopeOpenID, "profile"},
+		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	authObj := Authenticator{

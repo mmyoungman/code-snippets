@@ -1,0 +1,14 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ User(username string) {
+	@layouts.Base("User", username) {
+		<div class="text-xl text-blue-500">User page</div>
+		<hr/>
+		<div>Welcome to the user page</div>
+		<div hx-get="/test" class="bg-center">
+			<button class="btn">Click this!</button>
+		</div>
+	}
+}
