@@ -27,7 +27,7 @@ func main() {
 		log.Fatal("Didn't load env file", err)
 	}
 
-	db := database.DBConnect()
+	db := database.Connect()
 	defer db.Close()
 
 	authObj, err := auth.Setup()
@@ -42,6 +42,7 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Use(middleware.SessionCheck(authObj))
+
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix CORS? Use middleware
 
@@ -54,8 +55,10 @@ func main() {
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
 	router.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback))
 
-	// pages
+	// public pages (that have dynamic content depending on whether the user is logged in)
 	router.Get("/", handlers.Make(handlers.HandleHome(authObj)))
+
+	// private pages (i.e. logged in users only)
 	router.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
 
 	// partials

@@ -14,18 +14,21 @@ func SessionCheck(authObj *auth.Authenticator) func(next http.Handler) http.Hand
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			var count int = 1 // for testing
-			// @MarkFix If someone changed Token.Expiry to far in the future, we'd curerntly 
+			// @MarkFix If someone changed Token.Expiry to far in the future, we'd currently
 			// never revalidate the user and they'd stay logged in permanently? So maybe
 			// VerifyIDToken every time?
+			// @MarkFix all this logic needs double checking once using a db to store session data
 			if auth.Token != nil && !auth.Token.Valid() {
-				var err error
 				restoredToken := &oauth2.Token{
 					AccessToken:  auth.Token.AccessToken,
 					RefreshToken: auth.Token.RefreshToken,
 					Expiry:       auth.Token.Expiry,
 					TokenType:    auth.Token.TokenType,
 				}
+
 				tokenSource := authObj.TokenSource(r.Context(), restoredToken)
+
+				var err error
 				auth.Token, err = tokenSource.Token()
 				if err != nil {
 					log.Fatal("Refresh token failed or something: ", err)
@@ -51,6 +54,7 @@ func SessionCheck(authObj *auth.Authenticator) func(next http.Handler) http.Hand
 
 				// @MarkFix if the token has changed, save stuff
 			}
+
 			next.ServeHTTP(w, r)
 		}
 		return http.HandlerFunc(fn)

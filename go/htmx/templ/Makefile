@@ -1,6 +1,11 @@
 include .env
 
 install:
+# @MarkFix specify versions?
+	@go install github.com/a-h/templ/cmd/templ@latest
+	@go install github.com/air-verse/air@latest
+	@go install github.com/pressly/goose/v3/cmd/goose@latest
+	@go install github.com/go-jet/jet/v2/cmd/jet@latest
 	@npm install
 
 run: build
@@ -45,3 +50,12 @@ watchTemplProxy:
 
 watchGoProxy:
 	TEMPL_WATCH_PROXY_URL=http://127.0.0.1:7331 air -c .air.proxy.toml
+
+goose:
+# make migration cmd="create new_migration_name sql"
+# make migration cmd="up"
+# see all goose commands here: https://github.com/pressly/goose?tab=readme-ov-file#usage
+	@goose -v -s -dir database/migrations sqlite ./database/database.db ${cmd}
+
+jet:
+	@jet -source=sqlite -dsn="./database/database.db" -path="./database/jet"

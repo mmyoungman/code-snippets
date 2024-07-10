@@ -8,10 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// @MarkFix Use goose (or something else) for migrations
-// @MarkFix Use go-jet as SQL builder
-
-func DBConnect() *sql.DB {
+func Connect() *sql.DB {
 	dbFilePath := utils.Getenv("SQLITE3_PATH")
 
 	db, err := sql.Open("sqlite3", dbFilePath)
