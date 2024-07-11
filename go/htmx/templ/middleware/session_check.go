@@ -1,35 +1,52 @@
 package middleware
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"mmyoungman/templ/auth"
+	"mmyoungman/templ/database"
+	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/store"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 )
 
 // Checks whether the user has a session. If they do, validate it and/or refresh token
-func SessionCheck(authObj *auth.Authenticator) func(next http.Handler) http.Handler {
+func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			var count int = 1 // for testing
 			// @MarkFix If someone changed Token.Expiry to far in the future, we'd currently
 			// never revalidate the user and they'd stay logged in permanently? So maybe
 			// VerifyIDToken every time?
 			// @MarkFix all this logic needs double checking once using a db to store session data
-			if auth.Token != nil && !auth.Token.Valid() {
+			cookieSession := store.GetSession(r)
+			
+			sessionID := cookieSession.Values["session_id"]
+			userID := cookieSession.Values["user_id"]
+
+			var dbSession *model.Sessions = nil
+			if sessionID != nil && userID != nil {
+				dbSession = database.GetSession(db, sessionID.(string), userID.(string))
+				if dbSession != nil {
+					fmt.Println("Expiry: ", time.Unix(int64(dbSession.Expiry), 0).String())
+				}
+			}
+
+			if dbSession != nil && int64(dbSession.Expiry) > time.Now().Unix() {
 				restoredToken := &oauth2.Token{
-					AccessToken:  auth.Token.AccessToken,
-					RefreshToken: auth.Token.RefreshToken,
-					Expiry:       auth.Token.Expiry,
-					TokenType:    auth.Token.TokenType,
+					AccessToken:  dbSession.AccessToken,
+					RefreshToken: dbSession.RefreshToken,
+					Expiry:       time.Unix(int64(dbSession.Expiry), 0),
+					TokenType:    dbSession.TokenType,
+
 				}
 
 				tokenSource := authObj.TokenSource(r.Context(), restoredToken)
 
-				var err error
-				auth.Token, err = tokenSource.Token()
+				newToken, err := tokenSource.Token()
 				if err != nil {
 					log.Fatal("Refresh token failed or something: ", err)
 					/* @MarkFix to get here:
@@ -43,16 +60,31 @@ func SessionCheck(authObj *auth.Authenticator) func(next http.Handler) http.Hand
 					   - Maybe both?
 					*/
 				}
-				_, err = authObj.VerifyIDToken(r.Context(), auth.Token) // @MarkFix do we bother with this? - and I need verify the nonce?
+				_, err = authObj.VerifyIDToken(r.Context(), newToken) // @MarkFix do we bother with this? - and I need verify the nonce?
 				if err != nil {
-					log.Fatal("Error verifying id token: ", err)
-					// @MarkFix remove any session? maybe not - could be used to invalidate a real session?
-					// @MarkFix redirect to Home?
-				}
-				fmt.Println("\nSessionCheck middleware - access token refreshed. Count: ", count, auth.Token.Expiry)
-				count++
+					log.Fatal("Failed to verify IDToken ", err)
+					// @MarkFix Is this right?
+					database.DeleteSession(db, dbSession.ID)
 
-				// @MarkFix if the token has changed, save stuff
+					cookieSession.Values["session_id"] = nil
+					cookieSession.Values["user_id"] = nil
+					if err := cookieSession.Save(r, w); err != nil {
+						log.Fatal("Failed to save cookieSession after finding bad accesstoken", err)
+					}
+
+					auth.RawIDToken = ""
+					auth.Profile = nil
+
+					next.ServeHTTP(w, r)
+					return
+				}
+
+				if dbSession.AccessToken == newToken.AccessToken {
+					log.Fatal("Something has gone wrong?")
+				}
+
+				database.UpdateSession(db, sessionID.(string), userID.(string), newToken.AccessToken,
+					newToken.RefreshToken, newToken.Expiry.Unix(), newToken.TokenType)
 			}
 
 			next.ServeHTTP(w, r)

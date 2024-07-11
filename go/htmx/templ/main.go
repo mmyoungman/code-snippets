@@ -54,7 +54,7 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
-	router.Use(middleware.SessionCheck(authObj))
+	router.Use(middleware.SessionCheck(authObj, db))
 
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix CORS? Use middleware
@@ -64,7 +64,7 @@ func main() {
 
 	// auth
 	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
-	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj)))
+	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
 	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
 	router.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback))
 

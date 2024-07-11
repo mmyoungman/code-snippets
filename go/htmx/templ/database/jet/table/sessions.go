@@ -21,6 +21,7 @@ type sessionsTable struct {
 	UserID       sqlite.ColumnString
 	AccessToken  sqlite.ColumnString
 	RefreshToken sqlite.ColumnString
+	Expiry       sqlite.ColumnInteger
 	TokenType    sqlite.ColumnString
 
 	AllColumns     sqlite.ColumnList
@@ -66,9 +67,10 @@ func newSessionsTableImpl(schemaName, tableName, alias string) sessionsTable {
 		UserIDColumn       = sqlite.StringColumn("UserID")
 		AccessTokenColumn  = sqlite.StringColumn("AccessToken")
 		RefreshTokenColumn = sqlite.StringColumn("RefreshToken")
+		ExpiryColumn       = sqlite.IntegerColumn("Expiry")
 		TokenTypeColumn    = sqlite.StringColumn("TokenType")
-		allColumns         = sqlite.ColumnList{IDColumn, UserIDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
-		mutableColumns     = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, TokenTypeColumn}
+		allColumns         = sqlite.ColumnList{IDColumn, UserIDColumn, AccessTokenColumn, RefreshTokenColumn, ExpiryColumn, TokenTypeColumn}
+		mutableColumns     = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, ExpiryColumn, TokenTypeColumn}
 	)
 
 	return sessionsTable{
@@ -79,6 +81,7 @@ func newSessionsTableImpl(schemaName, tableName, alias string) sessionsTable {
 		UserID:       UserIDColumn,
 		AccessToken:  AccessTokenColumn,
 		RefreshToken: RefreshTokenColumn,
+		Expiry:       ExpiryColumn,
 		TokenType:    TokenTypeColumn,
 
 		AllColumns:     allColumns,

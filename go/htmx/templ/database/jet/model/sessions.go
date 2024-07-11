@@ -12,5 +12,6 @@ type Sessions struct {
 	UserID       string
 	AccessToken  string
 	RefreshToken string
+	Expiry       int32
 	TokenType    string
 }

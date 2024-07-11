@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
 	"mmyoungman/templ/auth"
+	"mmyoungman/templ/database"
 	"mmyoungman/templ/store"
 	"mmyoungman/templ/utils"
 	"net/http"
@@ -12,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
@@ -39,7 +42,7 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	}
 }
 
-func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
+func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		reqState := r.URL.Query().Get("state")
 
@@ -70,7 +73,6 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 			return err
 		}
 
-
 		idToken, err := authObj.VerifyIDToken(r.Context(), token)
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
@@ -78,29 +80,36 @@ func HandleAuthCallback(authObj *auth.Authenticator) HTTPHandler {
 			return err
 		}
 
-		//session.Values["access_token"] = token.AccessToken
-		//session.Values["refresh_token"] = token.RefreshToken
-		//session.Values["expiry"] = token.Expiry.Unix()
-		//session.Values["token_type"] = token.TokenType
-
 		var profile map[string]interface{}
 		if err = idToken.Claims(&profile); err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			return err
 		}
-		//session.Values["profile"], err = json.Marshal(profile)
-		//if err != nil {
-		//	log.Fatal("Failed to marshal profile into json string")
-		//}
 
-		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
+		newSessionID := uuid.New().String()
+		userID := profile["sub"].(string)
+		cookieSession := store.GetSession(r)
+		cookieSession.Values["session_id"] = newSessionID
+		cookieSession.Values["user_id"] = userID
+		err = cookieSession.Save(r, w)
+		if err != nil {
+			log.Fatal("Failed to save cookie session")
+		}
 
-		auth.RawIDToken = token.Extra("id_token").(string)
-		auth.Token = token
+		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
+
+		//auth.RawIDToken = token.Extra("id_token").(string)
+		//auth.Token = token
 		auth.Profile = profile
 		// @MarkFix store profile in Users table
 		// @MarkFix store session info in Sessions table
 
+		//session.Values["access_token"] = token.AccessToken
+		//session.Values["refresh_token"] = token.RefreshToken
+		//session.Values["expiry"] = token.Expiry.Unix()
+		//session.Values["token_type"] = token.TokenType
+
+		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
 		//log.Println("PROFILE: ", profile)
 		//log.Println("UserID: ", profile["sub"])
 		//log.Println("Email: ", profile["email"])
@@ -161,13 +170,21 @@ func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
 		log.Fatal("Failed to save session during logout callback", err)
 	}
 
+
 	if reqState != state {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		//render.Status(r, http.StatusBadRequest) // @MarkFix these don't work?
 		return errors.New("invalid state parameter for logout callback")
 	}
 
-	auth.AccessToken = ""
+	session.Values["session_id"] = nil
+	session.Values["user_id"] = nil
+
+	err = session.Save(r, w)
+	if err != nil {
+		log.Fatal("Failed to save session during logout callback", err)
+	}
+
 	auth.RawIDToken = ""
 	auth.Profile = nil
 

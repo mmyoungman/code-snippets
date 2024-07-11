@@ -9,7 +9,6 @@ import (
 	"log"
 	"log/slog"
 	"mmyoungman/templ/utils"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -22,12 +21,7 @@ type Authenticator struct {
 }
 
 // @MarkFix replace with session state
-var AccessToken string
-var RefreshToken string
-var TokenType string
 var RawIDToken string
-var Token *oauth2.Token
-var Expiry time.Time
 var Profile map[string]interface{}
 
 func Setup() (*Authenticator, error) {
@@ -57,7 +51,7 @@ func Setup() (*Authenticator, error) {
 		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
 		RedirectURL: callbackURL,
 		Endpoint: provider.Endpoint(),
-		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+		Scopes: []string{oidc.ScopeOpenID, "profile"},
 	}
 
 	authObj := Authenticator{

@@ -16,8 +16,8 @@ func Setup() {
 		[]byte(utils.Getenv("SESSION_SECRET")))
 		//[]byte(utils.Getenv("SESSION_SECRET"))) // @MarkFix additional arg for encryption?
 	newStore.Options.Path = "/"
-	//newStore.Options.HttpOnly = true
-	//newStore.Options.Secure = utils.IsProd // @MarkFix we should be using TLS on prod, right?
+	newStore.Options.HttpOnly = true
+	newStore.Options.Secure = utils.IsProd // @MarkFix we should be using TLS on prod, right?
 
 	store = newStore
 }
