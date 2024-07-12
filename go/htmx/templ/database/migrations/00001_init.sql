@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE IF NOT EXISTS "Sessions" (
+CREATE TABLE IF NOT EXISTS "Session" (
 	"ID"	TEXT NOT NULL UNIQUE,
 	"UserID"	TEXT NOT NULL,
 	"AccessToken"	TEXT NOT NULL,
@@ -16,6 +16,6 @@ CREATE TABLE IF NOT EXISTS "Sessions" (
 -- +goose Down
 -- +goose StatementBegin
 
-DROP TABLE "Sessions";
+DROP TABLE "Session";
 
 -- +goose StatementEnd

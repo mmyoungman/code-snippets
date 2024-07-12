@@ -20,9 +20,8 @@ type Authenticator struct {
 	EndSessionURL string
 }
 
-// @MarkFix replace with session state
 var RawIDToken string
-var Profile map[string]interface{}
+var Profile map[string]interface{} // @MarkFix create a User table for this stuff
 
 func Setup() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(

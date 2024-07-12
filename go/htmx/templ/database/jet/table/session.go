@@ -11,9 +11,9 @@ import (
 	"github.com/go-jet/jet/v2/sqlite"
 )
 
-var Sessions = newSessionsTable("", "Sessions", "")
+var Session = newSessionTable("", "Session", "")
 
-type sessionsTable struct {
+type sessionTable struct {
 	sqlite.Table
 
 	// Columns
@@ -28,40 +28,40 @@ type sessionsTable struct {
 	MutableColumns sqlite.ColumnList
 }
 
-type SessionsTable struct {
-	sessionsTable
+type SessionTable struct {
+	sessionTable
 
-	EXCLUDED sessionsTable
+	EXCLUDED sessionTable
 }
 
-// AS creates new SessionsTable with assigned alias
-func (a SessionsTable) AS(alias string) *SessionsTable {
-	return newSessionsTable(a.SchemaName(), a.TableName(), alias)
+// AS creates new SessionTable with assigned alias
+func (a SessionTable) AS(alias string) *SessionTable {
+	return newSessionTable(a.SchemaName(), a.TableName(), alias)
 }
 
-// Schema creates new SessionsTable with assigned schema name
-func (a SessionsTable) FromSchema(schemaName string) *SessionsTable {
-	return newSessionsTable(schemaName, a.TableName(), a.Alias())
+// Schema creates new SessionTable with assigned schema name
+func (a SessionTable) FromSchema(schemaName string) *SessionTable {
+	return newSessionTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new SessionsTable with assigned table prefix
-func (a SessionsTable) WithPrefix(prefix string) *SessionsTable {
-	return newSessionsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+// WithPrefix creates new SessionTable with assigned table prefix
+func (a SessionTable) WithPrefix(prefix string) *SessionTable {
+	return newSessionTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
 }
 
-// WithSuffix creates new SessionsTable with assigned table suffix
-func (a SessionsTable) WithSuffix(suffix string) *SessionsTable {
-	return newSessionsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+// WithSuffix creates new SessionTable with assigned table suffix
+func (a SessionTable) WithSuffix(suffix string) *SessionTable {
+	return newSessionTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
 }
 
-func newSessionsTable(schemaName, tableName, alias string) *SessionsTable {
-	return &SessionsTable{
-		sessionsTable: newSessionsTableImpl(schemaName, tableName, alias),
-		EXCLUDED:      newSessionsTableImpl("", "excluded", ""),
+func newSessionTable(schemaName, tableName, alias string) *SessionTable {
+	return &SessionTable{
+		sessionTable: newSessionTableImpl(schemaName, tableName, alias),
+		EXCLUDED:     newSessionTableImpl("", "excluded", ""),
 	}
 }
 
-func newSessionsTableImpl(schemaName, tableName, alias string) sessionsTable {
+func newSessionTableImpl(schemaName, tableName, alias string) sessionTable {
 	var (
 		IDColumn           = sqlite.StringColumn("ID")
 		UserIDColumn       = sqlite.StringColumn("UserID")
@@ -73,7 +73,7 @@ func newSessionsTableImpl(schemaName, tableName, alias string) sessionsTable {
 		mutableColumns     = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, ExpiryColumn, TokenTypeColumn}
 	)
 
-	return sessionsTable{
+	return sessionTable{
 		Table: sqlite.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns

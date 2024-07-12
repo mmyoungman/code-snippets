@@ -23,16 +23,16 @@ func Connect() *sql.DB {
 	return db
 }
 
-func GetSession(db *sql.DB, sessionID string, userID string) *model.Sessions {
-	stmt := SELECT(Sessions.AllColumns).FROM(
-			Sessions).WHERE(
-				Sessions.ID.EQ(String(sessionID),
+func GetSession(db *sql.DB, sessionID string, userID string) *model.Session {
+	stmt := SELECT(Session.AllColumns).FROM(
+			Session).WHERE(
+				Session.ID.EQ(String(sessionID),
 				).AND(
-					Sessions.UserID.EQ(String(userID)),
+					Session.UserID.EQ(String(userID)),
 				),
 			)
 	
-	var sessions []model.Sessions
+	var sessions []model.Session
 	err := stmt.Query(db, &sessions)
 	if err != nil {
 		log.Fatal("Failed to execute SQL query", err)
@@ -47,8 +47,8 @@ func GetSession(db *sql.DB, sessionID string, userID string) *model.Sessions {
 }
 
 func InsertSession(db *sql.DB, sessionID string, userID string, accessToken string, refreshToken string, expiry int64, tokenType string) {
-	stmt := Sessions.INSERT(
-		Sessions.ID, Sessions.UserID, Sessions.AccessToken, Sessions.RefreshToken, Sessions.Expiry, Sessions.TokenType).VALUES(
+	stmt := Session.INSERT(
+		Session.ID, Session.UserID, Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType).VALUES(
 			sessionID, userID, accessToken, refreshToken, expiry, tokenType)
 	
 	result, err := stmt.Exec(db)
@@ -63,13 +63,13 @@ func InsertSession(db *sql.DB, sessionID string, userID string, accessToken stri
 }
 
 func UpdateSession(db *sql.DB, sessionID string, userID string, accessToken string, refreshToken string, expiry int64, tokenType string) {
-	stmt := Sessions.UPDATE(
-			Sessions.AccessToken, Sessions.RefreshToken, Sessions.Expiry, Sessions.TokenType,
+	stmt := Session.UPDATE(
+			Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType,
 		).SET(
 			accessToken, refreshToken, expiry, tokenType,	
 		).WHERE(
-			Sessions.ID.EQ(String(sessionID),
-			).AND(Sessions.UserID.EQ(String(userID))),
+			Session.ID.EQ(String(sessionID),
+			).AND(Session.UserID.EQ(String(userID))),
 		)
 	
 	result, err := stmt.Exec(db)
@@ -97,7 +97,7 @@ func UpdateSession(db *sql.DB, sessionID string, userID string, accessToken stri
 }
 
 func DeleteSession(db *sql.DB, sessionID string) {
-	stmt := Sessions.DELETE().WHERE(Sessions.ID.EQ(String(sessionID)))
+	stmt := Session.DELETE().WHERE(Session.ID.EQ(String(sessionID)))
 
 	result, err := stmt.Exec(db)
 	if err != nil {

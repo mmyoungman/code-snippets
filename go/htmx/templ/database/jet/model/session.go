@@ -7,7 +7,7 @@
 
 package model
 
-type Sessions struct {
+type Session struct {
 	ID           string `sql:"primary_key"`
 	UserID       string
 	AccessToken  string

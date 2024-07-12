@@ -25,7 +25,7 @@ func Setup() {
 func GetSession(r *http.Request) *sessions.Session {
 	session, err := store.Get(r, "session")
 	if err != nil {
-		log.Fatal("error in fetching session - should always return a session?", err)
+		log.Fatal("Error in fetching cookie session ", err)
 	}
 	return session
 }
@@ -33,6 +33,6 @@ func GetSession(r *http.Request) *sessions.Session {
 func SaveSession(session *sessions.Session, w http.ResponseWriter, r *http.Request) {
 	err := session.Save(r, w)
 	if err != nil {
-		log.Fatal("Failed to save session during login callback - ", err)
+		log.Fatal("Failed to save cookie session ", err)
 	}
 }
