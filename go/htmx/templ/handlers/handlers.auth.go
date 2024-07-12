@@ -96,6 +96,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 			log.Fatal("Failed to save cookie session")
 		}
 
+		fmt.Println("token.Expiry after login: ", token.Expiry)
 		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
 
 		//auth.RawIDToken = token.Extra("id_token").(string)

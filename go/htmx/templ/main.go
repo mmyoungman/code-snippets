@@ -40,7 +40,7 @@ func main() {
 		log.Fatal("Failed to set goose dialect ", err)
 	}
 	if err := goose.Up(db, utils.Getenv("MIGRATIONS_PATH")); err != nil {
-		log.Fatal("Failed to apply migrations ", err)
+		log.Fatal("Failed to apply migrations ", err) // @MarkFix do we actually want to fail here?
 	}
 
 	authObj, err := auth.Setup()

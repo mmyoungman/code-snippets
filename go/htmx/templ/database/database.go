@@ -27,35 +27,16 @@ func GetSession(db *sql.DB, sessionID string, userID string) *model.Sessions {
 	stmt := SELECT(Sessions.AllColumns).FROM(
 			Sessions).WHERE(
 				Sessions.ID.EQ(String(sessionID),
-				).AND(Sessions.UserID.EQ(String(userID))))
+				).AND(
+					Sessions.UserID.EQ(String(userID)),
+				),
+			)
 	
 	var sessions []model.Sessions
 	err := stmt.Query(db, &sessions)
 	if err != nil {
 		log.Fatal("Failed to execute SQL query", err)
 	}
-
-	//queryStr, args := stmt.Sql()
-	//queryStmt, err := db.Prepare(queryStr)
-	//if err != nil {
-	//	log.Fatal("Invalid SQL query", err)
-	//}
-	//defer queryStmt.Close()
-
-	//result, err := queryStmt.Query(args)
-	//if err != nil {
-	//	log.Fatal("Failed to execute SQL query", err)
-	//}
-
-	//var sessions []Session = make([]Session, 0)
-	//for result.Next() {
-	//	var session Session
-	//	err = result.Scan(&session.ID, &session.UserID, &session.AccessToken, &session.RefreshToken, &session.Expiry, &session.TokenType)
-	//	if err != nil {
-	//		log.Fatal("Failed to scan SQL query result", err)
-	//	}
-	//	sessions = append(sessions, session)
-	//}
 
 	if len(sessions) == 0 {
 		// @MarkFix shouldn't have > 1 ever - should error on that
