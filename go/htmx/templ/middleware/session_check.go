@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
 )
 
@@ -23,7 +22,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			userID := cookieSession.Values["user_id"]
 
 			if sessionID == nil || userID == nil {
-				DeleteSessionCookies(cookieSession, w, r) // ensure both are nil // @MarkFix could avoid this for performance
+				store.DeleteSession(cookieSession, w, r) // ensure both are nil // @MarkFix could avoid this for performance
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -32,7 +31,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			dbSession = database.GetSession(db, sessionID.(string), userID.(string))
 
 			if dbSession == nil {
-				DeleteSessionCookies(cookieSession, w, r)
+				store.DeleteSession(cookieSession, w, r)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -43,6 +42,9 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 				Expiry:       time.Unix(int64(dbSession.Expiry), 0),
 				TokenType:    dbSession.TokenType,
 			}
+			//var tokenExtraMap = make(map[string]string) // @MarkFix doesn't work?
+			//tokenExtraMap["id_token"] = auth.RawIDToken
+			//restoredToken.WithExtra(tokenExtraMap)
 
 			tokenSource := authObj.TokenSource(r.Context(), restoredToken)
 			newToken, err := tokenSource.Token()
@@ -54,7 +56,13 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 				   - wait for token to expire
 				   - visit home
 				*/
-				DeleteSession(db, dbSession.ID, cookieSession, w, r)
+
+				database.DeleteSession(db, dbSession.ID)
+				store.DeleteSession(cookieSession, w, r)
+
+				auth.RawIDToken = ""
+				auth.Profile = nil
+
 				next.ServeHTTP(w, r)
 				return
 				// @MarkFix also redirect here?
@@ -65,7 +73,13 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 				_, err = authObj.VerifyIDToken(r.Context(), newToken) // @MarkFix I need verify the nonce? According to func's code comment I do
 				if err != nil {
 					// @MarkFix to get here, token needs to be refreshed but IDToken not valid?
-					DeleteSession(db, dbSession.ID, cookieSession, w, r)
+
+					database.DeleteSession(db, dbSession.ID)
+					store.DeleteSession(cookieSession, w, r)
+
+					auth.RawIDToken = ""
+					auth.Profile = nil
+
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -84,19 +98,4 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 		}
 		return http.HandlerFunc(fn)
 	}
-}
-
-func DeleteSessionCookies(cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
-	cookieSession.Values["session_id"] = nil
-	cookieSession.Values["user_id"] = nil
-	store.SaveSession(cookieSession, w, r)
-}
-
-func DeleteSession(db *sql.DB, dbSessionID string, cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
-	database.DeleteSession(db, dbSessionID)
-
-	DeleteSessionCookies(cookieSession, w, r)
-
-	auth.RawIDToken = ""
-	auth.Profile = nil
 }

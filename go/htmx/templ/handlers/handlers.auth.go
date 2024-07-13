@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/store"
@@ -30,10 +29,7 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 			session.Values["referrer_path"] = referrer
 		}
 
-		err := session.Save(r, w)
-		if err != nil {
-			log.Fatal("Failed to save session during login", err)
-		}
+		store.SaveSession(session, w, r)
 
 		authCodeURL := authObj.AuthCodeURL(state) // @MarkFix better way to fetch authObj/Authenticator here?
 
@@ -54,10 +50,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		session.Values["state"] = nil
 		session.Values["referrer_path"] = nil
 
-		err := session.Save(r, w)
-		if err != nil {
-			log.Fatal("Failed to save session during login callback - ", err)
-		}
+		store.SaveSession(session, w, r)
 
 		if reqState != state {
 			render.Status(r, http.StatusBadRequest)
@@ -91,16 +84,14 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		cookieSession := store.GetSession(r)
 		cookieSession.Values["session_id"] = newSessionID
 		cookieSession.Values["user_id"] = userID
-		err = cookieSession.Save(r, w)
-		if err != nil {
-			log.Fatal("Failed to save cookie session")
-		}
+
+		store.SaveSession(cookieSession, w, r)
 
 		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
 
 		auth.RawIDToken = token.Extra("id_token").(string)
 		auth.Profile = profile
-		// @MarkFix store profile in Users table
+		// @MarkFix store profile in Users table?
 
 		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
 		//log.Println("PROFILE: ", profile)
@@ -122,6 +113,17 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
+
+		// If user is not logged in, redirect to home
+		cookieSession := store.GetSession(r)
+		sessionID := cookieSession.Values["session_id"]
+		userID := cookieSession.Values["user_id"]
+		if cookieSession.IsNew || sessionID == nil || userID == nil {
+			store.DeleteSession(cookieSession, w, r) // ensure both are nil
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			return nil
+		}
+
 		logoutUrl, err := url.Parse(authObj.EndSessionURL)
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
@@ -132,10 +134,8 @@ func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
 
 		session := store.GetSession(r)
 		session.Values["state"] = state
-		err = session.Save(r, w)
-		if err != nil {
-			log.Fatal("Failed to save session during logout", err)
-		}
+
+		store.SaveSession(session, w, r)
 
 		postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
 
@@ -152,37 +152,31 @@ func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
 	}
 }
 
-func HandleAuthLogoutCallback(w http.ResponseWriter, r *http.Request) error {
-	reqState := r.URL.Query().Get("state") // @MarkFix this ok in terms of security?
+func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		reqState := r.URL.Query().Get("state") // @MarkFix this ok in terms of security?
 
-	session := store.GetSession(r)
-	state := session.Values["state"]
-	session.Values["state"] = nil
-	err := session.Save(r, w)
-	if err != nil {
-		log.Fatal("Failed to save session during logout callback", err)
-	}
+		session := store.GetSession(r)
+		state := session.Values["state"]
+		session.Values["state"] = nil
 
+		store.SaveSession(session, w, r)
 
-	if reqState != state {
+		if reqState != state {
+			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			//render.Status(r, http.StatusBadRequest) // @MarkFix these don't work?
+			return errors.New("invalid state parameter for logout callback")
+		}
+
+		sessionID := session.Values["session_id"].(string)
+		database.DeleteSession(db, sessionID)
+		store.DeleteSession(session, w, r)
+		auth.RawIDToken = ""
+		auth.Profile = nil
+
+		// @MarkFix flash up "log out success" page before redirect?
+
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		//render.Status(r, http.StatusBadRequest) // @MarkFix these don't work?
-		return errors.New("invalid state parameter for logout callback")
+		return nil
 	}
-
-	session.Values["session_id"] = nil
-	session.Values["user_id"] = nil
-
-	err = session.Save(r, w)
-	if err != nil {
-		log.Fatal("Failed to save session during logout callback", err)
-	}
-
-	auth.RawIDToken = ""
-	auth.Profile = nil
-
-	// @MarkFix flash up "log out success" page before redirect?
-
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	return nil
 }

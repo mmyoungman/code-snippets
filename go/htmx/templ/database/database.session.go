@@ -32,9 +32,9 @@ func GetSession(db *sql.DB, sessionID string, userID string) *model.Session {
 }
 
 func InsertSession(db *sql.DB, sessionID string, userID string, accessToken string, refreshToken string, expiry int64, tokenType string) {
-	stmt := Session.INSERT(
-		Session.ID, Session.UserID, Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType).VALUES(
-		sessionID, userID, accessToken, refreshToken, expiry, tokenType)
+	stmt := Session.
+		INSERT(Session.ID, Session.UserID, Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType).
+		VALUES(sessionID, userID, accessToken, refreshToken, expiry, tokenType)
 
 	result, err := stmt.Exec(db)
 	if err != nil {
@@ -48,7 +48,8 @@ func InsertSession(db *sql.DB, sessionID string, userID string, accessToken stri
 }
 
 func UpdateSession(db *sql.DB, sessionID string, userID string, accessToken string, refreshToken string, expiry int64, tokenType string) {
-	stmt := Session.UPDATE(Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType).
+	stmt := Session.
+		UPDATE(Session.AccessToken, Session.RefreshToken, Session.Expiry, Session.TokenType).
 		SET(accessToken, refreshToken, expiry, tokenType).
 		WHERE(Session.ID.EQ(String(sessionID)).
 			AND(Session.UserID.EQ(String(userID))))

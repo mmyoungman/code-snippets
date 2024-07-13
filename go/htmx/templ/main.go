@@ -54,8 +54,6 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
-	router.Use(middleware.SessionCheck(authObj, db))
-
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix CORS? Use middleware
 
@@ -63,19 +61,25 @@ func main() {
 	router.Handle("/*", public())
 
 	// auth
-	router.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
-	router.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
-	router.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
-	router.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback))
+	router.Group(func(r chi.Router) {
+		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
+		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
+		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
+		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(db)))
+	})
 
-	// public pages (that have dynamic content depending on whether the user is logged in)
-	router.Get("/", handlers.Make(handlers.HandleHome(authObj)))
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.SessionCheck(authObj, db))
 
-	// private pages (i.e. logged in users only)
-	router.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
+		// public pages (that have dynamic content depending on whether the user is logged in)
+		r.Get("/", handlers.Make(handlers.HandleHome(authObj)))
 
-	// partials
-	router.Get("/test", handlers.Make(handlers.HandleTest))
+		// private pages (i.e. logged in users only)
+		r.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
+
+		// partials
+		r.Get("/test", handlers.Make(handlers.HandleTest))
+	})
 
 	// log details about host / ports / @hotreload dev watch proxies
 	publicPort := utils.Getenv("PUBLIC_PORT")

@@ -36,3 +36,11 @@ func SaveSession(session *sessions.Session, w http.ResponseWriter, r *http.Reque
 		log.Fatal("Failed to save cookie session ", err)
 	}
 }
+
+func DeleteSession(cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
+	cookieSession.Values["session_id"] = nil
+	cookieSession.Values["user_id"] = nil
+	SaveSession(cookieSession, w, r)
+
+	cookieSession.Options.MaxAge = -1
+}

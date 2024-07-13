@@ -30,6 +30,7 @@ func Setup() (*Authenticator, error) {
 		utils.Getenv("KEYCLOAK_URL") + "/realms/" + utils.Getenv("KEYCLOAK_REALM"),
 	)
 	if err != nil {
+		// @MarkFix retry calling NewProvider if it fails?
 		return nil, err
 	}
 
