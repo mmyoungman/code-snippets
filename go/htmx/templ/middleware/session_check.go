@@ -17,7 +17,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookieSession := store.GetSession(r)
-			
+
 			sessionID := cookieSession.Values["session_id"]
 			userID := cookieSession.Values["user_id"]
 
@@ -60,15 +60,14 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 				database.DeleteSession(db, dbSession.ID)
 				store.DeleteSession(cookieSession, w, r)
 
-				auth.RawIDToken = ""
-				auth.Profile = nil
+				// @MarkFix don't delete user?
 
 				next.ServeHTTP(w, r)
 				return
 				// @MarkFix also redirect here?
 			}
 
-			// if the token has been refreshed, verify the IDToken 
+			// if the token has been refreshed, verify the IDToken
 			if newToken.AccessToken != restoredToken.AccessToken {
 				_, err = authObj.VerifyIDToken(r.Context(), newToken) // @MarkFix I need verify the nonce? According to func's code comment I do
 				if err != nil {
@@ -77,8 +76,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 					database.DeleteSession(db, dbSession.ID)
 					store.DeleteSession(cookieSession, w, r)
 
-					auth.RawIDToken = ""
-					auth.Profile = nil
+					// @MarkFix don't delete user?
 
 					next.ServeHTTP(w, r)
 					return

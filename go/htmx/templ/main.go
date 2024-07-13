@@ -64,7 +64,7 @@ func main() {
 	router.Group(func(r chi.Router) {
 		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
 		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
-		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj)))
+		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj, db)))
 		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(db)))
 	})
 
@@ -72,10 +72,10 @@ func main() {
 		r.Use(middleware.SessionCheck(authObj, db))
 
 		// public pages (that have dynamic content depending on whether the user is logged in)
-		r.Get("/", handlers.Make(handlers.HandleHome(authObj)))
+		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db)))
 
 		// private pages (i.e. logged in users only)
-		r.Get("/user", handlers.Make(handlers.HandleUser(authObj)))
+		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db)))
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))

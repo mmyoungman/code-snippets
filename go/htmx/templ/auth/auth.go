@@ -20,14 +20,11 @@ type Authenticator struct {
 	EndSessionURL string
 }
 
-var RawIDToken string
-var Profile map[string]interface{} // @MarkFix create a User table for this stuff
-
 func Setup() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(
 		context.Background(),
 		// @MarkFix create Config object to store this kind of thing so it doesn't have to be constructed all over the place
-		utils.Getenv("KEYCLOAK_URL") + "/realms/" + utils.Getenv("KEYCLOAK_REALM"),
+		utils.Getenv("KEYCLOAK_URL")+"/realms/"+utils.Getenv("KEYCLOAK_REALM"),
 	)
 	if err != nil {
 		// @MarkFix retry calling NewProvider if it fails?
@@ -47,16 +44,16 @@ func Setup() (*Authenticator, error) {
 	callbackURL := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/callback")
 
 	conf := oauth2.Config{
-		ClientID: utils.Getenv("KEYCLOAK_CLIENT_ID"),
+		ClientID:     utils.Getenv("KEYCLOAK_CLIENT_ID"),
 		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
-		RedirectURL: callbackURL,
-		Endpoint: provider.Endpoint(),
-		Scopes: []string{oidc.ScopeOpenID, "profile"},
+		RedirectURL:  callbackURL,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
 
 	authObj := Authenticator{
-		Provider: provider,
-		Config: conf,
+		Provider:      provider,
+		Config:        conf,
 		EndSessionURL: claims.EndSessionURL,
 	}
 

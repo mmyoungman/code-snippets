@@ -11,11 +11,22 @@ CREATE TABLE IF NOT EXISTS "Session" (
 	PRIMARY KEY("ID")
 );
 
+CREATE TABLE IF NOT EXISTS "User" (
+	"ID" TEXT NOT NULL UNIQUE,
+	"Username" TEXT NOT NULL,
+	"Email" TEXT NOT NULL,
+	"FirstName" TEXT NOT NULL,
+	"LastName" TEXT NOT NULL,
+	"RawIDToken" TEXT NOT NULL,
+	PRIMARY KEY("ID")
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 
-DROP TABLE "Session";
+DROP TABLE IF EXISTS "Session";
+DROP TABLE IF EXISTS "User";
 
 -- +goose StatementEnd

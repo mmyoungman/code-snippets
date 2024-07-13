@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
+	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/store"
 	"mmyoungman/templ/utils"
 	"net/http"
@@ -25,7 +26,7 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 
 		// get referrer URL/path so can redirect user to page they were previously on after login
 		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
-		if (strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL())) {
+		if strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL()) {
 			session.Values["referrer_path"] = referrer
 		}
 
@@ -89,18 +90,28 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
 
-		auth.RawIDToken = token.Extra("id_token").(string)
-		auth.Profile = profile
-		// @MarkFix store profile in Users table?
+		rawIDToken := token.Extra("id_token").(string)
 
-		//fmt.Printf("Profile string: '%s'\n", session.Values["profile"])
-		//log.Println("PROFILE: ", profile)
-		//log.Println("UserID: ", profile["sub"])
-		//log.Println("Email: ", profile["email"])
-		//log.Println("Username: ", profile["preferred_username"])
-		//log.Println("Firstname: ", profile["given_name"])
-		//log.Println("Lastname: ", profile["family_name"])
-		//log.Println("RawIDToken: ", auth.RawIDToken)
+		user := database.GetUser(db, profile["sub"].(string))
+		if user == nil {
+			database.InsertUser(db, &model.User{
+				ID:         profile["sub"].(string),
+				Username:   profile["preferred_username"].(string),
+				Email:      profile["email"].(string),
+				FirstName:  profile["given_name"].(string),
+				LastName:   profile["family_name"].(string),
+				RawIDToken: rawIDToken,
+			})
+		} else {
+			database.UpdateUser(db, &model.User{
+				ID:         profile["sub"].(string),
+				Username:   profile["preferred_username"].(string),
+				Email:      profile["email"].(string),
+				FirstName:  profile["given_name"].(string),
+				LastName:   profile["family_name"].(string),
+				RawIDToken: rawIDToken,
+			})
+		}
 
 		if referrerPath == nil || referrerPath.(string) == "" { // @MarkFix review the referrer thing entirely
 			referrerPath = "/"
@@ -110,7 +121,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	}
 }
 
-func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
+func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
 
@@ -139,9 +150,12 @@ func HandleAuthLogout(authObj *auth.Authenticator) HTTPHandler {
 
 		postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
 
+		userId := session.Values["user_id"].(string)
+		user := database.GetUser(db, userId)
+
 		parameters := url.Values{}
 		parameters.Add("state", state)
-		parameters.Add("id_token_hint", auth.RawIDToken)
+		parameters.Add("id_token_hint", user.RawIDToken)
 		parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
 		parameters.Add("post_logout_redirect_uri", postLogoutRedirect)
 		logoutUrl.RawQuery = parameters.Encode()
@@ -171,8 +185,7 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 		sessionID := session.Values["session_id"].(string)
 		database.DeleteSession(db, sessionID)
 		store.DeleteSession(session, w, r)
-		auth.RawIDToken = ""
-		auth.Profile = nil
+		// @MarkFix delete user here?
 
 		// @MarkFix flash up "log out success" page before redirect?
 
