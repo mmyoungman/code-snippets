@@ -11,11 +11,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func GetSession(db *sql.DB, sessionID string, userID string) *model.Session {
+func GetSession(db *sql.DB, sessionID string) *model.Session {
 	stmt := SELECT(Session.AllColumns).
 		FROM(Session).
-		WHERE(Session.ID.EQ(String(sessionID)).
-			AND(Session.UserID.EQ(String(userID))))
+		WHERE(Session.ID.EQ(String(sessionID)))
 
 	var sessions []model.Session
 	err := stmt.Query(db, &sessions)

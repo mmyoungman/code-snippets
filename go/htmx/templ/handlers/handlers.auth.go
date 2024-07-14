@@ -19,9 +19,12 @@ import (
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		state := auth.GenerateRandomState()
 
 		session := store.GetSession(r)
+
+		//fmt.Println("session MaxAge: ", session.Options.MaxAge) // @MarkFix if SessionCheck runs first, MaxAge will be -1 here and break login - make the code more robust?
+
+		state := auth.GenerateRandomState()
 		session.Values["state"] = state
 
 		// get referrer URL/path so can redirect user to page they were previously on after login
@@ -80,22 +83,14 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 			return err
 		}
 
-		newSessionID := uuid.New().String()
 		userID := profile["sub"].(string)
-		cookieSession := store.GetSession(r)
-		cookieSession.Values["session_id"] = newSessionID
-		cookieSession.Values["user_id"] = userID
 
-		store.SaveSession(cookieSession, w, r)
-
-		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
-
+		// insert/update db user first
 		rawIDToken := token.Extra("id_token").(string)
-
 		user := database.GetUser(db, profile["sub"].(string))
 		if user == nil {
 			database.InsertUser(db, &model.User{
-				ID:         profile["sub"].(string),
+				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),
 				FirstName:  profile["given_name"].(string),
@@ -104,7 +99,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 			})
 		} else {
 			database.UpdateUser(db, &model.User{
-				ID:         profile["sub"].(string),
+				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),
 				FirstName:  profile["given_name"].(string),
@@ -112,6 +107,15 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 				RawIDToken: rawIDToken,
 			})
 		}
+
+		// then insert new db session
+		newSessionID := uuid.NewString()
+		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
+
+		// then update cookie session
+		cookieSession := store.GetSession(r)
+		cookieSession.Values["session_id"] = newSessionID
+		store.SaveSession(cookieSession, w, r)
 
 		if referrerPath == nil || referrerPath.(string) == "" { // @MarkFix review the referrer thing entirely
 			referrerPath = "/"
@@ -126,32 +130,44 @@ func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
 
 		// If user is not logged in, redirect to home
-		cookieSession := store.GetSession(r)
-		sessionID := cookieSession.Values["session_id"]
-		userID := cookieSession.Values["user_id"]
-		if cookieSession.IsNew || sessionID == nil || userID == nil {
-			store.DeleteSession(cookieSession, w, r) // ensure both are nil
+		//cookieSession := store.GetSession(r) // @MarkFix don't need this now? Get user from context
+		//sessionID := cookieSession.Values["session_id"]
+		//if cookieSession.IsNew || sessionID == nil {
+		//	store.DeleteSession(cookieSession, w, r) // ensure both are nil
+		//	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		//	return nil
+		//}
+
+		var user *model.User // @MarkFix clean this up
+		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		if userUntyped == nil {
+			// @MarkFix anything else to do here? Clean up session or something?
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-			return nil
+		} else {
+			user = userUntyped.(*model.User)
 		}
 
+		cookieSession := store.GetSession(r) // @MarkFix don't need this now? Get user from context
+
+		// get referrer URL/path so can redirect user to page they were previously on after login
+		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
+		if strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL()) {
+			cookieSession.Values["referrer_path"] = referrer
+		}
+
+		state := auth.GenerateRandomState()
+		cookieSession.Values["state"] = state
+
+		store.SaveSession(cookieSession, w, r)
+
+		// construct redirect URL + query params
 		logoutUrl, err := url.Parse(authObj.EndSessionURL)
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			return err
 		}
 
-		state := auth.GenerateRandomState()
-
-		session := store.GetSession(r)
-		session.Values["state"] = state
-
-		store.SaveSession(session, w, r)
-
 		postLogoutRedirect := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/logout/callback")
-
-		userId := session.Values["user_id"].(string)
-		user := database.GetUser(db, userId)
 
 		parameters := url.Values{}
 		parameters.Add("state", state)

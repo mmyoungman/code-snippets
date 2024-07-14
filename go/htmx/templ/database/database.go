@@ -8,6 +8,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// @MarkFix swap go-jet for sqlc
+
 func Connect() *sql.DB {
 	dbFilePath := utils.Getenv("SQLITE3_PATH")
 

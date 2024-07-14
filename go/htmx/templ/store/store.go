@@ -40,8 +40,10 @@ func SaveSession(session *sessions.Session, w http.ResponseWriter, r *http.Reque
 
 func DeleteSession(cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
 	cookieSession.Values["session_id"] = nil
-	cookieSession.Values["user_id"] = nil
-	SaveSession(cookieSession, w, r)
+	cookieSession.Values["state"] = nil
+	cookieSession.Values["referrer_path"] = nil
 
 	cookieSession.Options.MaxAge = -1
+
+	SaveSession(cookieSession, w, r)
 }

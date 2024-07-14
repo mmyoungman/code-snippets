@@ -21,6 +21,7 @@ build:
 	@${MAKE} jet
 	@./node_modules/.bin/tailwindcss -i views/layouts/base.css -o public/styles.css
 	@templ generate
+	@go fmt ./...
 	@go build -o bin/main .
 
 buildProd:

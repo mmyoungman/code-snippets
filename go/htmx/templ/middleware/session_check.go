@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"context"
 	"database/sql"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/store"
+	"mmyoungman/templ/utils"
 	"net/http"
 	"time"
 
@@ -18,17 +20,16 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookieSession := store.GetSession(r)
 
-			sessionID := cookieSession.Values["session_id"]
-			userID := cookieSession.Values["user_id"]
+			sessionIDUntyped := cookieSession.Values["session_id"]
 
-			if sessionID == nil || userID == nil {
+			if sessionIDUntyped == nil {
 				store.DeleteSession(cookieSession, w, r) // ensure both are nil // @MarkFix could avoid this for performance
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			var dbSession *model.Session = nil
-			dbSession = database.GetSession(db, sessionID.(string), userID.(string))
+			dbSession = database.GetSession(db, sessionIDUntyped.(string))
 
 			if dbSession == nil {
 				store.DeleteSession(cookieSession, w, r)
@@ -88,9 +89,15 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			// if the token has been refreshed, update session
 			if dbSession.AccessToken != newToken.AccessToken {
 				// @MarkFix we could update the sessionID here, to be paranoid...
-				database.UpdateSession(db, sessionID.(string), userID.(string), newToken.AccessToken,
+				database.UpdateSession(db, dbSession.ID, dbSession.UserID, newToken.AccessToken,
 					newToken.RefreshToken, newToken.Expiry.Unix(), newToken.TokenType)
 			}
+
+			// user is logged in, so set user on context for access in handlers
+			loggedInUser := database.GetUser(db, dbSession.UserID) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
+			ctx := r.Context()
+			newCtx := context.WithValue(ctx, utils.ReqUserCtxKey, loggedInUser)
+			*r = *r.WithContext(newCtx)
 
 			next.ServeHTTP(w, r)
 		}

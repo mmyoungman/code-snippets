@@ -62,9 +62,14 @@ func main() {
 
 	// auth
 	router.Group(func(r chi.Router) {
-		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj)))
-		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
+		r.Use(middleware.SessionCheck(authObj, db))
+		// we want to check whether user is already logged out in logout case
 		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(authObj, db)))
+	})
+
+	router.Group(func(r chi.Router) {
+		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(authObj))) // @MarkFix do we want to check context user here?
+		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(authObj, db)))
 		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(db)))
 	})
 

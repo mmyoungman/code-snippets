@@ -2,10 +2,9 @@ package handlers
 
 import (
 	"database/sql"
-	"log"
 	"mmyoungman/templ/auth"
-	"mmyoungman/templ/database"
-	"mmyoungman/templ/store"
+	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/utils"
 	"mmyoungman/templ/views/pages"
 	"net/http"
 )
@@ -13,15 +12,9 @@ import (
 func HandleHome(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
-
-		// @MarkFix Need to check dbSession? We've already run SessionCheck...
-		session := store.GetSession(r)
-		userID := session.Values["user_id"]
-		if userID != nil {
-			user := database.GetUser(db, userID.(string))
-			if user == nil {
-				log.Fatal("Wrong") // @MarkFix handle this
-			}
+		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		if userUntyped != nil {
+			user := userUntyped.(*model.User)
 			firstName = user.FirstName
 		}
 
@@ -32,15 +25,9 @@ func HandleHome(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
-
-		// @MarkFix Need to check dbSession? We've already run SessionCheck...
-		session := store.GetSession(r)
-		userID := session.Values["user_id"]
-		if userID != nil {
-			user := database.GetUser(db, userID.(string))
-			if user == nil {
-				log.Fatal("Wrong") // @MarkFix handle this
-			}
+		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		if userUntyped != nil {
+			user := userUntyped.(*model.User)
 			firstName = user.FirstName
 		}
 
