@@ -12,7 +12,6 @@ const (
 	ReqUserCtxKey reqCtxKey = iota
 )
 
-
 func Getenv(key string) string {
 	variable := os.Getenv(key)
 

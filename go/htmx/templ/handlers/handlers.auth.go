@@ -187,8 +187,12 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 		reqState := r.URL.Query().Get("state") // @MarkFix this ok in terms of security?
 
 		session := store.GetSession(r)
+
 		state := session.Values["state"]
+		referrerPath := session.Values["referrer_path"]
+
 		session.Values["state"] = nil
+		session.Values["referrer_path"] = nil
 
 		store.SaveSession(session, w, r)
 
@@ -205,7 +209,7 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 
 		// @MarkFix flash up "log out success" page before redirect?
 
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, referrerPath.(string), http.StatusTemporaryRedirect)
 		return nil
 	}
 }

@@ -96,10 +96,22 @@ func main() {
 		}
 	}
 
-	// @MarkFix use ListenAndServeTLS
-	err = http.ListenAndServe(":"+publicPort, router)
-	if err != nil {
-		log.Fatal("ListenAndServer error: ", err)
+	if os.Getenv("TLS_CRT") == "" || os.Getenv("TLS_KEY") == "" {
+		err = http.ListenAndServe(
+			":"+publicPort,
+		 	router)
+		if err != nil {
+			log.Fatal("ListenAndServe error: ", err)
+		}
+	} else {
+	err = http.ListenAndServeTLS(
+		":"+publicPort,
+		utils.Getenv("TLS_CRT"),
+		utils.Getenv("TLS_KEY"),
+	 	router)
+		if err != nil {
+			log.Fatal("ListenAndServeTLS error: ", err)
+		}
 	}
-	log.Println("http server stopped")
+	log.Println("Server stopped")
 }

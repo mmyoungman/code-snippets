@@ -60,6 +60,17 @@ Keycloak should use the backup templ-realm.json found in ./keycloak/, but if you
 
 The backup templ-realm.json contains an admin user/password admin/admin and a test user/password test/test
 
+### To generate self-signed certs for TLS
+
+You can generate a self-signed cert for your own machine using `mkcert`
+
+```
+mkcert -install
+mkcert localhost
+```
+
+then add to .env `TLS_KEY="localhost-key.pem"` and `TLS_CRT="localhost.pem"`
+
 ### For VSCode
 
 Install `Go` plugin

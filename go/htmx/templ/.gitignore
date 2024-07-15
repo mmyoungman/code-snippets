@@ -1,6 +1,7 @@
 bin
 tmp
 node_modules
+devfiles
 
 .env
 database/database.db
