@@ -89,7 +89,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		rawIDToken := token.Extra("id_token").(string)
 		user := database.GetUser(db, profile["sub"].(string))
 		if user == nil {
-			database.InsertUser(db, &model.User{
+			database.InsertUser(db, &model.User{ // @MarkFix make stateless?
 				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),

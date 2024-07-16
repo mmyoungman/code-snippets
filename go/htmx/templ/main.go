@@ -50,12 +50,19 @@ func main() {
 
 	store.Setup()
 
-	// @MarkFix build pipeline?
+	// @MarkFix add asserts
+	// @MarkFix build pipeline / deployment?
+	// @MarkFix set up auto formatting
+	// @MarkFix research static code analysis
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
 	// @MarkFix use other middleware - logger? recoverer?
-	// @MarkFix CORS? Use middleware
+	// @MarkFix rate limiting middleware?
+	// @MarkFix caching middleware?
+	// @MarkFix cors middleware?
+	// @MarkFix monitoring / analytics?
+	// @MarkFix backup / restore?
 
 	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())
