@@ -1,0 +1,14 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ Examples(username string) {
+	@layouts.Base("Example uses", username) {
+		<div class="text-xl text-blue-500">Example uses page</div>
+		<hr/>
+		<p>Here are examples usecases of templ/htmx</p>
+		<ul>
+		<li><a href="/examples/click-button-load-partial">Click button load partial</a></li>
+		</ul>
+	}
+}

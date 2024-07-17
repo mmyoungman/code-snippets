@@ -1,0 +1,13 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ ExamplesClickButtonLoadPartial(username string) {
+	@layouts.Base("Examples - Click button load partial", username) {
+		<div class="text-xl text-blue-500">Examples page</div>
+		<hr/>
+		<div hx-get="/test" class="bg-center">
+			<button class="btn">Click this!</button>
+		</div>
+	}
+}

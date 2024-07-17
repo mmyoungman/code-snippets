@@ -23,6 +23,7 @@ func Getenv(key string) string {
 }
 
 func GetPublicURL() string { // @hotreload
+	// @MarkFix rename TEMPL_WATCH_PROXY_URL to just PROXY_URL?
 	if !IsProd && os.Getenv("TEMPL_WATCH_PROXY_URL") != "" { // ensure !IsProd to prevent shenanigans
 		return os.Getenv("TEMPL_WATCH_PROXY_URL")
 	}

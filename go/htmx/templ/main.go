@@ -85,6 +85,8 @@ func main() {
 
 		// public pages (that have dynamic content depending on whether the user is logged in)
 		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db)))
+		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
+		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
 
 		// private pages (i.e. logged in users only)
 		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db)))
@@ -103,7 +105,7 @@ func main() {
 		}
 	}
 
-	if os.Getenv("TLS_CRT") == "" || os.Getenv("TLS_KEY") == "" {
+	if (os.Getenv("TLS_CRT") == "" || os.Getenv("TLS_KEY") == "") && !utils.IsProd {
 		err = http.ListenAndServe(
 			":"+publicPort,
 		 	router)
