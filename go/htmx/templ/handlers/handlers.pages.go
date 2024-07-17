@@ -24,14 +24,13 @@ func HandleHome(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		firstName := ""
+		var user *model.User = nil
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
 		if userUntyped != nil {
-			user := userUntyped.(*model.User)
-			firstName = user.FirstName
+			user = userUntyped.(*model.User)
 		}
 
-		return pages.User(firstName).Render(r.Context(), w)
+		return pages.User(user).Render(r.Context(), w)
 	}
 }
 
