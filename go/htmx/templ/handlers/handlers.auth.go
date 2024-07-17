@@ -22,8 +22,6 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 
 		session := store.GetSession(r)
 
-		//fmt.Println("session MaxAge: ", session.Options.MaxAge) // @MarkFix if SessionCheck runs first, MaxAge will be -1 here and break login - make the code more robust?
-
 		state := auth.GenerateRandomState()
 		session.Values["state"] = state
 
@@ -128,15 +126,6 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
-
-		// If user is not logged in, redirect to home
-		//cookieSession := store.GetSession(r) // @MarkFix don't need this now? Get user from context
-		//sessionID := cookieSession.Values["session_id"]
-		//if cookieSession.IsNew || sessionID == nil {
-		//	store.DeleteSession(cookieSession, w, r) // ensure both are nil
-		//	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		//	return nil
-		//}
 
 		var user *model.User // @MarkFix clean this up
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)

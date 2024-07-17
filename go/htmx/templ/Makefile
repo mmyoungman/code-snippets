@@ -54,7 +54,7 @@ watchTemplProxy:
 	@templ generate -watch -proxy=${PUBLIC_HOST}:${PUBLIC_PORT} -v
 
 watchGoProxy:
-	TEMPL_WATCH_PROXY_URL=http://127.0.0.1:7331 air -c .air.proxy.toml
+	PROXY_URL=http://127.0.0.1:7331 air -c .air.proxy.toml
 
 goose:
 # make migration cmd="create new_migration_name sql"
