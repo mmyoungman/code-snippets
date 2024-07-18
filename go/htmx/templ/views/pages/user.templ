@@ -5,31 +5,27 @@ import (
 	"mmyoungman/templ/views/layouts"
 )
 
-templ User(user *model.User) {
-	if user == nil {
-		@layouts.Base("User", "") {
-			<div class="text-xl text-blue-500">User page</div>
-			<hr/>
-			<div>Please log in!</div>
-		}
-	} else {
-		@layouts.Base("User", user.FirstName) {
-			<div class="text-xl text-blue-500">User page</div>
-			<hr/>
-			<div>You are logged in!</div>
-			@UserDetails(user)
-		}
+templ UserLoggedOut() {
+	@layouts.Base("User", "") {
+		<div class="text-xl text-blue-500">User page</div>
+		<hr/>
+		<div>Please log in!</div>
 	}
 }
 
-templ UserDetails(user *model.User) {
-	<p>Here are your user details:</p>
-	<ul>
-		<li>ID: { user.ID }</li>
-		<li>Username: { user.Username }</li>
-		<li>Email: { user.Email }</li>
-		<li>FirstName: { user.FirstName }</li>
-		<li>LastName: { user.LastName }</li>
-		<li>RawIDToken: { user.RawIDToken }</li>
-	</ul>
+templ UserLoggedIn(user *model.User) {
+	@layouts.Base("User", user.FirstName) {
+		<div class="text-xl text-blue-500">User page</div>
+		<hr/>
+		<div>You are logged in!</div>
+		<p>Here are your user details:</p>
+		<ul>
+			<li>ID: { user.ID }</li>
+			<li>Username: { user.Username }</li>
+			<li>Email: { user.Email }</li>
+			<li>FirstName: { user.FirstName }</li>
+			<li>LastName: { user.LastName }</li>
+			<li>RawIDToken: { user.RawIDToken }</li>
+		</ul>
+	}
 }

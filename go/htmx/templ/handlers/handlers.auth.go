@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"golang.org/x/oauth2"
 )
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
@@ -31,9 +32,16 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 			session.Values["referrer_path"] = referrer
 		}
 
+
+		// PKCE
+		pkceVerifier := oauth2.GenerateVerifier()
+
+		session.Values["pkce_verifier"] = pkceVerifier
 		store.SaveSession(session, w, r)
 
-		authCodeURL := authObj.AuthCodeURL(state) // @MarkFix better way to fetch authObj/Authenticator here?
+		pkceChallengeOption := oauth2.S256ChallengeOption(pkceVerifier)
+
+		authCodeURL := authObj.AuthCodeURL(state, pkceChallengeOption)
 
 		http.Redirect(w, r, authCodeURL, http.StatusTemporaryRedirect)
 		return nil
@@ -47,6 +55,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		session := store.GetSession(r)
 
 		state := session.Values["state"]
+		pkceVerifier := session.Values["pkce_verifier"]
 		referrerPath := session.Values["referrer_path"]
 
 		session.Values["state"] = nil
@@ -60,8 +69,9 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		}
 
 		reqCode := r.URL.Query().Get("code")
+		pkceVerifierOption := oauth2.VerifierOption(pkceVerifier.(string))
 
-		token, err := authObj.Exchange(r.Context(), reqCode)
+		token, err := authObj.Exchange(r.Context(), reqCode, pkceVerifierOption)
 		if err != nil {
 			render.Status(r, http.StatusUnauthorized)
 			//return errors.New("Failed to convert authorization code into a token")

@@ -28,9 +28,10 @@ func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
 		if userUntyped != nil {
 			user = userUntyped.(*model.User)
+			return pages.UserLoggedIn(user).Render(r.Context(), w)
 		}
 
-		return pages.User(user).Render(r.Context(), w)
+		return pages.UserLoggedOut().Render(r.Context(), w)
 	}
 }
 

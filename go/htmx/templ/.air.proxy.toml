@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
   bin = "./tmp/main"
-  cmd = "time { go build -o ./tmp/main .; }" # @hotreload assume templ watch proxy is running, so don't run it here like in .air.toml
+  cmd = "time { go build -o ./tmp/main .; }" # @hotreload assume templ watch proxy is running, so don't run it here
 
   delay = 20
   exclude_dir = ["bin", "tmp", "node-modules"]

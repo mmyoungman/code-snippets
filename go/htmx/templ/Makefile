@@ -46,13 +46,11 @@ watchTailwindcss:
 watchGo:
 	@air -c .air.toml
 
-# Below options are to get templ browser hot reloading working with auth - search for @hotreload to see how it works
+# Options for hot reloading - search for @hotreload to see how it works
 watchProxy:
 	@${MAKE} -j4 watchTailwindcss watchTemplProxy watchGoProxy
-
 watchTemplProxy:
 	@templ generate -watch -proxy=${PUBLIC_HOST}:${PUBLIC_PORT} -v
-
 watchGoProxy:
 	PROXY_URL=http://127.0.0.1:7331 air -c .air.proxy.toml
 

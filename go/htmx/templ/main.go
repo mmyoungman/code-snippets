@@ -99,7 +99,7 @@ func main() {
 	publicPort := utils.Getenv("PUBLIC_PORT")
 	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s", utils.Getenv("PUBLIC_HOST"), publicPort))
 	if os.Getenv("PROXY_URL") == utils.GetPublicURL() {
-		slog.Info("Auth configured for watch proxy", "templWatchProxyUrl", os.Getenv("PROXY_URL"))
+		slog.Info("Auth configured for watch proxy", "proxyUrl", os.Getenv("PROXY_URL"))
 		if utils.IsProd {
 			log.Fatal("Why is PROXY_URL env variable set in prod?")
 		}
