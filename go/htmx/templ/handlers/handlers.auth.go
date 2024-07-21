@@ -59,6 +59,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		referrerPath := session.Values["referrer_path"]
 
 		session.Values["state"] = nil
+		session.Values["pkce_verifier"] = nil
 		session.Values["referrer_path"] = nil
 
 		store.SaveSession(session, w, r)

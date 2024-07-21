@@ -60,9 +60,9 @@ func main() {
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix rate limiting middleware?
 	// @MarkFix caching middleware?
-	// @MarkFix cors middleware?
+	// @MarkFix CORS middleware - github.com/rs/cors
 	// @MarkFix monitoring / analytics?
-	// @MarkFix backup / restore?
+	// @MarkFix data backup / disaster recovery?
 
 	// embed public dir files for prod only - so dev build hotreload works
 	router.Handle("/*", public())

@@ -16,7 +16,9 @@ func Setup() {
 	newStore := sessions.NewCookieStore(
 		[]byte(utils.Getenv("SESSION_SECRET")))
 	//[]byte(utils.Getenv("SESSION_SECRET"))) // @MarkFix additional arg for encryption?
+	// @MarkFix review all cookie options
 	newStore.Options.Path = "/"
+	newStore.Options.SameSite = http.SameSiteStrictMode
 	//newStore.Options.HttpOnly = true
 	//newStore.Options.Secure = utils.IsProd // @MarkFix we should be using TLS on prod, right?
 
@@ -41,6 +43,7 @@ func SaveSession(session *sessions.Session, w http.ResponseWriter, r *http.Reque
 func DeleteSession(cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
 	cookieSession.Values["session_id"] = nil
 	cookieSession.Values["state"] = nil
+	cookieSession.Values["pkce_verifier"] = nil
 	cookieSession.Values["referrer_path"] = nil
 
 	cookieSession.Options.MaxAge = -1
