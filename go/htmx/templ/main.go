@@ -50,7 +50,6 @@ func main() {
 
 	store.Setup()
 
-	// @MarkFix add asserts
 	// @MarkFix build pipeline / deployment?
 	// @MarkFix set up auto formatting
 	// @MarkFix research static code analysis
