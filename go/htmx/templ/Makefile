@@ -10,6 +10,7 @@ install:
 	@go mod download
 	@${MAKE} goose cmd="up"
 	@${MAKE} jet
+	@go install golang.org/x/vuln/cmd/govulncheck@latest
 
 run: build
 	@./bin/main
@@ -62,3 +63,9 @@ goose:
 
 jet:
 	@jet -source=sqlite -dsn="${SQLITE3_PATH}" -path="${JETS_PATH}"
+
+format:
+	@go fmt ./...
+
+govulncheck:
+	@govulncheck ./...

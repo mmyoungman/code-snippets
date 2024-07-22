@@ -57,9 +57,12 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
+	router.Use(middleware.ContentSecurityPolicy)
+
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix rate limiting middleware?
 	// @MarkFix caching middleware?
+	// @MarkFix compression middleware?
 	// @MarkFix CORS middleware - github.com/rs/cors
 	// @MarkFix monitoring / analytics?
 	// @MarkFix data backup / disaster recovery?

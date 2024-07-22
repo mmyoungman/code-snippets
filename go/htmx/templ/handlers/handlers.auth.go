@@ -32,7 +32,6 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 			session.Values["referrer_path"] = referrer
 		}
 
-
 		// PKCE
 		pkceVerifier := oauth2.GenerateVerifier()
 
