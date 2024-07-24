@@ -7,6 +7,7 @@ import (
 	"mmyoungman/templ/utils"
 	"mmyoungman/templ/views/pages"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -64,6 +65,7 @@ func HandleToDoAddFormSubmit(db *sql.DB) HTTPHandler {
 func HandleToDoUpdateForm(db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		id := r.URL.Query().Get("id") // @MarkFix validation
+		id = strings.TrimPrefix(id, "item-")
 
 		item := database.GetToDoItem(db, id)
 

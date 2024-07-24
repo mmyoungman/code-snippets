@@ -56,7 +56,7 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
-	router.Use(middleware.ContentSecurityPolicy)
+	router.Use(middleware.ContentSecurityPolicy) // @MarkFix console errors due to this?
 
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix rate limiting middleware?

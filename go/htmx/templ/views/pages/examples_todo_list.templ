@@ -40,16 +40,16 @@ templ ToDoItemList(items []*model.ToDoItem) {
 }
 
 templ ToDoItemRow(item *model.ToDoItem) {
-	<tr id={item.ID}>
+	<tr id={"item-" + item.ID}>
 		@ToDoItemRowContents(item)
 	</tr>
 }
 
 templ ToDoItemRowContents(item *model.ToDoItem) {
 	<td>{item.Name} - {item.Description}</td>
-	<td id="row-controls">
-		<button hx-get={"/todo-update-item-form?id=" + item.ID} hx-target="#todo-controls">Update</button>
-		<button hx-get={"/todo-delete-item?id=" + item.ID}>Delete</button>
+	<td>
+		<button hx-get={"/todo-update-item-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
+		<button hx-get={"/todo-delete-item?id=item-" + item.ID}>Delete</button>
 	</td>
 }
 
@@ -81,9 +81,11 @@ templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
 		@AddItemButton()
 	</div>
 
-	<div id="todo-list" hx-swap-oob="beforeend">
-		@ToDoItemRow(item)
-	</div>
+	<template>
+		<tbody id="todo-list" hx-swap-oob="beforeend">
+			@ToDoItemRow(item)
+		</tbody>
+	</template>
 }
 
 templ UpdateItemForm(item *model.ToDoItem) {
@@ -109,7 +111,7 @@ templ UpdatePageAfterUpdateFormSubmit(item *model.ToDoItem) {
 	</div>
 
 	<template>
-		<tr id={item.ID} hx-swap-oob="innerHTML">
+		<tr id={"item-" + item.ID} hx-swap-oob="innerHTML">
 			@ToDoItemRowContents(item)
 		</tr>
 	</template>
