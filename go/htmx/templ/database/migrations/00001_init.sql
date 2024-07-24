@@ -21,6 +21,13 @@ CREATE TABLE IF NOT EXISTS "User" (
 	PRIMARY KEY("ID")
 );
 
+CREATE TABLE IF NOT EXISTS "ToDoItem" (
+	"ID" TEXT NOT NULL UNIQUE,
+	"Name" TEXT NOT NULL,
+	"Description" TEXT NOT NULL,
+	PRIMARY KEY("ID")
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
@@ -28,5 +35,6 @@ CREATE TABLE IF NOT EXISTS "User" (
 
 DROP TABLE IF EXISTS "Session";
 DROP TABLE IF EXISTS "User";
+DROP TABLE IF EXISTS "ToDoItem";
 
 -- +goose StatementEnd

@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
+	"mmyoungman/templ/database"
+	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/views/partials"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func HandleTest(w http.ResponseWriter, r *http.Request) error {
@@ -10,16 +15,22 @@ func HandleTest(w http.ResponseWriter, r *http.Request) error {
 	return partials.Test().Render(r.Context(), w)
 }
 
-func HandleToDoListAdd(w http.ResponseWriter, r *http.Request) error {
-	r.ParseForm()
+func HandleToDoListAdd(db *sql.DB) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		r.ParseForm()
 
-	// @MarkFix validate form values
+		// @MarkFix validate form values
 
-	name := r.FormValue("name")
-	description := r.FormValue("description")
+		name := r.FormValue("name")
+		description := r.FormValue("description")
 
-	// @MarkFix add to database
+		database.InsertToDoItem(db, &model.ToDoItem{ 
+			ID: uuid.NewString(), 
+			Name: name, 
+			Description: description,
+		})
 
-	// @MarkFix can visit {URL}/test directly in a browser
-	return partials.ToDoItemRow(name, description).Render(r.Context(), w)
+		// @MarkFix can visit {URL}/test directly in a browser
+		return partials.ToDoItemRow(name, description).Render(r.Context(), w)
+	}
 }
