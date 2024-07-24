@@ -97,8 +97,10 @@ func main() {
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))
 		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(db)))
-		r.Get("/add-todo-item-form", handlers.Make(handlers.HandleToDoListAddForm()))
+		r.Get("/todo-add-item-form", handlers.Make(handlers.HandleToDoAddForm()))
 		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(db)))
+		r.Get("/todo-update-item-form", handlers.Make(handlers.HandleToDoUpdateForm(db)))
+		r.Put("/todo-update-form-submit", handlers.Make(handlers.HandleToDoUpdateFormSubmit(db)))
 		r.Get("/todo-form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
 	})
 

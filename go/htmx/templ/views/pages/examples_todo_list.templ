@@ -15,9 +15,15 @@ templ ExamplesToDoList(username string, toDoItems []*model.ToDoItem) {
 		// @MarkFix add ability to delete
 		// @MarkFix add ability to update
 		// @MarkFix add ability to reorder
-		<ul id="todo-list" hx-get="/todo-item-list">
-			@ToDoItemList(toDoItems)
-  	  	</ul>
+		<table>
+			<thead>
+				<th>Item</th>
+				<th>Controls</th>
+			</thead>
+			<tbody id="todo-list">
+				@ToDoItemList(toDoItems)
+			</tbody>
+		</table>
 
 		<br />
 
@@ -27,18 +33,28 @@ templ ExamplesToDoList(username string, toDoItems []*model.ToDoItem) {
 	}
 }
 
-templ UpdatePageAfterFormSubmit(item *model.ToDoItem) {
-	<div id="todo-controls" hx-swap-oob="innerHTML">
-		@AddItemButton()
-	</div>
-
-	<div id="todo-list" hx-swap-oob="beforeend">
+templ ToDoItemList(items []*model.ToDoItem) {
+	for _, item := range items {
 		@ToDoItemRow(item)
-	</div>
+	}
+}
+
+templ ToDoItemRow(item *model.ToDoItem) {
+	<tr id={item.ID}>
+		@ToDoItemRowContents(item)
+	</tr>
+}
+
+templ ToDoItemRowContents(item *model.ToDoItem) {
+	<td>{item.Name} - {item.Description}</td>
+	<td id="row-controls">
+		<button hx-get={"/todo-update-item-form?id=" + item.ID} hx-target="#todo-controls">Update</button>
+		<button hx-get={"/todo-delete-item?id=" + item.ID}>Delete</button>
+	</td>
 }
 
 templ AddItemButton() {
-	<div hx-get="/add-todo-item-form" hx-target="#todo-controls">
+	<div hx-get="/todo-add-item-form" hx-target="#todo-controls">
 		<button class="btn">Add new item</button>
 	</div>
 }
@@ -60,6 +76,16 @@ templ AddItemForm() {
 	</div>
 }
 
+templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
+	<div id="todo-controls" hx-swap-oob="innerHTML">
+		@AddItemButton()
+	</div>
+
+	<div id="todo-list" hx-swap-oob="beforeend">
+		@ToDoItemRow(item)
+	</div>
+}
+
 templ UpdateItemForm(item *model.ToDoItem) {
 	<h1>Update ToDo Item</h1>
    	<form hx-put="/todo-update-form-submit">
@@ -77,12 +103,14 @@ templ UpdateItemForm(item *model.ToDoItem) {
 	</div>
 }
 
-templ ToDoItemList(items []*model.ToDoItem) {
-	for _, item := range items {
-		@ToDoItemRow(item)
-	}
-}
+templ UpdatePageAfterUpdateFormSubmit(item *model.ToDoItem) {
+	<div id="todo-controls" hx-swap-oob="innerHTML">
+		@AddItemButton()
+	</div>
 
-templ ToDoItemRow(item *model.ToDoItem) {
-	<li>{item.Name} - {item.Description}</li>
+	<template>
+		<tr id={item.ID} hx-swap-oob="innerHTML">
+			@ToDoItemRowContents(item)
+		</tr>
+	</template>
 }

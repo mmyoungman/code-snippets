@@ -34,7 +34,7 @@ func HandleToDoListItems(db *sql.DB) HTTPHandler {
 	}
 }
 
-func HandleToDoListAddForm() HTTPHandler {
+func HandleToDoAddForm() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix can visit {URL}/test directly in a browser
 		return pages.AddItemForm().Render(r.Context(), w)
@@ -57,7 +57,39 @@ func HandleToDoAddFormSubmit(db *sql.DB) HTTPHandler {
 		})
 
 		// @MarkFix can visit {URL}/test directly in a browser
-		return pages.UpdatePageAfterFormSubmit(newItem).Render(r.Context(), w)
+		return pages.UpdatePageAfterAddFormSubmit(newItem).Render(r.Context(), w)
+	}
+}
+
+func HandleToDoUpdateForm(db *sql.DB) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		id := r.URL.Query().Get("id") // @MarkFix validation
+
+		item := database.GetToDoItem(db, id)
+
+		// @MarkFix can visit {URL}/test directly in a browser
+		return pages.UpdateItemForm(item).Render(r.Context(), w)
+	}
+}
+
+func HandleToDoUpdateFormSubmit(db *sql.DB) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		r.ParseForm()
+
+		// @MarkFix validate form values
+
+		id := r.FormValue("id")
+		name := r.FormValue("name")
+		description := r.FormValue("description")
+
+		newItem := database.UpdateToDoItem(db, &model.ToDoItem{
+			ID:          id,
+			Name:        name,
+			Description: description,
+		})
+
+		// @MarkFix can visit {URL}/test directly in a browser
+		return pages.UpdatePageAfterUpdateFormSubmit(newItem).Render(r.Context(), w)
 	}
 }
 
