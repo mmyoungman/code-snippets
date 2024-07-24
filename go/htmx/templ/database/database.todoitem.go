@@ -11,10 +11,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func ListToDoItem(db *sql.DB, toDoID string) []*model.ToDoItem {
-	stmt := SELECT(User.AllColumns).
-		FROM(ToDoItem).
-		WHERE(User.ID.EQ(String(toDoID)))
+func ListToDoItems(db *sql.DB) []*model.ToDoItem {
+	stmt := SELECT(ToDoItem.AllColumns).
+		FROM(ToDoItem)
 
 	var items []*model.ToDoItem
 	err := stmt.Query(db, &items)
@@ -36,54 +35,6 @@ func InsertToDoItem(db *sql.DB, item *model.ToDoItem) {
 
 	n, _ := result.RowsAffected()
 	if n != 1 {
-		log.Fatal("Should have added one User")
+		log.Fatal("Should have added one ToDoItem")
 	}
 }
-
-//func InsertUser(db *sql.DB, user *model.User) {
-//	stmt := User.
-//		INSERT(User.ID, User.Username, User.Email, User.FirstName, User.LastName, User.RawIDToken).
-//		VALUES(user.ID, user.Username, user.Email, user.FirstName, user.LastName, user.RawIDToken)
-//
-//	result, err := stmt.Exec(db)
-//	if err != nil {
-//		log.Fatal("Failed to execute query ", err)
-//	}
-//
-//	n, _ := result.RowsAffected()
-//	if n != 1 {
-//		log.Fatal("Should have added one User")
-//	}
-//}
-//
-//func UpdateUser(db *sql.DB, user *model.User) {
-//	stmt := User.
-//		UPDATE(User.Username, User.Email, User.FirstName, User.LastName, User.RawIDToken).
-//		SET(user.Username, user.Email, user.FirstName, user.LastName, user.RawIDToken).
-//		WHERE(User.ID.EQ(String(user.ID)))
-//
-//	result, err := stmt.Exec(db)
-//	if err != nil {
-//		log.Fatal("Failed to execute query ", err)
-//	}
-//
-//	n, _ := result.RowsAffected()
-//	if n != 1 {
-//		log.Fatal("Should have updated one Session")
-//	}
-//}
-
-//func DeleteUser(db *sql.DB, userID string) {
-//	stmt := User.DELETE().
-//		WHERE(User.ID.EQ(String(userID)))
-//
-//	result, err := stmt.Exec(db)
-//	if err != nil {
-//		log.Fatal("Failed to execute query ", err)
-//	}
-//
-//	n, _ := result.RowsAffected()
-//	if n != 1 {
-//		log.Fatal("Should have updated one Session")
-//	}
-//}

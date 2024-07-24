@@ -89,7 +89,7 @@ func main() {
 		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db)))
 		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
 		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
-		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList()))
+		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(db)))
 
 		// private pages (i.e. logged in users only)
 		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db)))

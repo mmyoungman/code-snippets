@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"mmyoungman/templ/database"
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/utils"
 	"mmyoungman/templ/views/pages"
@@ -20,7 +22,7 @@ func HandleClickButtonLoadPartial() HTTPHandler {
 	}
 }
 
-func HandleToDoList() HTTPHandler {
+func HandleToDoList(db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
@@ -29,6 +31,8 @@ func HandleToDoList() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.ExamplesToDoList(firstName).Render(r.Context(), w)
+		toDoItems := database.ListToDoItems(db)
+
+		return pages.ExamplesToDoList(firstName, toDoItems).Render(r.Context(), w)
 	}
 }

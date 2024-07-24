@@ -1,12 +1,16 @@
 package pages
 
-import "mmyoungman/templ/views/layouts"
+import (
+	"mmyoungman/templ/views/layouts"
+	"mmyoungman/templ/database/jet/model"
+)
 
-templ ExamplesToDoList(username string) {
+templ ExamplesToDoList(username string, toDoItems []*model.ToDoItem) {
 	@layouts.Base("Examples - ToDo List", username) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>
 		<br />
+		// @MarkFix hide behind an "Add new item" button
 		<h1>Add ToDo List Item</h1>
     	<form hx-post="/add-todo-list-item" hx-target="#todo-list" hx-swap="beforeend">
     	    <label for="todo-item-name">Item</label>
@@ -21,8 +25,13 @@ templ ExamplesToDoList(username string) {
 		<br />
 		<br />
     	<h1>ToDo List</h1>
+ 		// @MarkFix turn into a table
+		// @MarkFix add ability to delete
+		// @MarkFix add ability to update
     	<ul id="todo-list">
-    	        <li>Item</li>
+			for _, item := range toDoItems {
+				<li>{item.Name} - {item.Description}</li>
+			}
     	</ul>
 	}
 }
