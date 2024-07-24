@@ -23,7 +23,6 @@ func GetSession(db *sql.DB, sessionID string) *model.Session {
 	}
 
 	if len(sessions) == 0 {
-		// @MarkFix shouldn't have > 1 ever - should error on that
 		return nil
 	}
 

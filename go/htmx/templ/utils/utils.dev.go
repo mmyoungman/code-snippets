@@ -4,7 +4,6 @@ package utils
 
 import "log"
 
-
 var IsProd = false
 
 func UNUSED(x ...interface{}) {}

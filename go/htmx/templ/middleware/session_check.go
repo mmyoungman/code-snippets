@@ -65,7 +65,6 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 
 				next.ServeHTTP(w, r)
 				return
-				// @MarkFix also redirect here?
 			}
 
 			// if the token has been refreshed, verify the IDToken

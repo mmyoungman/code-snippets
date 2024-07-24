@@ -1,0 +1,28 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ ExamplesToDoList(username string) {
+	@layouts.Base("Examples - ToDo List", username) {
+		<div class="text-xl text-blue-500">ToDo List Example</div>
+		<hr/>
+		<br />
+		<h1>Add ToDo List Item</h1>
+    	<form hx-post="/add-todo-list-item" hx-target="#todo-list" hx-swap="beforeend">
+    	    <label for="todo-item-name">Item</label>
+    	    <input type="text" name="name" id="todo-item-name" />
+    	    <label for="todo-item-name">Description</label>
+    	    <input type="text" name="description" id="todo-item-description" />
+    	    <button type="submit" class="btn btn-primary">
+    	        Submit
+    	    </button>
+    	</form>
+
+		<br />
+		<br />
+    	<h1>ToDo List</h1>
+    	<ul id="todo-list">
+    	        <li>Item</li>
+    	</ul>
+	}
+}

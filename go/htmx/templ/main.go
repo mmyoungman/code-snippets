@@ -89,12 +89,14 @@ func main() {
 		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db)))
 		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
 		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
+		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList()))
 
 		// private pages (i.e. logged in users only)
 		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db)))
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))
+		r.Post("/add-todo-list-item", handlers.Make(handlers.HandleToDoListAdd))
 	})
 
 	// log details about host / ports / @hotreload dev watch proxies

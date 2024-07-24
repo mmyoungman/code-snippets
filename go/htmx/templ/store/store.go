@@ -42,7 +42,8 @@ func SaveSession(session *sessions.Session, w http.ResponseWriter, r *http.Reque
 
 func DeleteSession(cookieSession *sessions.Session, w http.ResponseWriter, r *http.Request) {
 	cookieSession.Values["session_id"] = nil
-	cookieSession.Values["state"] = nil
+	cookieSession.Values["state_login"] = nil
+	cookieSession.Values["state_logout"] = nil
 	cookieSession.Values["pkce_verifier"] = nil
 	cookieSession.Values["referrer_path"] = nil
 

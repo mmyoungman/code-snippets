@@ -24,18 +24,17 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 		session := store.GetSession(r)
 
 		state := auth.GenerateRandomState()
-		session.Values["state"] = state
+		session.Values["state_login"] = state
 
 		// get referrer URL/path so can redirect user to page they were previously on after login
-		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
+		referrer := r.Header.Get("Referer")
 		if strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL()) {
 			session.Values["referrer_path"] = referrer
 		}
 
-		// PKCE
 		pkceVerifier := oauth2.GenerateVerifier()
-
 		session.Values["pkce_verifier"] = pkceVerifier
+
 		store.SaveSession(session, w, r)
 
 		pkceChallengeOption := oauth2.S256ChallengeOption(pkceVerifier)
@@ -53,11 +52,11 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 		session := store.GetSession(r)
 
-		state := session.Values["state"]
+		state := session.Values["state_login"]
 		pkceVerifier := session.Values["pkce_verifier"]
 		referrerPath := session.Values["referrer_path"]
 
-		session.Values["state"] = nil
+		session.Values["state_login"] = nil
 		session.Values["pkce_verifier"] = nil
 		session.Values["referrer_path"] = nil
 
@@ -125,7 +124,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		cookieSession.Values["session_id"] = newSessionID
 		store.SaveSession(cookieSession, w, r)
 
-		if referrerPath == nil || referrerPath.(string) == "" { // @MarkFix review the referrer thing entirely
+		if referrerPath == nil || referrerPath.(string) == "" {
 			referrerPath = "/"
 		}
 		http.Redirect(w, r, referrerPath.(string), http.StatusTemporaryRedirect)
@@ -148,14 +147,14 @@ func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 		cookieSession := store.GetSession(r) // @MarkFix don't need this now? Get user from context
 
-		// get referrer URL/path so can redirect user to page they were previously on after login
+		// get referrer URL/path so can redirect user to page they were previously on after logout
 		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
 		if strings.HasPrefix(referrer, "/") || strings.HasPrefix(referrer, utils.GetPublicURL()) {
 			cookieSession.Values["referrer_path"] = referrer
 		}
 
 		state := auth.GenerateRandomState()
-		cookieSession.Values["state"] = state
+		cookieSession.Values["state_logout"] = state
 
 		store.SaveSession(cookieSession, w, r)
 
@@ -187,10 +186,10 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 
 		session := store.GetSession(r)
 
-		state := session.Values["state"]
+		state := session.Values["state_logout"]
 		referrerPath := session.Values["referrer_path"]
 
-		session.Values["state"] = nil
+		session.Values["state_logout"] = nil
 		session.Values["referrer_path"] = nil
 
 		store.SaveSession(session, w, r)
