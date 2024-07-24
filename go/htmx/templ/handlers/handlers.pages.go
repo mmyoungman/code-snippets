@@ -34,16 +34,3 @@ func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		return pages.UserLoggedOut().Render(r.Context(), w)
 	}
 }
-
-func HandleExamples() HTTPHandler {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		firstName := ""
-		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
-		if userUntyped != nil {
-			user := userUntyped.(*model.User)
-			firstName = user.FirstName
-		}
-
-		return pages.Examples(firstName).Render(r.Context(), w)
-	}
-}

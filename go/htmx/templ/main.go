@@ -96,7 +96,10 @@ func main() {
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))
-		r.Post("/add-todo-list-item", handlers.Make(handlers.HandleToDoListAdd(db)))
+		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(db)))
+		r.Get("/add-todo-item-form", handlers.Make(handlers.HandleToDoListAddForm()))
+		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(db)))
+		r.Get("/todo-form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
 	})
 
 	// log details about host / ports / @hotreload dev watch proxies

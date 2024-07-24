@@ -24,7 +24,7 @@ func ListToDoItems(db *sql.DB) []*model.ToDoItem {
 	return items
 }
 
-func InsertToDoItem(db *sql.DB, item *model.ToDoItem) {
+func InsertToDoItem(db *sql.DB, item *model.ToDoItem) *model.ToDoItem {
 	stmt := ToDoItem.
 		INSERT(ToDoItem.ID, ToDoItem.Name, ToDoItem.Description).
 		VALUES(item.ID, item.Name, item.Description)
@@ -37,4 +37,6 @@ func InsertToDoItem(db *sql.DB, item *model.ToDoItem) {
 	if n != 1 {
 		log.Fatal("Should have added one ToDoItem")
 	}
+
+	return item
 }

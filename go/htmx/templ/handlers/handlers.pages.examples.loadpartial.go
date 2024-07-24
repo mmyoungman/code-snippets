@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func HandleExamples() HTTPHandler {
+func HandleClickButtonLoadPartial() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
@@ -16,7 +16,12 @@ func HandleExamples() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.Examples(firstName).Render(r.Context(), w)
+		return pages.ExamplesClickButtonLoadPartial(firstName).Render(r.Context(), w)
 	}
+}
+
+func HandleTest(w http.ResponseWriter, r *http.Request) error {
+	// @MarkFix can visit {URL}/test directly in a browser
+	return pages.Test().Render(r.Context(), w)
 }
 
