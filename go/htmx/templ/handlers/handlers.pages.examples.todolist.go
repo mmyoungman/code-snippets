@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func HandleToDoList(db *sql.DB) HTTPHandler {
+func HandleToDoList(db *sql.DB, nonce string) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
@@ -23,7 +23,7 @@ func HandleToDoList(db *sql.DB) HTTPHandler {
 
 		toDoItems := database.ListToDoItems(db)
 
-		return pages.ExamplesToDoList(firstName, toDoItems).Render(r.Context(), w)
+		return pages.ExamplesToDoList(firstName, nonce, toDoItems).Render(r.Context(), w)
 	}
 }
 

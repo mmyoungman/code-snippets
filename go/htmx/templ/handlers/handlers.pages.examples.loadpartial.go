@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func HandleClickButtonLoadPartial() HTTPHandler {
+func HandleClickButtonLoadPartial(nonce string) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
@@ -16,7 +16,7 @@ func HandleClickButtonLoadPartial() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.ExamplesClickButtonLoadPartial(firstName).Render(r.Context(), w)
+		return pages.ExamplesClickButtonLoadPartial(firstName, nonce).Render(r.Context(), w)
 	}
 }
 

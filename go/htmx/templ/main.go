@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"math/rand"
 	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/handlers"
@@ -48,6 +49,7 @@ func main() {
 		log.Fatal("Auth setup failed: ", err)
 	}
 
+
 	store.Setup()
 
 	// @MarkFix build pipeline / deployment?
@@ -56,7 +58,14 @@ func main() {
 	// @MarkFix I suppose I could write some tests at some point...
 	router := chi.NewRouter()
 
-	router.Use(middleware.ContentSecurityPolicy) // @MarkFix console errors due to this?
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	newNonce := make([]rune, 20)
+	for i := 0; i < 20; i++ {
+		newNonce[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	cspNonce := string(newNonce)
+	
+	router.Use(middleware.ContentSecurityPolicy(cspNonce)) // @MarkFix console errors due to this?
 
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix rate limiting middleware?
@@ -86,13 +95,13 @@ func main() {
 		r.Use(middleware.SessionCheck(authObj, db))
 
 		// public pages (that have dynamic content depending on whether the user is logged in)
-		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db)))
-		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
-		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
-		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(db)))
+		r.Get("/", handlers.Make(handlers.HandleHome(authObj, db, cspNonce)))
+		r.Get("/examples", handlers.Make(handlers.HandleExamples(cspNonce)))
+		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial(cspNonce)))
+		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(db, cspNonce)))
 
 		// private pages (i.e. logged in users only)
-		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db)))
+		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db, cspNonce)))
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))

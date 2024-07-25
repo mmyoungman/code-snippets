@@ -1,0 +1,7 @@
+package script
+
+templ SetInlineStyleNonce(nonce string) {
+    <script nonce={ nonce } type="text/javascript">
+        htmx.config.inlineStyleNonce = { nonce };
+    </script>
+}

@@ -4,7 +4,7 @@ import (
 	"mmyoungman/templ/utils"
 )
 
-templ Base(title string, username string) {
+templ Base(title string, username string, nonce string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -16,12 +16,12 @@ templ Base(title string, username string) {
 			<link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
 			<link rel="stylesheet" href="/public/styles.css" />
 			if utils.IsProd {
-				<script src="/public/htmx.min.js" defer />
+				<script nonce={nonce} src="/public/htmx.min.js" defer />
 			} else {
 				<script src="/public/htmx.js" defer />
 			}
 			<meta name="htmx-config" content={"{\"inlineStyleNonce\":\"" + 
-				utils.Getenv("HTMX_INLINESTYLENONCE") + "\"}"} />
+				nonce + "\", \"inlineScriptNonce\":\"" + nonce + "\"}"} />
 			<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" /> -->
 			<!-- <script src="https://unpkg.com/alpinejs" defer /> -->
 		</head>

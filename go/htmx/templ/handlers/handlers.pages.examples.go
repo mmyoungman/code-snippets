@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func HandleExamples() HTTPHandler {
+func HandleExamples(nonce string) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
 		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
@@ -16,7 +16,7 @@ func HandleExamples() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.Examples(firstName).Render(r.Context(), w)
+		return pages.Examples(firstName, nonce).Render(r.Context(), w)
 	}
 }
 
