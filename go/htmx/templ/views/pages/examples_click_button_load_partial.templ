@@ -1,6 +1,7 @@
 package pages
 
 import "mmyoungman/templ/views/layouts"
+import "mmyoungman/templ/views/layouts/script"
 
 templ ExamplesClickButtonLoadPartial(username string, nonce string) {
 	@layouts.Base("Examples - Click button load partial", username, nonce) {
@@ -12,6 +13,7 @@ templ ExamplesClickButtonLoadPartial(username string, nonce string) {
 	}
 }
 
-templ Test() {
+templ Test(nonce string) {
+	@script.SetInlineStyleNonce(nonce)
 	<div class="text-xl text-blue-500 bg-center">You did something!</div>
 }

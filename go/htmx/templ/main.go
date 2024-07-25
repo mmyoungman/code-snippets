@@ -104,7 +104,7 @@ func main() {
 		r.Get("/user", handlers.Make(handlers.HandleUser(authObj, db, cspNonce)))
 
 		// partials
-		r.Get("/test", handlers.Make(handlers.HandleTest))
+		r.Get("/test", handlers.Make(handlers.HandleTest(cspNonce)))
 		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(db)))
 		r.Get("/todo-add-item-form", handlers.Make(handlers.HandleToDoAddForm()))
 		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(db)))

@@ -20,8 +20,10 @@ func HandleClickButtonLoadPartial(nonce string) HTTPHandler {
 	}
 }
 
-func HandleTest(w http.ResponseWriter, r *http.Request) error {
-	// @MarkFix can visit {URL}/test directly in a browser
-	return pages.Test().Render(r.Context(), w)
+func HandleTest(nonce string) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		// @MarkFix can visit {URL}/test directly in a browser
+		return pages.Test(nonce).Render(r.Context(), w)
+	}
 }
 

@@ -10,6 +10,7 @@ type reqCtxKey int
 
 const (
 	ReqUserCtxKey reqCtxKey = iota
+	CspNonceCtxKey reqCtxKey = iota
 )
 
 func Getenv(key string) string {
