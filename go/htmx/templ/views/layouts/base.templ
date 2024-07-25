@@ -13,7 +13,6 @@ templ Base(title string, username string) {
 			<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 			<meta name="viewport" content="width=device-width, initial-scale=2.0" />
 			<title>{title}</title>
-			<style>[x-cloak]{display:none}</style>
 			<link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
 			<link rel="stylesheet" href="/public/styles.css" />
 			if utils.IsProd {
@@ -21,6 +20,8 @@ templ Base(title string, username string) {
 			} else {
 				<script src="/public/htmx.js" defer />
 			}
+			<meta name="htmx-config" content={"{\"inlineStyleNonce\":\"" + 
+				utils.Getenv("HTMX_INLINESTYLENONCE") + "\"}"} />
 			<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" /> -->
 			<!-- <script src="https://unpkg.com/alpinejs" defer /> -->
 		</head>
