@@ -28,6 +28,7 @@ templ ExamplesToDoList(username string, toDoItems []*model.ToDoItem) {
 		<br />
 
 		<div id="todo-controls">
+			// @MarkFix can click anywhere on the same line to activate this button
 			@AddItemButton()
 		</div>
 	}
@@ -49,7 +50,7 @@ templ ToDoItemRowContents(item *model.ToDoItem) {
 	<td>{item.Name} - {item.Description}</td>
 	<td>
 		<button hx-get={"/todo-update-item-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
-		<button hx-delete={"/todo-delete-item?id=item-" + item.ID} hx-target={"#item-" + item.ID}>Delete</button>
+		<button hx-delete={"/todo-delete-item?id=item-" + item.ID} hx-target={"#item-" + item.ID} hx-swap="outerHTML">Delete</button>
 	</td>
 }
 
