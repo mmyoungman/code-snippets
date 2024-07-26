@@ -101,6 +101,7 @@ func main() {
 		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(db)))
 		r.Get("/todo-update-item-form", handlers.Make(handlers.HandleToDoUpdateForm(db)))
 		r.Put("/todo-update-form-submit", handlers.Make(handlers.HandleToDoUpdateFormSubmit(db)))
+		r.Delete("/todo-delete-item", handlers.Make(handlers.HandleToDoDelete(db)))
 		r.Get("/todo-form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
 	})
 

@@ -77,3 +77,19 @@ func UpdateToDoItem(db *sql.DB, item *model.ToDoItem) *model.ToDoItem {
 
 	return item
 }
+
+func DeleteToDoItem(db *sql.DB, id string) {
+	stmt := ToDoItem.
+		DELETE().
+		WHERE(ToDoItem.ID.EQ(String(id)))
+
+	result, err := stmt.Exec(db)
+	if err != nil {
+		log.Fatal("Failed to execute query ", err)
+	}
+
+	n, _ := result.RowsAffected()
+	if n != 1 {
+		log.Fatal("Should have removed one ToDoItem")
+	}
+}

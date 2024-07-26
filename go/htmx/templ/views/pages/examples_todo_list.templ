@@ -49,7 +49,7 @@ templ ToDoItemRowContents(item *model.ToDoItem) {
 	<td>{item.Name} - {item.Description}</td>
 	<td>
 		<button hx-get={"/todo-update-item-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
-		<button hx-get={"/todo-delete-item?id=item-" + item.ID}>Delete</button>
+		<button hx-delete={"/todo-delete-item?id=item-" + item.ID} hx-target={"#item-" + item.ID}>Delete</button>
 	</td>
 }
 
@@ -115,4 +115,7 @@ templ UpdatePageAfterUpdateFormSubmit(item *model.ToDoItem) {
 			@ToDoItemRowContents(item)
 		</tr>
 	</template>
+}
+
+templ DeleteToDoItem() {
 }

@@ -95,6 +95,19 @@ func HandleToDoUpdateFormSubmit(db *sql.DB) HTTPHandler {
 	}
 }
 
+func HandleToDoDelete(db *sql.DB) HTTPHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		id := r.URL.Query().Get("id") // @MarkFix validation
+		id = strings.TrimPrefix(id, "item-")
+
+		database.DeleteToDoItem(db, id)
+
+
+		return pages.DeleteToDoItem().Render(r.Context(), w)
+	}
+}
+
+
 func HandleToDoFormCancel() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		return pages.AddItemButton().Render(r.Context(), w)
