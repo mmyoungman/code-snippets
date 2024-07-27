@@ -92,6 +92,7 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 
 			// user is logged in, so set user on context for access in handlers
 			loggedInUser := database.GetUser(serviceCtx.Db, dbSession.UserID) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
+
 			utils.SetContextValue(r, utils.UserCtxKey, loggedInUser)
 
 			next.ServeHTTP(w, r)

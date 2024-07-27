@@ -83,7 +83,7 @@ func main() {
 	})
 
 	router.Group(func(r chi.Router) {
-		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(serviceCtx.Auth))) // @MarkFix do we want to check context user here?
+		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(serviceCtx.Auth)))
 		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(serviceCtx)))
 		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(serviceCtx.Db)))
 	})
@@ -95,20 +95,19 @@ func main() {
 		r.Get("/", handlers.Make(handlers.HandleHome()))
 		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
 		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
-		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(serviceCtx.Db)))
+		r.Get("/examples/todo", handlers.Make(handlers.HandleToDoList(serviceCtx.Db)))
 
 		// private pages (i.e. logged in users only)
 		r.Get("/user", handlers.Make(handlers.HandleUser(serviceCtx.Auth, serviceCtx.Db)))
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))
-		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(serviceCtx.Db)))
-		r.Get("/todo-add-item-form", handlers.Make(handlers.HandleToDoAddForm()))
-		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(serviceCtx.Db)))
-		r.Get("/todo-update-item-form", handlers.Make(handlers.HandleToDoUpdateForm(serviceCtx.Db)))
-		r.Put("/todo-update-form-submit", handlers.Make(handlers.HandleToDoUpdateFormSubmit(serviceCtx.Db)))
-		r.Delete("/todo-delete-item", handlers.Make(handlers.HandleToDoDelete(serviceCtx.Db)))
-		r.Get("/todo-form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
+		r.Get("/todo/add-form", handlers.Make(handlers.HandleToDoAddForm()))
+		r.Post("/todo", handlers.Make(handlers.HandleToDoAddFormSubmit(serviceCtx.Db)))
+		r.Get("/todo/update-form", handlers.Make(handlers.HandleToDoUpdateForm(serviceCtx.Db)))
+		r.Put("/todo", handlers.Make(handlers.HandleToDoUpdateFormSubmit(serviceCtx.Db)))
+		r.Delete("/todo", handlers.Make(handlers.HandleToDoDelete(serviceCtx.Db)))
+		r.Get("/todo/form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
 	})
 
 	// log details about host / ports / @hotreload dev watch proxies

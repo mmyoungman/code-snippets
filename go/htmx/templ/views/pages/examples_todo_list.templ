@@ -49,20 +49,20 @@ templ ToDoItemRow(item *model.ToDoItem) {
 templ ToDoItemRowContents(item *model.ToDoItem) {
 	<td>{item.Name} - {item.Description}</td>
 	<td>
-		<button hx-get={"/todo-update-item-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
-		<button hx-delete={"/todo-delete-item?id=item-" + item.ID} hx-target={"#item-" + item.ID} hx-swap="outerHTML">Delete</button>
+		<button hx-get={"/todo/update-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
+		<button hx-delete={"/todo?id=item-" + item.ID} hx-target={"#item-" + item.ID} hx-swap="outerHTML">Delete</button>
 	</td>
 }
 
 templ AddItemButton() {
-	<div hx-get="/todo-add-item-form" hx-target="#todo-controls">
+	<div hx-get="/todo/add-form" hx-target="#todo-controls">
 		<button class="btn">Add new item</button>
 	</div>
 }
 
 templ AddItemForm() {
 	<h1>Add ToDo Item</h1>
-   	<form hx-post="/todo-add-form-submit">
+   	<form hx-post="/todo">
    	    <label for="todo-item-name">Item</label>
    	    <input type="text" name="name" id="todo-item-name" />
    	    <label for="todo-item-name">Description</label>
@@ -72,7 +72,7 @@ templ AddItemForm() {
    	        Add item
    	    </button>
    	</form>
-	<div hx-get="/todo-form-cancel" hx-target="#todo-controls">
+	<div hx-get="/todo/form-cancel" hx-target="#todo-controls">
 		<button class="btn">Cancel</button>
 	</div>
 }
@@ -91,7 +91,7 @@ templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
 
 templ UpdateItemForm(item *model.ToDoItem) {
 	<h1>Update ToDo Item</h1>
-   	<form hx-put="/todo-update-form-submit">
+   	<form hx-put="/todo">
 		<input type="hidden" name="id" value={item.ID} />
    	    <label for="todo-item-name">Item</label>
    	    <input type="text" name="name" id="todo-item-name" value={item.Name} />
@@ -101,7 +101,7 @@ templ UpdateItemForm(item *model.ToDoItem) {
    	        Update item
    	    </button>
    	</form>
-	<div hx-get="/todo-form-cancel" hx-target="#todo-controls">
+	<div hx-get="/todo/form-cancel" hx-target="#todo-controls">
 		<button class="btn">Cancel</button>
 	</div>
 }

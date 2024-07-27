@@ -27,14 +27,6 @@ func HandleToDoList(db *sql.DB) HTTPHandler {
 	}
 }
 
-func HandleToDoListItems(db *sql.DB) HTTPHandler {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		toDoItems := database.ListToDoItems(db)
-
-		return pages.ToDoItemList(toDoItems).Render(r.Context(), w)
-	}
-}
-
 func HandleToDoAddForm() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix can visit {URL}/test directly in a browser

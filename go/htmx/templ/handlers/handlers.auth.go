@@ -21,6 +21,7 @@ import (
 
 func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
+		// @MarkFix could check if there is a valid user before attempting to log in
 
 		session := store.GetSession(r)
 
@@ -140,13 +141,12 @@ func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 		var user *model.User // @MarkFix clean this up
 		userUntyped := r.Context().Value(utils.UserCtxKey)
 		if userUntyped == nil {
-			// @MarkFix anything else to do here? Clean up session or something?
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		} else {
 			user = userUntyped.(*model.User)
 		}
 
-		cookieSession := store.GetSession(r) // @MarkFix don't need this now? Get user from context
+		cookieSession := store.GetSession(r)
 
 		// get referrer URL/path so can redirect user to page they were previously on after logout
 		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
