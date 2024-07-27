@@ -1,16 +1,25 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 )
 
 type reqCtxKey int
 
 const (
-	ReqUserCtxKey reqCtxKey = iota
+	UserCtxKey     reqCtxKey = iota
+	CspNonceCtxKey reqCtxKey = iota
 )
+
+func SetContextValue(r *http.Request, key reqCtxKey, value any) {
+	ctx := r.Context()
+	newCtx := context.WithValue(ctx, key, value)
+	*r = *r.WithContext(newCtx)
+}
 
 func Getenv(key string) string {
 	variable := os.Getenv(key)

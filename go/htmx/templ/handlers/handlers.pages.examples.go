@@ -10,7 +10,7 @@ import (
 func HandleExamples() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
-		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		userUntyped := r.Context().Value(utils.UserCtxKey)
 		if userUntyped != nil {
 			user := userUntyped.(*model.User)
 			firstName = user.FirstName
@@ -19,4 +19,3 @@ func HandleExamples() HTTPHandler {
 		return pages.Examples(firstName).Render(r.Context(), w)
 	}
 }
-

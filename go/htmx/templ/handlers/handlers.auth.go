@@ -8,6 +8,7 @@ import (
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/store"
+	"mmyoungman/templ/structs"
 	"mmyoungman/templ/utils"
 	"net/http"
 	"net/url"
@@ -46,7 +47,7 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	}
 }
 
-func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
+func HandleAuthCallback(serviceCtx *structs.ServiceCtx) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		reqState := r.URL.Query().Get("state")
 
@@ -70,14 +71,14 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		reqCode := r.URL.Query().Get("code")
 		pkceVerifierOption := oauth2.VerifierOption(pkceVerifier.(string))
 
-		token, err := authObj.Exchange(r.Context(), reqCode, pkceVerifierOption)
+		token, err := serviceCtx.Auth.Exchange(r.Context(), reqCode, pkceVerifierOption)
 		if err != nil {
 			render.Status(r, http.StatusUnauthorized)
 			//return errors.New("Failed to convert authorization code into a token")
 			return err
 		}
 
-		idToken, err := authObj.VerifyIDToken(r.Context(), token)
+		idToken, err := serviceCtx.Auth.VerifyIDToken(r.Context(), token)
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			//return errors.New("Failed to verify ID Token")
@@ -94,9 +95,9 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 		// insert/update db user first
 		rawIDToken := token.Extra("id_token").(string)
-		user := database.GetUser(db, profile["sub"].(string))
+		user := database.GetUser(serviceCtx.Db, profile["sub"].(string))
 		if user == nil {
-			database.InsertUser(db, &model.User{ // @MarkFix make stateless?
+			database.InsertUser(serviceCtx.Db, &model.User{ // @MarkFix make stateless?
 				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),
@@ -105,7 +106,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 				RawIDToken: rawIDToken,
 			})
 		} else {
-			database.UpdateUser(db, &model.User{
+			database.UpdateUser(serviceCtx.Db, &model.User{
 				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),
@@ -117,7 +118,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 
 		// then insert new db session
 		newSessionID := uuid.NewString()
-		database.InsertSession(db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
+		database.InsertSession(serviceCtx.Db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
 
 		// then update cookie session
 		cookieSession := store.GetSession(r)
@@ -132,7 +133,7 @@ func HandleAuthCallback(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	}
 }
 
-func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
+func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
 
@@ -159,7 +160,7 @@ func HandleAuthLogout(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		store.SaveSession(cookieSession, w, r)
 
 		// construct redirect URL + query params
-		logoutUrl, err := url.Parse(authObj.EndSessionURL)
+		logoutUrl, err := url.Parse(serviceCtx.Auth.EndSessionURL)
 		if err != nil {
 			render.Status(r, http.StatusInternalServerError)
 			return err

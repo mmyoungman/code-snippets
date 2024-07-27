@@ -15,7 +15,7 @@ import (
 func HandleToDoList(db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
-		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		userUntyped := r.Context().Value(utils.UserCtxKey)
 		if userUntyped != nil {
 			user := userUntyped.(*model.User)
 			firstName = user.FirstName
@@ -102,11 +102,9 @@ func HandleToDoDelete(db *sql.DB) HTTPHandler {
 
 		database.DeleteToDoItem(db, id)
 
-
 		return pages.DeleteToDoItem().Render(r.Context(), w)
 	}
 }
-
 
 func HandleToDoFormCancel() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {

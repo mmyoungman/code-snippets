@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"context"
-	"database/sql"
-	"mmyoungman/templ/auth"
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/store"
+	"mmyoungman/templ/structs"
 	"mmyoungman/templ/utils"
 	"net/http"
 	"time"
@@ -15,7 +13,7 @@ import (
 )
 
 // Checks whether the user has a session. If they do, validate it and/or refresh token
-func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handler) http.Handler {
+func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookieSession := store.GetSession(r)
@@ -29,7 +27,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			}
 
 			var dbSession *model.Session = nil
-			dbSession = database.GetSession(db, sessionIDUntyped.(string))
+			dbSession = database.GetSession(serviceCtx.Db, sessionIDUntyped.(string))
 
 			if dbSession == nil {
 				store.DeleteSession(cookieSession, w, r)
@@ -47,7 +45,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			//tokenExtraMap["id_token"] = auth.RawIDToken
 			//restoredToken.WithExtra(tokenExtraMap)
 
-			tokenSource := authObj.TokenSource(r.Context(), restoredToken)
+			tokenSource := serviceCtx.Auth.TokenSource(r.Context(), restoredToken)
 			newToken, err := tokenSource.Token()
 			if err != nil {
 				// something was wrong with the token and/or it failed to refresh
@@ -58,7 +56,7 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 				   - visit home
 				*/
 
-				database.DeleteSession(db, dbSession.ID)
+				database.DeleteSession(serviceCtx.Db, dbSession.ID)
 				store.DeleteSession(cookieSession, w, r)
 
 				// @MarkFix don't delete user?
@@ -69,11 +67,11 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 
 			// if the token has been refreshed, verify the IDToken
 			if newToken.AccessToken != restoredToken.AccessToken {
-				_, err = authObj.VerifyIDToken(r.Context(), newToken) // @MarkFix I need verify the nonce? According to func's code comment I do
+				_, err = serviceCtx.Auth.VerifyIDToken(r.Context(), newToken) // @MarkFix I need verify the nonce? According to func's code comment I do
 				if err != nil {
 					// @MarkFix to get here, token needs to be refreshed but IDToken not valid?
 
-					database.DeleteSession(db, dbSession.ID)
+					database.DeleteSession(serviceCtx.Db, dbSession.ID)
 					store.DeleteSession(cookieSession, w, r)
 
 					// @MarkFix don't delete user?
@@ -88,15 +86,13 @@ func SessionCheck(authObj *auth.Authenticator, db *sql.DB) func(next http.Handle
 			// if the token has been refreshed, update session
 			if dbSession.AccessToken != newToken.AccessToken {
 				// @MarkFix we could update the sessionID here, to be paranoid...
-				database.UpdateSession(db, dbSession.ID, dbSession.UserID, newToken.AccessToken,
+				database.UpdateSession(serviceCtx.Db, dbSession.ID, dbSession.UserID, newToken.AccessToken,
 					newToken.RefreshToken, newToken.Expiry.Unix(), newToken.TokenType)
 			}
 
 			// user is logged in, so set user on context for access in handlers
-			loggedInUser := database.GetUser(db, dbSession.UserID) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
-			ctx := r.Context()
-			newCtx := context.WithValue(ctx, utils.ReqUserCtxKey, loggedInUser)
-			*r = *r.WithContext(newCtx)
+			loggedInUser := database.GetUser(serviceCtx.Db, dbSession.UserID) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
+			utils.SetContextValue(r, utils.UserCtxKey, loggedInUser)
 
 			next.ServeHTTP(w, r)
 		}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"embed"
 	"fmt"
 	"log"
@@ -11,6 +10,7 @@ import (
 	"mmyoungman/templ/handlers"
 	"mmyoungman/templ/middleware"
 	"mmyoungman/templ/store"
+	"mmyoungman/templ/structs"
 	"mmyoungman/templ/utils"
 	"net/http"
 	"os"
@@ -22,11 +22,6 @@ import (
 
 //go:embed database/migrations/*
 var embedMigrations embed.FS
-
-type serviceCtx struct {
-	db *sql.DB
-	auth *auth.Authenticator
-}
 
 func main() {
 	// include file and line in log messages
@@ -40,21 +35,21 @@ func main() {
 
 	// @MarkFix create a sessionCtx object? (or use r.Context()?)
 
-	serviceCtx := serviceCtx{}
+	serviceCtx := &structs.ServiceCtx{}
 
-	serviceCtx.db = database.Connect()
-	defer serviceCtx.db.Close()
+	serviceCtx.Db = database.Connect()
+	defer serviceCtx.Db.Close()
 
 	goose.SetBaseFS(embedMigrations)
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		log.Fatal("Failed to set goose dialect ", err)
 	}
-	if err := goose.Up(serviceCtx.db, utils.Getenv("MIGRATIONS_PATH")); err != nil {
+	if err := goose.Up(serviceCtx.Db, utils.Getenv("MIGRATIONS_PATH")); err != nil {
 		log.Fatal("Failed to apply migrations ", err) // @MarkFix do we actually want to fail here?
 	}
 
 	var err error
-	serviceCtx.auth, err = auth.Setup()
+	serviceCtx.Auth, err = auth.Setup()
 	if err != nil {
 		log.Fatal("Auth setup failed: ", err)
 	}
@@ -82,37 +77,37 @@ func main() {
 
 	// auth
 	router.Group(func(r chi.Router) {
-		r.Use(middleware.SessionCheck(serviceCtx.auth, serviceCtx.db))
+		r.Use(middleware.SessionCheck(serviceCtx))
 		// we want to check whether user is already logged out in logout case
-		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(serviceCtx.auth, serviceCtx.db)))
+		r.Get("/auth/logout", handlers.Make(handlers.HandleAuthLogout(serviceCtx)))
 	})
 
 	router.Group(func(r chi.Router) {
-		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(serviceCtx.auth))) // @MarkFix do we want to check context user here?
-		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(serviceCtx.auth, serviceCtx.db)))
-		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(serviceCtx.db)))
+		r.Get("/auth", handlers.Make(handlers.HandleAuthLogin(serviceCtx.Auth))) // @MarkFix do we want to check context user here?
+		r.Get("/auth/callback", handlers.Make(handlers.HandleAuthCallback(serviceCtx)))
+		r.Get("/auth/logout/callback", handlers.Make(handlers.HandleAuthLogoutCallback(serviceCtx.Db)))
 	})
 
 	router.Group(func(r chi.Router) {
-		r.Use(middleware.SessionCheck(serviceCtx.auth, serviceCtx.db))
+		r.Use(middleware.SessionCheck(serviceCtx))
 
 		// public pages (that have dynamic content depending on whether the user is logged in)
-		r.Get("/", handlers.Make(handlers.HandleHome(serviceCtx.auth, serviceCtx.db)))
+		r.Get("/", handlers.Make(handlers.HandleHome()))
 		r.Get("/examples", handlers.Make(handlers.HandleExamples()))
 		r.Get("/examples/click-button-load-partial", handlers.Make(handlers.HandleClickButtonLoadPartial()))
-		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(serviceCtx.db)))
+		r.Get("/examples/todo-list", handlers.Make(handlers.HandleToDoList(serviceCtx.Db)))
 
 		// private pages (i.e. logged in users only)
-		r.Get("/user", handlers.Make(handlers.HandleUser(serviceCtx.auth, serviceCtx.db)))
+		r.Get("/user", handlers.Make(handlers.HandleUser(serviceCtx.Auth, serviceCtx.Db)))
 
 		// partials
 		r.Get("/test", handlers.Make(handlers.HandleTest))
-		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(serviceCtx.db)))
+		r.Get("/todo-item-list", handlers.Make(handlers.HandleToDoListItems(serviceCtx.Db)))
 		r.Get("/todo-add-item-form", handlers.Make(handlers.HandleToDoAddForm()))
-		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(serviceCtx.db)))
-		r.Get("/todo-update-item-form", handlers.Make(handlers.HandleToDoUpdateForm(serviceCtx.db)))
-		r.Put("/todo-update-form-submit", handlers.Make(handlers.HandleToDoUpdateFormSubmit(serviceCtx.db)))
-		r.Delete("/todo-delete-item", handlers.Make(handlers.HandleToDoDelete(serviceCtx.db)))
+		r.Post("/todo-add-form-submit", handlers.Make(handlers.HandleToDoAddFormSubmit(serviceCtx.Db)))
+		r.Get("/todo-update-item-form", handlers.Make(handlers.HandleToDoUpdateForm(serviceCtx.Db)))
+		r.Put("/todo-update-form-submit", handlers.Make(handlers.HandleToDoUpdateFormSubmit(serviceCtx.Db)))
+		r.Delete("/todo-delete-item", handlers.Make(handlers.HandleToDoDelete(serviceCtx.Db)))
 		r.Get("/todo-form-cancel", handlers.Make(handlers.HandleToDoFormCancel()))
 	})
 
