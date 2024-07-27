@@ -16,6 +16,6 @@ func HandleExamples() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.Examples(firstName).Render(r.Context(), w)
+		return pages.Examples(firstName, utils.GetContextCspNonce(r)).Render(r.Context(), w)
 	}
 }

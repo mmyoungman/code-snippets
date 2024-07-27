@@ -15,6 +15,14 @@ const (
 	CspNonceCtxKey reqCtxKey = iota
 )
 
+func GetContextCspNonce(r *http.Request) string {
+	nonceUntyped := r.Context().Value(CspNonceCtxKey)
+	if nonceUntyped == nil {
+		log.Fatal("CSP Nonce didn't get set")
+	}
+	return nonceUntyped.(string)
+}
+
 func SetContextValue(r *http.Request, key reqCtxKey, value any) {
 	ctx := r.Context()
 	newCtx := context.WithValue(ctx, key, value)

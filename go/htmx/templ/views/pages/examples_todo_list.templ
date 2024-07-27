@@ -5,8 +5,8 @@ import (
 	"mmyoungman/templ/database/jet/model"
 )
 
-templ ExamplesToDoList(username string, toDoItems []*model.ToDoItem) {
-	@layouts.Base("Examples - ToDo List", username) {
+templ ExamplesToDoList(username string, nonce string, toDoItems []*model.ToDoItem) {
+	@layouts.Base("Examples - ToDo List", username, nonce) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>
 		<br />

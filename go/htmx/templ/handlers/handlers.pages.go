@@ -18,7 +18,7 @@ func HandleHome() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.Home(firstName).Render(r.Context(), w)
+		return pages.Home(firstName, utils.GetContextCspNonce(r)).Render(r.Context(), w)
 	}
 }
 
@@ -28,9 +28,9 @@ func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 		userUntyped := r.Context().Value(utils.UserCtxKey)
 		if userUntyped != nil {
 			user = userUntyped.(*model.User)
-			return pages.UserLoggedIn(user).Render(r.Context(), w)
+			return pages.UserLoggedIn(user, utils.GetContextCspNonce(r)).Render(r.Context(), w)
 		}
 
-		return pages.UserLoggedOut().Render(r.Context(), w)
+		return pages.UserLoggedOut(utils.GetContextCspNonce(r)).Render(r.Context(), w)
 	}
 }

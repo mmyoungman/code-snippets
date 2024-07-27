@@ -16,7 +16,7 @@ func HandleClickButtonLoadPartial() HTTPHandler {
 			firstName = user.FirstName
 		}
 
-		return pages.ExamplesClickButtonLoadPartial(firstName).Render(r.Context(), w)
+		return pages.ExamplesClickButtonLoadPartial(firstName, utils.GetContextCspNonce(r)).Render(r.Context(), w)
 	}
 }
 

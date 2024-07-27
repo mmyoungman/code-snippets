@@ -23,7 +23,7 @@ func HandleToDoList(db *sql.DB) HTTPHandler {
 
 		toDoItems := database.ListToDoItems(db)
 
-		return pages.ExamplesToDoList(firstName, toDoItems).Render(r.Context(), w)
+		return pages.ExamplesToDoList(firstName, utils.GetContextCspNonce(r), toDoItems).Render(r.Context(), w)
 	}
 }
 

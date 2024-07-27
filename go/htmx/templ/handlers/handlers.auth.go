@@ -138,7 +138,7 @@ func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 		// @MarkFix does this log the user out of the idp entirely, or just for this site? i.e. would this work with google/facebook?
 
 		var user *model.User // @MarkFix clean this up
-		userUntyped := r.Context().Value(utils.ReqUserCtxKey)
+		userUntyped := r.Context().Value(utils.UserCtxKey)
 		if userUntyped == nil {
 			// @MarkFix anything else to do here? Clean up session or something?
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
