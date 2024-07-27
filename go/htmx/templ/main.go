@@ -101,7 +101,11 @@ func main() {
 		r.Get("/user", handlers.Make(handlers.HandleUser(serviceCtx.Auth, serviceCtx.Db)))
 
 		// partials
-		r.Get("/test", handlers.Make(handlers.HandleTest))
+		r.Get("/partial/test1", handlers.Make(handlers.HandleTest1))
+		r.Get("/partial/test2", handlers.Make(handlers.HandleTest2))
+		r.Get("/partial/place-button-in-target1", handlers.Make(handlers.HandlePlaceButtonInTarget1))
+		r.Get("/partial/place-button-in-target2", handlers.Make(handlers.HandlePlaceButtonInTarget2))
+
 		r.Get("/todo/add-form", handlers.Make(handlers.HandleToDoAddForm()))
 		r.Post("/todo", handlers.Make(handlers.HandleToDoAddFormSubmit(serviceCtx.Db)))
 		r.Get("/todo/update-form", handlers.Make(handlers.HandleToDoUpdateForm(serviceCtx.Db)))

@@ -16,6 +16,12 @@ const (
 	CspNonceCtxKey reqCtxKey = iota
 )
 
+func SetContextValue(r *http.Request, key reqCtxKey, value any) {
+	ctx := r.Context()
+	newCtx := context.WithValue(ctx, key, value)
+	*r = *r.WithContext(newCtx)
+}
+
 func GetContextUser(r *http.Request) *model.User {
 	userUntyped := r.Context().Value(UserCtxKey)
 	if userUntyped == nil {
@@ -27,15 +33,9 @@ func GetContextUser(r *http.Request) *model.User {
 func GetContextCspNonce(r *http.Request) string {
 	nonceUntyped := r.Context().Value(CspNonceCtxKey)
 	if nonceUntyped == nil {
-		log.Fatal("CSP Nonce didn't get set")
+		log.Fatal("CSP nonce didn't get set")
 	}
 	return nonceUntyped.(string)
-}
-
-func SetContextValue(r *http.Request, key reqCtxKey, value any) {
-	ctx := r.Context()
-	newCtx := context.WithValue(ctx, key, value)
-	*r = *r.WithContext(newCtx)
 }
 
 func Getenv(key string) string {

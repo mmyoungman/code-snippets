@@ -201,7 +201,6 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 		sessionID := session.Values["session_id"].(string)
 		database.DeleteSession(db, sessionID)
 		store.DeleteSession(session, w, r)
-		// @MarkFix delete user here?
 
 		// @MarkFix flash up "log out success" page before redirect?
 

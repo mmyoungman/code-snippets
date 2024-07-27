@@ -99,6 +99,6 @@ func HandleToDoDelete(db *sql.DB) HTTPHandler {
 
 func HandleToDoFormCancel() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		return pages.AddItemButton().Render(r.Context(), w)
+		return pages.DefaultControls().Render(r.Context(), w)
 	}
 }

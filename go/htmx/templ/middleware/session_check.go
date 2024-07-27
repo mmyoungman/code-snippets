@@ -59,8 +59,6 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 				database.DeleteSession(serviceCtx.Db, dbSession.ID)
 				store.DeleteSession(cookieSession, w, r)
 
-				// @MarkFix don't delete user?
-
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -73,8 +71,6 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 
 					database.DeleteSession(serviceCtx.Db, dbSession.ID)
 					store.DeleteSession(cookieSession, w, r)
-
-					// @MarkFix don't delete user?
 
 					next.ServeHTTP(w, r)
 					return

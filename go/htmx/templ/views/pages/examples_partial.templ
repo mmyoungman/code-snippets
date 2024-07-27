@@ -1,0 +1,78 @@
+package pages
+
+import "mmyoungman/templ/views/layouts"
+
+templ ExamplesPartial(username string, nonce string) {
+	@layouts.Base("Examples - Click button load partial", username, nonce) {
+		<div class="text-xl text-blue-500">Examples page</div>
+		<hr/>
+		<button hx-get="/partial/test1" hx-swap="outerHTML">outerHTML swap</button>
+
+		<br />
+
+		<div hx-get="/partial/test1" hx-swap="innerHTML">
+			<button>innerHTML swap</button>
+		</div>
+
+		<br />
+
+		<div id="target">
+			#target to be replaced
+		</div>
+
+		<button hx-get="/partial/test1" hx-target="#target">Click to replace #target</button>
+
+		<br />
+		<br />
+
+		<div id="new-target">
+			#new-target to be replaced
+		</div>
+
+		<button hx-get="/partial/test2" hx-swap="outerHTML">Click to replace this button AND #new-target!</button>
+
+		<br />
+		<br />
+		<br />
+
+		<div>
+			<div id="target1">
+				No button #target1...
+			</div>
+
+			<div id="target2">
+				<button hx-get="/partial/place-button-in-target1" hx-swap="outerHTML">Button in #target2</button>
+			</div>
+		</div>
+	}
+}
+
+templ ExamplePartialTest1() {
+	<div class="text-xl text-blue-500 bg-center">You did something!</div>
+}
+
+templ ExamplePartialTest2() {
+	<div id="new-target" hx-swap-oob="innerHTML">
+		Updated target as well!
+	</div>
+
+	<div class="text-xl text-blue-500 bg-center">You did something!</div>
+}
+
+templ ExamplePartialPlaceButtonInTarget1() {
+
+	<div id="target1" hx-swap-oob="innerHTML">
+		<button hx-get="/partial/place-button-in-target2" hx-swap="outerHTML">Button in #target1</button>
+	</div>
+
+	No button in #target2...
+}
+
+templ ExamplePartialPlaceButtonInTarget2() {
+
+	<div id="target2" hx-swap-oob="innerHTML">
+		<button hx-get="/partial/place-button-in-target1" hx-swap="outerHTML">Button in #target2</button>
+	</div>
+
+	No button in #target1...
+}

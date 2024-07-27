@@ -62,7 +62,7 @@ func UpdateUser(db *sql.DB, user *model.User) {
 	}
 }
 
-//func DeleteUser(db *sql.DB, userID string) {
+//func DeleteUser(db *sql.DB, userID string) { // @MarkFix any scenarios where we want to delete a user?
 //	stmt := User.DELETE().
 //		WHERE(User.ID.EQ(String(userID)))
 //

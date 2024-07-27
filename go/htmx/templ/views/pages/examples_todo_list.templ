@@ -1,35 +1,29 @@
 package pages
 
 import (
-	"mmyoungman/templ/views/layouts"
 	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/views/layouts"
 )
 
 templ ExamplesToDoList(username string, nonce string, toDoItems []*model.ToDoItem) {
 	@layouts.Base("Examples - ToDo List", username, nonce) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>
-		<br />
-    	<h1>ToDo List:</h1>
- 		// @MarkFix turn into a table
-		// @MarkFix add ability to delete
-		// @MarkFix add ability to update
-		// @MarkFix add ability to reorder
+		<br/>
+		<h1>ToDo List:</h1>
 		<table>
 			<thead>
 				<th>Item</th>
-				<th>Controls</th>
+				<th>Description</th>
+				<th></th>
 			</thead>
-			<tbody id="todo-list">
+			<tbody id="todo-tbody">
 				@ToDoItemList(toDoItems)
 			</tbody>
 		</table>
-
-		<br />
-
+		<br/>
 		<div id="todo-controls">
-			// @MarkFix can click anywhere on the same line to activate this button
-			@AddItemButton()
+			@DefaultControls()
 		</div>
 	}
 }
@@ -41,49 +35,67 @@ templ ToDoItemList(items []*model.ToDoItem) {
 }
 
 templ ToDoItemRow(item *model.ToDoItem) {
-	<tr id={"item-" + item.ID}>
+	<tr id={ "item-" + item.ID }>
 		@ToDoItemRowContents(item)
 	</tr>
 }
 
 templ ToDoItemRowContents(item *model.ToDoItem) {
-	<td>{item.Name} - {item.Description}</td>
+	<td>{ item.Name }</td>
+	<td>{ item.Description }</td>
 	<td>
-		<button hx-get={"/todo/update-form?id=item-" + item.ID} hx-target="#todo-controls">Update</button>
-		<button hx-delete={"/todo?id=item-" + item.ID} hx-target={"#item-" + item.ID} hx-swap="outerHTML">Delete</button>
+		<button
+			hx-get={ "/todo/update-form?id=item-" + item.ID }
+			hx-target="#todo-controls"
+		>
+			Update
+		</button>
+		<button
+			hx-delete={ "/todo?id=item-" + item.ID }
+			hx-target={ "#item-" + item.ID }
+			hx-swap="outerHTML"
+		>
+			Delete
+		</button>
 	</td>
 }
 
-templ AddItemButton() {
-	<div hx-get="/todo/add-form" hx-target="#todo-controls">
-		<button class="btn">Add new item</button>
-	</div>
+templ DefaultControls() {
+	<button hx-get="/todo/add-form" hx-target="#todo-controls">Add new item</button>
+	// @MarkFix reordering button here
 }
 
 templ AddItemForm() {
 	<h1>Add ToDo Item</h1>
-   	<form hx-post="/todo">
-   	    <label for="todo-item-name">Item</label>
-   	    <input type="text" name="name" id="todo-item-name" />
-   	    <label for="todo-item-name">Description</label>
-   	    <input type="text" name="description" id="todo-item-description" />
-		<br />
-   	    <button type="submit" class="btn btn-primary">
-   	        Add item
-   	    </button>
-   	</form>
-	<div hx-get="/todo/form-cancel" hx-target="#todo-controls">
-		<button class="btn">Cancel</button>
-	</div>
+	<form hx-post="/todo">
+		<label for="todo-item-name">Item</label>
+		<input type="text" name="name" id="todo-item-name" placeholder="item name"/>
+		<label for="todo-item-name">Description</label>
+		<input
+			type="text"
+			name="description"
+			id="todo-item-description"
+			placeholder="item description"
+		/>
+		<br/>
+		<button type="submit">
+			Add item
+		</button>
+	</form>
+	<button 
+		hx-get="/todo/form-cancel"
+		hx-target="#todo-controls"
+	>
+		Cancel
+	</button>
 }
 
 templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
 	<div id="todo-controls" hx-swap-oob="innerHTML">
-		@AddItemButton()
+		@DefaultControls()
 	</div>
-
 	<template>
-		<tbody id="todo-list" hx-swap-oob="beforeend">
+		<tbody id="todo-tbody" hx-swap-oob="beforeend">
 			@ToDoItemRow(item)
 		</tbody>
 	</template>
@@ -91,28 +103,32 @@ templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
 
 templ UpdateItemForm(item *model.ToDoItem) {
 	<h1>Update ToDo Item</h1>
-   	<form hx-put="/todo">
-		<input type="hidden" name="id" value={item.ID} />
-   	    <label for="todo-item-name">Item</label>
-   	    <input type="text" name="name" id="todo-item-name" value={item.Name} />
-   	    <label for="todo-item-name">Description</label>
-   	    <input type="text" name="description" id="todo-item-description" value={item.Description} />
-   	    <button type="submit" class="btn btn-primary">
-   	        Update item
-   	    </button>
-   	</form>
+	<form hx-put="/todo">
+		<input type="hidden" name="id" value={ item.ID }/>
+		<label for="todo-item-name">Item</label>
+		<input type="text" name="name" id="todo-item-name" value={ item.Name }/>
+		<label for="todo-item-name">Description</label>
+		<input
+			type="text"
+			name="description"
+			id="todo-item-description"
+			value={ item.Description }
+		/>
+		<button type="submit">
+			Update item
+		</button>
+	</form>
 	<div hx-get="/todo/form-cancel" hx-target="#todo-controls">
-		<button class="btn">Cancel</button>
+		<button>Cancel</button>
 	</div>
 }
 
 templ UpdatePageAfterUpdateFormSubmit(item *model.ToDoItem) {
 	<div id="todo-controls" hx-swap-oob="innerHTML">
-		@AddItemButton()
+		@DefaultControls()
 	</div>
-
 	<template>
-		<tr id={"item-" + item.ID} hx-swap-oob="innerHTML">
+		<tr id={ "item-" + item.ID } hx-swap-oob="innerHTML">
 			@ToDoItemRowContents(item)
 		</tr>
 	</template>
