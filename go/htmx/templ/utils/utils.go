@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"mmyoungman/templ/database/jet/model"
 	"net/http"
 	"os"
 )
@@ -14,6 +15,14 @@ const (
 	UserCtxKey     reqCtxKey = iota
 	CspNonceCtxKey reqCtxKey = iota
 )
+
+func GetContextUser(r *http.Request) *model.User {
+	userUntyped := r.Context().Value(UserCtxKey)
+	if userUntyped == nil {
+		return nil
+	}
+	return userUntyped.(*model.User)
+}
 
 func GetContextCspNonce(r *http.Request) string {
 	nonceUntyped := r.Context().Value(CspNonceCtxKey)

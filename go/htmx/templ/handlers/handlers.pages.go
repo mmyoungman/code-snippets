@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"mmyoungman/templ/auth"
-	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/utils"
 	"mmyoungman/templ/views/pages"
 	"net/http"
@@ -12,9 +11,8 @@ import (
 func HandleHome() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		firstName := ""
-		userUntyped := r.Context().Value(utils.UserCtxKey)
-		if userUntyped != nil {
-			user := userUntyped.(*model.User)
+		user := utils.GetContextUser(r)
+		if user != nil {
 			firstName = user.FirstName
 		}
 
@@ -24,10 +22,8 @@ func HandleHome() HTTPHandler {
 
 func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		var user *model.User = nil
-		userUntyped := r.Context().Value(utils.UserCtxKey)
-		if userUntyped != nil {
-			user = userUntyped.(*model.User)
+		user := utils.GetContextUser(r)
+		if user != nil {
 			return pages.UserLoggedIn(user, utils.GetContextCspNonce(r)).Render(r.Context(), w)
 		}
 
