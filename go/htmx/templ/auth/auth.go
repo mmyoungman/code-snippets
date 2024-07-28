@@ -9,6 +9,7 @@ import (
 	"log"
 	"log/slog"
 	"mmyoungman/templ/utils"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -21,21 +22,13 @@ type Authenticator struct {
 }
 
 func Setup() (*Authenticator, error) {
-	provider, err := oidc.NewProvider(
-		context.Background(),
-		// @MarkFix create Config object to store this kind of thing so it doesn't have to be constructed all over the place
-		utils.Getenv("KEYCLOAK_URL")+"/realms/"+utils.Getenv("KEYCLOAK_REALM"),
-	)
-	if err != nil {
-		// @MarkFix retry calling NewProvider if it fails?
-		return nil, err
-	}
+	provider := loadProvider()
 
 	// To get end_session_endpoint. See https://github.com/coreos/go-oidc/pull/226#issuecomment-1130411016
 	var claims struct {
 		EndSessionURL string `json:"end_session_endpoint"`
 	}
-	err = provider.Claims(&claims)
+	err := provider.Claims(&claims)
 	if err != nil {
 		log.Println("Didn't find end_session_endpoint in discovery?")
 		return nil, err
@@ -44,8 +37,8 @@ func Setup() (*Authenticator, error) {
 	callbackURL := fmt.Sprintf("%s%s", utils.GetPublicURL(), "/auth/callback")
 
 	conf := oauth2.Config{
-		ClientID:     utils.Getenv("KEYCLOAK_CLIENT_ID"),
-		ClientSecret: utils.Getenv("KEYCLOAK_CLIENT_SECRET"),
+		ClientID:     utils.Getenv("OIDC_CLIENT_ID"),
+		ClientSecret: utils.Getenv("OIDC_CLIENT_SECRET"),
 		RedirectURL:  callbackURL,
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
@@ -58,6 +51,38 @@ func Setup() (*Authenticator, error) {
 	}
 
 	return &authObj, nil
+}
+
+func loadProvider() *oidc.Provider {
+	numRetries := 10
+	retryWaitSecs := 15
+
+	provider, err := oidc.NewProvider(
+		context.Background(),
+		// @MarkFix create Config object to store this kind of thing so it doesn't have to be constructed all over the place
+		utils.Getenv("OIDC_URL"),
+	)
+
+	// retries
+	for i := 0; i < numRetries && provider == nil; i++ {
+		if err != nil {
+			slog.Error("Failed to load auth provider. Retrying after waiting...", "retryWaitSecs", retryWaitSecs)
+			time.Sleep(time.Duration(retryWaitSecs) * time.Second)
+		}
+
+		provider, err = oidc.NewProvider(
+			context.Background(),
+			// @MarkFix create Config object to store this kind of thing so it doesn't have to be constructed all over the place
+			utils.Getenv("OIDC_URL"),
+		)
+	}
+
+	if provider == nil {
+		log.Fatal("Failed to load provider after ", numRetries, " retries")
+	}
+
+	return provider
+
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.

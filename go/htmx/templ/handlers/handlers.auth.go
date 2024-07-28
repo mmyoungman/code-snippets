@@ -168,7 +168,7 @@ func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 		parameters := url.Values{}
 		parameters.Add("state", state)
 		parameters.Add("id_token_hint", user.RawIDToken)
-		parameters.Add("client_id", utils.Getenv("KEYCLOAK_CLIENT_ID"))
+		parameters.Add("client_id", utils.Getenv("OIDC_CLIENT_ID"))
 		parameters.Add("post_logout_redirect_uri", postLogoutRedirect)
 		logoutUrl.RawQuery = parameters.Encode()
 

@@ -7,6 +7,7 @@ import (
 	"mmyoungman/templ/database/jet/model"
 	"net/http"
 	"os"
+	"runtime/debug"
 )
 
 type reqCtxKey int
@@ -42,7 +43,7 @@ func Getenv(key string) string {
 	variable := os.Getenv(key)
 
 	if variable == "" {
-		log.Fatalf("Failed to get environment variable \"%s\". Is it added to .env?", key)
+		log.Fatalf("Failed to get environment variable \"%s\". Is it added to .env?\n%s", key, debug.Stack())
 	}
 
 	return variable

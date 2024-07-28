@@ -91,7 +91,7 @@ templ AddItemForm() {
 }
 
 templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
-	<div id="todo-controls" hx-swap-oob="innerHTML">
+	<div id="todo-controls" hx-swap-oob="innerHTML"> // @MarkFix don't need oob here
 		@DefaultControls()
 	</div>
 	<template>
