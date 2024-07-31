@@ -5,6 +5,5 @@ devfiles
 
 .env
 database/database.db
-public/styles.css
 **/*_templ.go
 **/*_templ.txt

@@ -3,7 +3,6 @@
 - go
 - go binaries (templ, air, etc.) to be in $PATH after install (Found in $HOME/go/bin on my linux machine)
 - make
-- npm
 - docker
 
 ### To install
@@ -11,7 +10,6 @@
 `make install`
 
 This will:
-- Install all node dependencies for tailwindcss *shudder*
 - Install all go binaries used
 - Install all go dependencies
 - Create ./database/database.db and run all migrations
@@ -78,12 +76,3 @@ Install `Go` plugin
 Install `templ-vscode` plugin
 
 Install `HTMX Attributes` for htmx autocompletion
-
-Install `Tailwind CSS IntelliSense` for tailwindcss completion
-AND
-Add this to your settings.json
-```
-"tailwindCSS.includeLanguages": {
-    "templ": "html",
-},
-```
