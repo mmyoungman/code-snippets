@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"mmyoungman/templ/auth"
-	"mmyoungman/templ/database"
-	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/database/sqlc_gen"
 	"mmyoungman/templ/store"
 	"mmyoungman/templ/structs"
 	"mmyoungman/templ/utils"
@@ -96,30 +97,43 @@ func HandleAuthCallback(serviceCtx *structs.ServiceCtx) HTTPHandler {
 
 		// insert/update db user first
 		rawIDToken := token.Extra("id_token").(string)
-		user := database.GetUser(serviceCtx.Db, profile["sub"].(string))
-		if user == nil {
-			database.InsertUser(serviceCtx.Db, &model.User{ // @MarkFix make stateless?
-				ID:         userID,
-				Username:   profile["preferred_username"].(string),
-				Email:      profile["email"].(string),
-				FirstName:  profile["given_name"].(string),
-				LastName:   profile["family_name"].(string),
-				RawIDToken: rawIDToken,
-			})
+
+		queries := database.New(serviceCtx.Db)
+		_, err = queries.GetUser(context.Background(), profile["sub"].(string))
+		if err != nil { // @MarkFix check for not found user in err
+			if err == sql.ErrNoRows {
+				queries.InsertUser(context.Background(), database.InsertUserParams{ // @MarkFix make stateless?
+					ID:         userID,
+					Username:   profile["preferred_username"].(string),
+					Email:      profile["email"].(string),
+					Firstname:  profile["given_name"].(string),
+					Lastname:   profile["family_name"].(string),
+					Rawidtoken: rawIDToken,
+				})
+			} else {
+				log.Fatal("Error when fetching user")
+			}
 		} else {
-			database.UpdateUser(serviceCtx.Db, &model.User{
+			queries.UpdateUser(context.Background(), database.UpdateUserParams{
 				ID:         userID,
 				Username:   profile["preferred_username"].(string),
 				Email:      profile["email"].(string),
-				FirstName:  profile["given_name"].(string),
-				LastName:   profile["family_name"].(string),
-				RawIDToken: rawIDToken,
+				Firstname:  profile["given_name"].(string),
+				Lastname:   profile["family_name"].(string),
+				Rawidtoken: rawIDToken,
 			})
 		}
 
 		// then insert new db session
 		newSessionID := uuid.NewString()
-		database.InsertSession(serviceCtx.Db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
+		queries.InsertSession(context.Background(), database.InsertSessionParams{
+			ID:           newSessionID,
+			Userid:       userID,
+			Accesstoken:  token.AccessToken,
+			Refreshtoken: token.RefreshToken,
+			Expiry:       token.Expiry.Unix(),
+			Tokentype:    token.TokenType,
+		})
 
 		// then update cookie session
 		cookieSession := store.GetSession(r, store.SessionCookieName)
@@ -167,7 +181,7 @@ func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 
 		parameters := url.Values{}
 		parameters.Add("state", state)
-		parameters.Add("id_token_hint", user.RawIDToken)
+		parameters.Add("id_token_hint", user.Rawidtoken)
 		parameters.Add("client_id", utils.Getenv("OIDC_CLIENT_ID"))
 		parameters.Add("post_logout_redirect_uri", postLogoutRedirect)
 		logoutUrl.RawQuery = parameters.Encode()
@@ -199,7 +213,8 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 		}
 
 		sessionID := session.Values["session_id"].(string)
-		database.DeleteSession(db, sessionID)
+		queries := database.New(db)
+		queries.DeleteSession(context.Background(), sessionID)
 		store.DeleteSession(session, w, r)
 
 		// @MarkFix flash up "log out success" page before redirect?

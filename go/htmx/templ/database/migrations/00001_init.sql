@@ -1,31 +1,31 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE IF NOT EXISTS "Session" (
-	"ID"	TEXT NOT NULL UNIQUE,
-	"UserID"	TEXT NOT NULL,
-	"AccessToken"	TEXT NOT NULL,
-	"RefreshToken"	TEXT NOT NULL,
-    "Expiry" INT NOT NULL,
-	"TokenType"	TEXT NOT NULL,
-	PRIMARY KEY("ID")
+CREATE TABLE Sessions (
+	ID TEXT NOT NULL UNIQUE,
+	Userid TEXT NOT NULL,
+	Accesstoken TEXT NOT NULL,
+	Refreshtoken TEXT NOT NULL,
+    Expiry INT NOT NULL,
+	Tokentype TEXT NOT NULL,
+	PRIMARY KEY(ID)
 );
 
-CREATE TABLE IF NOT EXISTS "User" (
-	"ID" TEXT NOT NULL UNIQUE,
-	"Username" TEXT NOT NULL,
-	"Email" TEXT NOT NULL,
-	"FirstName" TEXT NOT NULL,
-	"LastName" TEXT NOT NULL,
-	"RawIDToken" TEXT NOT NULL,
-	PRIMARY KEY("ID")
+CREATE TABLE Users (
+	ID TEXT NOT NULL UNIQUE,
+	Username TEXT NOT NULL,
+	Email TEXT NOT NULL,
+	Firstname TEXT NOT NULL,
+	Lastname TEXT NOT NULL,
+	RawIdtoken TEXT NOT NULL,
+	PRIMARY KEY(ID)
 );
 
-CREATE TABLE IF NOT EXISTS "ToDoItem" (
-	"ID" TEXT NOT NULL UNIQUE,
-	"Name" TEXT NOT NULL,
-	"Description" TEXT NOT NULL,
-	PRIMARY KEY("ID")
+CREATE TABLE ToDoItems (
+	ID TEXT NOT NULL UNIQUE,
+	Name TEXT NOT NULL,
+	Description TEXT NOT NULL,
+	PRIMARY KEY(ID)
 );
 
 -- +goose StatementEnd
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS "ToDoItem" (
 -- +goose Down
 -- +goose StatementBegin
 
-DROP TABLE IF EXISTS "Session";
-DROP TABLE IF EXISTS "User";
-DROP TABLE IF EXISTS "ToDoItem";
+DROP TABLE IF EXISTS Sessions;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS ToDoItems;
 
 -- +goose StatementEnd

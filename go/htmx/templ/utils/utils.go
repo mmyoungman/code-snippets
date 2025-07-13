@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/database/sqlc_gen"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -22,8 +22,8 @@ const (
 )
 
 type BaseArgs struct {
-	Username string
-	Nonce string
+	Username  string
+	Nonce     string
 	CsrfToken string
 }
 
@@ -33,12 +33,18 @@ func SetContextValue(r *http.Request, key reqCtxKey, value any) {
 	*r = *r.WithContext(newCtx)
 }
 
-func GetContextUser(r *http.Request) *model.User {
+func GetContextUser(r *http.Request) *database.User {
 	userUntyped := r.Context().Value(UserCtxKey)
 	if userUntyped == nil {
 		return nil
 	}
-	return userUntyped.(*model.User)
+
+	if user, ok := userUntyped.(*database.User); ok {
+		return user
+	}
+
+	// @MarkFix if there is a user in session but not in db, we reach here. Maybe should validate the user rather than trusting session?
+	return nil
 }
 
 func GetContextCspNonce(r *http.Request) string {
@@ -54,14 +60,13 @@ func GenerateBaseArgs(r *http.Request) BaseArgs {
 
 	user := GetContextUser(r)
 	if user != nil {
-		firstName = user.FirstName
+		firstName = user.Firstname
 	}
 
 	return BaseArgs{
-		Nonce: GetContextCspNonce(r),
+		Nonce:     GetContextCspNonce(r),
 		CsrfToken: GetContextCSRFToken(r),
-		Username: firstName,
-
+		Username:  firstName,
 	}
 }
 

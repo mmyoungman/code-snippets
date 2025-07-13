@@ -10,7 +10,7 @@ import (
 
 const SessionCookieName = "session"
 
-var store *sessions.CookieStore
+var store *sessions.CookieStore // @MarkFix is this ok being global? Could put in context or something
 
 func Setup() {
 	newStore := sessions.NewCookieStore(

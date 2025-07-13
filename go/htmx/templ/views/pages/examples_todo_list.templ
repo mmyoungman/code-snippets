@@ -1,12 +1,12 @@
 package pages
 
 import (
-	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/views/layouts"
 	"mmyoungman/templ/utils"
+	"mmyoungman/templ/database/sqlc_gen" 
 )
 
-templ ExamplesToDoList(baseArgs utils.BaseArgs, toDoItems []*model.ToDoItem) {
+templ ExamplesToDoList(baseArgs utils.BaseArgs, toDoItems []database.ToDoItem) {
 	@layouts.Base("Examples - ToDo List", baseArgs) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>
@@ -29,19 +29,19 @@ templ ExamplesToDoList(baseArgs utils.BaseArgs, toDoItems []*model.ToDoItem) {
 	}
 }
 
-templ ToDoItemList(items []*model.ToDoItem) {
+templ ToDoItemList(items []database.ToDoItem) {
 	for _, item := range items {
 		@ToDoItemRow(item)
 	}
 }
 
-templ ToDoItemRow(item *model.ToDoItem) {
+templ ToDoItemRow(item database.ToDoItem) {
 	<tr id={ "item-" + item.ID }>
 		@ToDoItemRowContents(item)
 	</tr>
 }
 
-templ ToDoItemRowContents(item *model.ToDoItem) {
+templ ToDoItemRowContents(item database.ToDoItem) {
 	<td>{ item.Name }</td>
 	<td>{ item.Description }</td>
 	<td>
@@ -91,7 +91,7 @@ templ AddItemForm() {
 	</button>
 }
 
-templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
+templ UpdatePageAfterAddFormSubmit(item database.ToDoItem) {
 	<div id="todo-controls" hx-swap-oob="innerHTML"> // @MarkFix don't need oob here
 		@DefaultControls()
 	</div>
@@ -102,7 +102,7 @@ templ UpdatePageAfterAddFormSubmit(item *model.ToDoItem) {
 	</template>
 }
 
-templ UpdateItemForm(item *model.ToDoItem) {
+templ UpdateItemForm(item database.ToDoItem) {
 	<h1>Update ToDo Item</h1>
 	<form hx-put="/todo">
 		<input type="hidden" name="id" value={ item.ID }/>
@@ -124,7 +124,7 @@ templ UpdateItemForm(item *model.ToDoItem) {
 	</div>
 }
 
-templ UpdatePageAfterUpdateFormSubmit(item *model.ToDoItem) {
+templ UpdatePageAfterUpdateFormSubmit(item database.ToDoItem) {
 	<div id="todo-controls" hx-swap-oob="innerHTML">
 		@DefaultControls()
 	</div>

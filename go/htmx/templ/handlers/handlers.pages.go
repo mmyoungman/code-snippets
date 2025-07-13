@@ -25,7 +25,7 @@ func HandleUser(authObj *auth.Authenticator, db *sql.DB) HTTPHandler {
 			return pages.UserLoggedOut(baseArgs).Render(r.Context(), w)
 		}
 
-		baseArgs.Username = user.FirstName
+		baseArgs.Username = user.Firstname
 		return pages.UserLoggedIn(user, baseArgs).Render(r.Context(), w)
 	}
 }

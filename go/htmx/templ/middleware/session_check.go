@@ -1,8 +1,10 @@
 package middleware
 
 import (
-	"mmyoungman/templ/database"
-	"mmyoungman/templ/database/jet/model"
+	"context"
+	"database/sql"
+	"log"
+	"mmyoungman/templ/database/sqlc_gen"
 	"mmyoungman/templ/store"
 	"mmyoungman/templ/structs"
 	"mmyoungman/templ/utils"
@@ -28,22 +30,26 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 				return
 			}
 
-			var dbSession *model.Session = nil
-			dbSession = database.GetSession(serviceCtx.Db, sessionIDUntyped.(string))
+			queries := database.New(serviceCtx.Db)
+			dbSession, err := queries.GetSession(context.Background(), sessionIDUntyped.(string))
 
-			if dbSession == nil {
-				store.DeleteSession(cookieSession, w, r)
-				utils.SetContextValue(r, utils.UserCtxKey, nil)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					store.DeleteSession(cookieSession, w, r)
+					utils.SetContextValue(r, utils.UserCtxKey, nil)
 
-				next.ServeHTTP(w, r)
-				return
+					next.ServeHTTP(w, r)
+					return
+				} else {
+					log.Fatal("Error fetching sessions")
+				}
 			}
 
 			restoredToken := &oauth2.Token{
-				AccessToken:  dbSession.AccessToken,
-				RefreshToken: dbSession.RefreshToken,
+				AccessToken:  dbSession.Accesstoken,
+				RefreshToken: dbSession.Refreshtoken,
 				Expiry:       time.Unix(int64(dbSession.Expiry), 0),
-				TokenType:    dbSession.TokenType,
+				TokenType:    dbSession.Tokentype,
 			}
 			//var tokenExtraMap = make(map[string]string) // @MarkFix doesn't work?
 			//tokenExtraMap["id_token"] = auth.RawIDToken
@@ -60,7 +66,7 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 				   - visit home
 				*/
 
-				database.DeleteSession(serviceCtx.Db, dbSession.ID)
+				queries.DeleteSession(context.Background(), dbSession.ID) // @MarkFix handle err here?
 				store.DeleteSession(cookieSession, w, r)
 				utils.SetContextValue(r, utils.UserCtxKey, nil)
 
@@ -74,7 +80,7 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 				if err != nil {
 					// @MarkFix to get here, token needs to be refreshed but IDToken not valid?
 
-					database.DeleteSession(serviceCtx.Db, dbSession.ID)
+					queries.DeleteSession(context.Background(), dbSession.ID)
 					store.DeleteSession(cookieSession, w, r)
 					utils.SetContextValue(r, utils.UserCtxKey, nil)
 
@@ -86,16 +92,24 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 			}
 
 			// if the token has been refreshed, update session
-			if dbSession.AccessToken != newToken.AccessToken {
+			if dbSession.Accesstoken != newToken.AccessToken {
 				// @MarkFix we could update the sessionID here, to be paranoid...
-				database.UpdateSession(serviceCtx.Db, dbSession.ID, dbSession.UserID, newToken.AccessToken,
-					newToken.RefreshToken, newToken.Expiry.Unix(), newToken.TokenType)
+				queries.UpdateSession(context.Background(), database.UpdateSessionParams{
+					ID:           dbSession.ID,
+					Userid:       dbSession.Userid,
+					Accesstoken:  newToken.AccessToken,
+					Refreshtoken: newToken.RefreshToken,
+					Expiry:       newToken.Expiry.Unix(),
+					Tokentype:    newToken.TokenType,
+				})
 			}
 
 			// user is logged in, so set user on context for access in handlers
-			loggedInUser := database.GetUser(serviceCtx.Db, dbSession.UserID) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
+			loggedInUser, err := queries.GetUser(context.Background(), dbSession.Userid) // @MarkFix _should_ always return a user - add db relationship to ensure or double check here
 
-			utils.SetContextValue(r, utils.UserCtxKey, loggedInUser)
+			utils.UNUSED(err) // @MarkFix handle err?
+
+			utils.SetContextValue(r, utils.UserCtxKey, &loggedInUser)
 
 			next.ServeHTTP(w, r)
 		}

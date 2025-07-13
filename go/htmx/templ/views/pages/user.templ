@@ -1,7 +1,7 @@
 package pages
 
 import (
-	"mmyoungman/templ/database/jet/model"
+	"mmyoungman/templ/database/sqlc_gen"
 	"mmyoungman/templ/views/layouts"
 	"mmyoungman/templ/utils"
 )
@@ -14,7 +14,7 @@ templ UserLoggedOut(baseArgs utils.BaseArgs) {
 	}
 }
 
-templ UserLoggedIn(user *model.User, baseArgs utils.BaseArgs) {
+templ UserLoggedIn(user *database.User, baseArgs utils.BaseArgs) {
 	@layouts.Base("User", baseArgs) {
 		<div class="text-xl text-blue-500">User page</div>
 		<hr/>
@@ -24,9 +24,9 @@ templ UserLoggedIn(user *model.User, baseArgs utils.BaseArgs) {
 			<li>ID: { user.ID }</li>
 			<li>Username: { user.Username }</li>
 			<li>Email: { user.Email }</li>
-			<li>FirstName: { user.FirstName }</li>
-			<li>LastName: { user.LastName }</li>
-			<li>RawIDToken: { user.RawIDToken }</li>
+			<li>FirstName: { user.Firstname }</li>
+			<li>LastName: { user.Lastname }</li>
+			<li>RawIDToken: { user.Rawidtoken }</li>
 		</ul>
 	}
 }
