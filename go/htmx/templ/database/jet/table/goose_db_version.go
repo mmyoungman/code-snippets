@@ -24,6 +24,7 @@ type gooseDbVersionTable struct {
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
+	DefaultColumns sqlite.ColumnList
 }
 
 type GooseDbVersionTable struct {
@@ -67,6 +68,7 @@ func newGooseDbVersionTableImpl(schemaName, tableName, alias string) gooseDbVers
 		TstampColumn    = sqlite.TimestampColumn("tstamp")
 		allColumns      = sqlite.ColumnList{IDColumn, VersionIDColumn, IsAppliedColumn, TstampColumn}
 		mutableColumns  = sqlite.ColumnList{VersionIDColumn, IsAppliedColumn, TstampColumn}
+		defaultColumns  = sqlite.ColumnList{TstampColumn}
 	)
 
 	return gooseDbVersionTable{
@@ -80,5 +82,6 @@ func newGooseDbVersionTableImpl(schemaName, tableName, alias string) gooseDbVers
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

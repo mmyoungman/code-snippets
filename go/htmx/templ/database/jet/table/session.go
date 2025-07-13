@@ -26,6 +26,7 @@ type sessionTable struct {
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
+	DefaultColumns sqlite.ColumnList
 }
 
 type SessionTable struct {
@@ -71,6 +72,7 @@ func newSessionTableImpl(schemaName, tableName, alias string) sessionTable {
 		TokenTypeColumn    = sqlite.StringColumn("TokenType")
 		allColumns         = sqlite.ColumnList{IDColumn, UserIDColumn, AccessTokenColumn, RefreshTokenColumn, ExpiryColumn, TokenTypeColumn}
 		mutableColumns     = sqlite.ColumnList{UserIDColumn, AccessTokenColumn, RefreshTokenColumn, ExpiryColumn, TokenTypeColumn}
+		defaultColumns     = sqlite.ColumnList{}
 	)
 
 	return sessionTable{
@@ -86,5 +88,6 @@ func newSessionTableImpl(schemaName, tableName, alias string) sessionTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

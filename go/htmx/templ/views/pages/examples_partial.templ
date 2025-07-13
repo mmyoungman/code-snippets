@@ -2,8 +2,8 @@ package pages
 
 import "mmyoungman/templ/views/layouts"
 
-templ ExamplesPartial(username string, nonce string) {
-	@layouts.Base("Examples - Click button load partial", username, nonce) {
+templ ExamplesPartial(baseArgs layouts.BaseArgs) {
+	@layouts.Base("Examples - Click button load partial", baseArgs) {
 		<div class="text-xl text-blue-500">Examples page</div>
 		<hr/>
 		<button hx-get="/partial/test1" hx-swap="outerHTML">outerHTML swap</button>

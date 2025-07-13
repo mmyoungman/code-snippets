@@ -5,16 +5,16 @@ import (
 	"mmyoungman/templ/views/layouts"
 )
 
-templ UserLoggedOut(nonce string) {
-	@layouts.Base("User", "", nonce) {
+templ UserLoggedOut(baseArgs layouts.BaseArgs) {
+	@layouts.Base("User", baseArgs) {
 		<div class="text-xl text-blue-500">User page</div>
 		<hr/>
 		<div>Please log in!</div>
 	}
 }
 
-templ UserLoggedIn(user *model.User, nonce string) {
-	@layouts.Base("User", user.FirstName, nonce) {
+templ UserLoggedIn(user *model.User, baseArgs layouts.BaseArgs) {
+	@layouts.Base("User", baseArgs) {
 		<div class="text-xl text-blue-500">User page</div>
 		<hr/>
 		<div>You are logged in!</div>

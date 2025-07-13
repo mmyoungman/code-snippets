@@ -4,17 +4,21 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"mmyoungman/templ/database/jet/model"
 	"net/http"
 	"os"
 	"runtime/debug"
+
+	"github.com/google/uuid"
 )
 
 type reqCtxKey int
 
 const (
-	UserCtxKey     reqCtxKey = iota
-	CspNonceCtxKey reqCtxKey = iota
+	UserCtxKey      reqCtxKey = iota
+	CspNonceCtxKey  reqCtxKey = iota
+	CsrfTokenCtxKey reqCtxKey = iota
 )
 
 func SetContextValue(r *http.Request, key reqCtxKey, value any) {
@@ -39,6 +43,25 @@ func GetContextCspNonce(r *http.Request) string {
 	return nonceUntyped.(string)
 }
 
+func GetContextCSRFToken(r *http.Request) string {
+	csrfUntyped := r.Context().Value(CsrfTokenCtxKey)
+	if csrfUntyped == nil {
+		log.Fatal("CSRF token didn't get set")
+	}
+	return csrfUntyped.(string)
+}
+
+func ValidateCSRFToken(r *http.Request, csrfToken string) bool { // @MarkFix use this! And test it
+	expectedCsrfToken := GetContextCSRFToken(r)
+
+	// refresh token
+	newToken := uuid.New().String()
+	// @MarkFix IMPORTANT save the csrfToken to the secure cookie!
+	SetContextValue(r, CsrfTokenCtxKey, newToken)
+
+	return csrfToken == expectedCsrfToken
+}
+
 func Getenv(key string) string {
 	variable := os.Getenv(key)
 
@@ -55,4 +78,13 @@ func GetPublicURL() string { // @hotreload
 	}
 
 	return fmt.Sprintf("%s:%s", Getenv("PUBLIC_HOST"), Getenv("PUBLIC_PORT"))
+}
+
+func GenerateRandomStr() string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	newNonce := make([]rune, 20)
+	for i := 0; i < 20; i++ {
+		newNonce[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(newNonce)
 }

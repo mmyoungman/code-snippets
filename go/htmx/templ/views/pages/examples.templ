@@ -2,8 +2,8 @@ package pages
 
 import "mmyoungman/templ/views/layouts"
 
-templ Examples(username string, nonce string) {
-	@layouts.Base("Example uses", username, nonce) {
+templ Examples(baseArgs layouts.BaseArgs) {
+	@layouts.Base("Example uses", baseArgs) {
 		<div class="text-xl text-blue-500">Example uses page</div>
 		<hr/>
 		<p>Here are examples using templ/htmx:</p>

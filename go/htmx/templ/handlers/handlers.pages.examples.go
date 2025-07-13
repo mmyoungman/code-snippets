@@ -2,18 +2,22 @@ package handlers
 
 import (
 	"mmyoungman/templ/utils"
+	"mmyoungman/templ/views/layouts"
 	"mmyoungman/templ/views/pages"
 	"net/http"
 )
 
 func HandleExamples() HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		firstName := ""
+		baseArgs := layouts.BaseArgs{
+			Nonce: utils.GetContextCspNonce(r),
+			CsrfToken: utils.GetContextCSRFToken(r),
+		}
 		user := utils.GetContextUser(r)
 		if user != nil {
-			firstName = user.FirstName
+			baseArgs.Username = user.FirstName
 		}
 
-		return pages.Examples(firstName, utils.GetContextCspNonce(r)).Render(r.Context(), w)
+		return pages.Examples(baseArgs).Render(r.Context(), w)
 	}
 }

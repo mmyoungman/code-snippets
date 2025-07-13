@@ -23,7 +23,7 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		// @MarkFix could check if there is a valid user before attempting to log in
 
-		session := store.GetSession(r)
+		session := store.GetSession(r, store.SessionCookieName)
 
 		state := auth.GenerateRandomState()
 		session.Values["state_login"] = state
@@ -50,9 +50,9 @@ func HandleAuthLogin(authObj *auth.Authenticator) HTTPHandler {
 
 func HandleAuthCallback(serviceCtx *structs.ServiceCtx) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		reqState := r.URL.Query().Get("state")
+		reqStateQueryParam := r.URL.Query().Get("state")
 
-		session := store.GetSession(r)
+		session := store.GetSession(r, store.SessionCookieName)
 
 		state := session.Values["state_login"]
 		pkceVerifier := session.Values["pkce_verifier"]
@@ -64,7 +64,7 @@ func HandleAuthCallback(serviceCtx *structs.ServiceCtx) HTTPHandler {
 
 		store.SaveSession(session, w, r)
 
-		if reqState != state {
+		if reqStateQueryParam != state {
 			render.Status(r, http.StatusBadRequest)
 			return errors.New("invalid state parameter")
 		}
@@ -122,7 +122,7 @@ func HandleAuthCallback(serviceCtx *structs.ServiceCtx) HTTPHandler {
 		database.InsertSession(serviceCtx.Db, newSessionID, userID, token.AccessToken, token.RefreshToken, token.Expiry.Unix(), token.TokenType)
 
 		// then update cookie session
-		cookieSession := store.GetSession(r)
+		cookieSession := store.GetSession(r, store.SessionCookieName)
 		cookieSession.Values["session_id"] = newSessionID
 		store.SaveSession(cookieSession, w, r)
 
@@ -143,7 +143,7 @@ func HandleAuthLogout(serviceCtx *structs.ServiceCtx) HTTPHandler {
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		}
 
-		cookieSession := store.GetSession(r)
+		cookieSession := store.GetSession(r, store.SessionCookieName)
 
 		// get referrer URL/path so can redirect user to page they were previously on after logout
 		referrer := r.Header.Get("Referer") // @MarkFix could get this ourselves to prevent future browser change issues?
@@ -182,7 +182,7 @@ func HandleAuthLogoutCallback(db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		reqState := r.URL.Query().Get("state") // @MarkFix this ok in terms of security?
 
-		session := store.GetSession(r)
+		session := store.GetSession(r, store.SessionCookieName)
 
 		state := session.Values["state_logout"]
 		referrerPath := session.Values["referrer_path"]

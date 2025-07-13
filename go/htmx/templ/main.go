@@ -45,7 +45,7 @@ func main() {
 		log.Fatal("Failed to set goose dialect ", err)
 	}
 	if err := goose.Up(serviceCtx.Db, utils.Getenv("MIGRATIONS_PATH")); err != nil {
-		log.Fatal("Failed to apply migrations ", err) // @MarkFix do we actually want to fail here?
+		log.Fatal("Failed to apply migrations ", err)
 	}
 
 	var err error
@@ -63,6 +63,7 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Use(middleware.ContentSecurityPolicy) // @MarkFix console errors due to this?
+	router.Use(middleware.CSRFToken)
 
 	// @MarkFix use other middleware - logger? recoverer?
 	// @MarkFix rate limiting middleware?
@@ -115,8 +116,12 @@ func main() {
 	})
 
 	// log details about host / ports / @hotreload dev watch proxies
+	publicHost := utils.Getenv("PUBLIC_HOST")
 	publicPort := utils.Getenv("PUBLIC_PORT")
-	slog.Info("Starting http server", "URL", fmt.Sprintf("%s:%s", utils.Getenv("PUBLIC_HOST"), publicPort))
+	publicURL := fmt.Sprintf("%s:%s", publicHost, publicPort)
+
+	slog.Info("Starting http server", "URL", publicURL)
+
 	if os.Getenv("PROXY_URL") == utils.GetPublicURL() {
 		slog.Info("Auth configured for watch proxy", "proxyUrl", os.Getenv("PROXY_URL"))
 		if utils.IsProd {

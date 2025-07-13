@@ -26,6 +26,7 @@ type userTable struct {
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
+	DefaultColumns sqlite.ColumnList
 }
 
 type UserTable struct {
@@ -71,6 +72,7 @@ func newUserTableImpl(schemaName, tableName, alias string) userTable {
 		RawIDTokenColumn = sqlite.StringColumn("RawIDToken")
 		allColumns       = sqlite.ColumnList{IDColumn, UsernameColumn, EmailColumn, FirstNameColumn, LastNameColumn, RawIDTokenColumn}
 		mutableColumns   = sqlite.ColumnList{UsernameColumn, EmailColumn, FirstNameColumn, LastNameColumn, RawIDTokenColumn}
+		defaultColumns   = sqlite.ColumnList{}
 	)
 
 	return userTable{
@@ -86,5 +88,6 @@ func newUserTableImpl(schemaName, tableName, alias string) userTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

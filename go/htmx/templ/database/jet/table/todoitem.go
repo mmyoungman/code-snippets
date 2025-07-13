@@ -23,6 +23,7 @@ type toDoItemTable struct {
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
+	DefaultColumns sqlite.ColumnList
 }
 
 type ToDoItemTable struct {
@@ -65,6 +66,7 @@ func newToDoItemTableImpl(schemaName, tableName, alias string) toDoItemTable {
 		DescriptionColumn = sqlite.StringColumn("Description")
 		allColumns        = sqlite.ColumnList{IDColumn, NameColumn, DescriptionColumn}
 		mutableColumns    = sqlite.ColumnList{NameColumn, DescriptionColumn}
+		defaultColumns    = sqlite.ColumnList{}
 	)
 
 	return toDoItemTable{
@@ -77,5 +79,6 @@ func newToDoItemTableImpl(schemaName, tableName, alias string) toDoItemTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

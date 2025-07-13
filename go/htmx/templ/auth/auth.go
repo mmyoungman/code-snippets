@@ -96,7 +96,8 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 		ClientID: a.ClientID,
 	}
 
-	return a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
+	idTokenVerifier := a.Verifier(oidcConfig)
+	return idTokenVerifier.Verify(ctx, rawIDToken)
 }
 
 func GenerateRandomState() string {

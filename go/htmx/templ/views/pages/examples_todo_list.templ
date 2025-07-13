@@ -5,8 +5,8 @@ import (
 	"mmyoungman/templ/views/layouts"
 )
 
-templ ExamplesToDoList(username string, nonce string, toDoItems []*model.ToDoItem) {
-	@layouts.Base("Examples - ToDo List", username, nonce) {
+templ ExamplesToDoList(baseArgs layouts.BaseArgs, toDoItems []*model.ToDoItem) {
+	@layouts.Base("Examples - ToDo List", baseArgs) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>
 		<br/>

@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-const Name = "session"
+const SessionCookieName = "session"
 
 var store *sessions.CookieStore
 
@@ -25,8 +25,8 @@ func Setup() {
 	store = newStore
 }
 
-func GetSession(r *http.Request) *sessions.Session {
-	session, err := store.Get(r, "session")
+func GetSession(r *http.Request, name string) *sessions.Session {
+	session, err := store.Get(r, name)
 	if err != nil {
 		log.Fatal("Error in fetching cookie session ", err)
 	}
@@ -46,6 +46,7 @@ func DeleteSession(cookieSession *sessions.Session, w http.ResponseWriter, r *ht
 	cookieSession.Values["state_logout"] = nil
 	cookieSession.Values["pkce_verifier"] = nil
 	cookieSession.Values["referrer_path"] = nil
+	cookieSession.Values["csrf_token"] = nil
 
 	cookieSession.Options.MaxAge = -1
 

@@ -16,12 +16,14 @@ import (
 func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			cookieSession := store.GetSession(r)
+			cookieSession := store.GetSession(r, store.SessionCookieName)
 
 			sessionIDUntyped := cookieSession.Values["session_id"]
 
 			if sessionIDUntyped == nil {
 				store.DeleteSession(cookieSession, w, r) // ensure both are nil // @MarkFix could avoid this for performance
+				utils.SetContextValue(r, utils.UserCtxKey, nil)
+
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -31,6 +33,8 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 
 			if dbSession == nil {
 				store.DeleteSession(cookieSession, w, r)
+				utils.SetContextValue(r, utils.UserCtxKey, nil)
+
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -58,6 +62,7 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 
 				database.DeleteSession(serviceCtx.Db, dbSession.ID)
 				store.DeleteSession(cookieSession, w, r)
+				utils.SetContextValue(r, utils.UserCtxKey, nil)
 
 				next.ServeHTTP(w, r)
 				return
@@ -71,6 +76,7 @@ func SessionCheck(serviceCtx *structs.ServiceCtx) func(next http.Handler) http.H
 
 					database.DeleteSession(serviceCtx.Db, dbSession.ID)
 					store.DeleteSession(cookieSession, w, r)
+					utils.SetContextValue(r, utils.UserCtxKey, nil)
 
 					next.ServeHTTP(w, r)
 					return
