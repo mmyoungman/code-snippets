@@ -9,13 +9,7 @@ func CSRFHeaderJSON(csrfToken string) string {
 	return fmt.Sprintf("{\"X-CSRF-TOKEN\": \"%s\"}", csrfToken)
 }
 
-type BaseArgs struct {
-	Username string
-	Nonce string
-	CsrfToken string
-}
-
-templ Base(title string, args BaseArgs) {
+templ Base(title string, args utils.BaseArgs) {
 	<!DOCTYPE html>
 	<html lang="en" hx-headers={ CSRFHeaderJSON(args.CsrfToken) }>
 		<head>

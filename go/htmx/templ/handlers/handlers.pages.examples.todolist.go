@@ -5,7 +5,6 @@ import (
 	"mmyoungman/templ/database"
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/utils"
-	"mmyoungman/templ/views/layouts"
 	"mmyoungman/templ/views/pages"
 	"net/http"
 	"strings"
@@ -15,14 +14,7 @@ import (
 
 func HandleToDoList(db *sql.DB) HTTPHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		baseArgs := layouts.BaseArgs{
-			Nonce: utils.GetContextCspNonce(r),
-			CsrfToken: utils.GetContextCSRFToken(r),
-		}
-		user := utils.GetContextUser(r)
-		if user != nil {
-			baseArgs.Username = user.FirstName
-		}
+		baseArgs := utils.GenerateBaseArgs(r)
 
 		toDoItems := database.ListToDoItems(db)
 

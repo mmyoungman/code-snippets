@@ -2,7 +2,8 @@ include .env
 
 install:
 # @MarkFix specify versions?
-	@go install github.com/a-h/templ/cmd/templ@latest
+# updating templ beyond .833 breaks - not this but related: https://github.com/a-h/templ/issues/1146
+	@go install github.com/a-h/templ/cmd/templ@v0.3.833
 	@go install github.com/air-verse/air@latest
 	@go install github.com/pressly/goose/v3/cmd/goose@latest
 	@go install github.com/go-jet/jet/v2/cmd/jet@latest

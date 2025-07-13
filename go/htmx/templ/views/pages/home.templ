@@ -1,8 +1,9 @@
 package pages
 
 import "mmyoungman/templ/views/layouts"
+import "mmyoungman/templ/utils"
 
-templ Home(baseArgs layouts.BaseArgs) {
+templ Home(baseArgs utils.BaseArgs) {
 	@layouts.Base("Home", baseArgs) {
 		<div class="text-xl text-blue-500">Home page</div>
 		<hr/>

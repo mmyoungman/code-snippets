@@ -1,8 +1,9 @@
 package pages
 
 import "mmyoungman/templ/views/layouts"
+import "mmyoungman/templ/utils"
 
-templ ExamplesPartial(baseArgs layouts.BaseArgs) {
+templ ExamplesPartial(baseArgs utils.BaseArgs) {
 	@layouts.Base("Examples - Click button load partial", baseArgs) {
 		<div class="text-xl text-blue-500">Examples page</div>
 		<hr/>

@@ -3,9 +3,10 @@ package pages
 import (
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/views/layouts"
+	"mmyoungman/templ/utils"
 )
 
-templ UserLoggedOut(baseArgs layouts.BaseArgs) {
+templ UserLoggedOut(baseArgs utils.BaseArgs) {
 	@layouts.Base("User", baseArgs) {
 		<div class="text-xl text-blue-500">User page</div>
 		<hr/>
@@ -13,7 +14,7 @@ templ UserLoggedOut(baseArgs layouts.BaseArgs) {
 	}
 }
 
-templ UserLoggedIn(user *model.User, baseArgs layouts.BaseArgs) {
+templ UserLoggedIn(user *model.User, baseArgs utils.BaseArgs) {
 	@layouts.Base("User", baseArgs) {
 		<div class="text-xl text-blue-500">User page</div>
 		<hr/>

@@ -3,9 +3,10 @@ package pages
 import (
 	"mmyoungman/templ/database/jet/model"
 	"mmyoungman/templ/views/layouts"
+	"mmyoungman/templ/utils"
 )
 
-templ ExamplesToDoList(baseArgs layouts.BaseArgs, toDoItems []*model.ToDoItem) {
+templ ExamplesToDoList(baseArgs utils.BaseArgs, toDoItems []*model.ToDoItem) {
 	@layouts.Base("Examples - ToDo List", baseArgs) {
 		<div class="text-xl text-blue-500">ToDo List Example</div>
 		<hr/>

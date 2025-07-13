@@ -1,8 +1,9 @@
 package pages
 
 import "mmyoungman/templ/views/layouts"
+import "mmyoungman/templ/utils"
 
-templ Examples(baseArgs layouts.BaseArgs) {
+templ Examples(baseArgs utils.BaseArgs) {
 	@layouts.Base("Example uses", baseArgs) {
 		<div class="text-xl text-blue-500">Example uses page</div>
 		<hr/>

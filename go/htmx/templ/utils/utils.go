@@ -21,6 +21,12 @@ const (
 	CsrfTokenCtxKey reqCtxKey = iota
 )
 
+type BaseArgs struct {
+	Username string
+	Nonce string
+	CsrfToken string
+}
+
 func SetContextValue(r *http.Request, key reqCtxKey, value any) {
 	ctx := r.Context()
 	newCtx := context.WithValue(ctx, key, value)
@@ -41,6 +47,22 @@ func GetContextCspNonce(r *http.Request) string {
 		log.Fatal("CSP nonce didn't get set")
 	}
 	return nonceUntyped.(string)
+}
+
+func GenerateBaseArgs(r *http.Request) BaseArgs {
+	firstName := ""
+
+	user := GetContextUser(r)
+	if user != nil {
+		firstName = user.FirstName
+	}
+
+	return BaseArgs{
+		Nonce: GetContextCspNonce(r),
+		CsrfToken: GetContextCSRFToken(r),
+		Username: firstName,
+
+	}
 }
 
 func GetContextCSRFToken(r *http.Request) string {
