@@ -16,6 +16,7 @@
 //#define SERVER_NAME "mark.youngman.info"
 #define SERVER_PORT "443"
 
+const size_t maxConcatLen = 4096;
 
 void generateSecStr(unsigned char *out, size_t outlen) {
   srand(time(NULL));
@@ -34,12 +35,19 @@ void generateSecStr(unsigned char *out, size_t outlen) {
 }
 
 int verifySecWebSocketKey(unsigned char *in, size_t inlen, unsigned char *expected) {
-  unsigned char concat[inlen + 36];
+  int concatLen = inlen + 36;
+  if (concatLen <= maxConcatLen)
+  {
+    printf("concatLen > maxConcatLen");
+    return 1;
+  }
+
+  unsigned char concat[maxConcatLen];
   memcpy(concat, in, inlen);
   memcpy(&concat[inlen], "258EAFA5-E914-47DA-95CA-C5AB0DC85B11", 36);
 
   unsigned char sha1result[20];
-  if( mbedtls_sha1(concat, inlen+36, sha1result)) {
+  if( mbedtls_sha1(concat, concatLen, sha1result)) {
     printf("sha1 failed\n");
   }
 
@@ -58,14 +66,14 @@ int verifySecWebSocketKey(unsigned char *in, size_t inlen, unsigned char *expect
       a++, b++;
   int result = ((*a == '\0') && (*b == '\0'));
 
-  printf("result: %d\n", result);
+  printf("verifySecWebSocketKey result: %d\n", result);
   return result;
 }
 
 
 static void my_debug_func(void *ctx, int level, const char *file, int line, const char *str) {
   ((void) level);
-  fprintf((FILE *)ctx, "%s:%04d: %s", file, line, str);
+  fprintf((FILE *)ctx, "debug_func:\n%s:%04d: %s", file, line, str);
   fflush((FILE *)ctx);
 }
 
@@ -159,17 +167,33 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  printf("%d bytes written\n\n%s\n\n", ret, (char*)buf);
+  printf("%d bytes written\n\n"
+         "%s\n\n",
+         ret,
+         (char*)buf);
 
   do {
-    ret = mbedtls_ssl_read(&ssl, buf, buflen);
+    unsigned char *readBuf = (unsigned char*)calloc(1, 4096);
+    ret = mbedtls_ssl_read(&ssl, readBuf, 4096);
     if(ret <= 0) {
       printf("\n\nEOF\n\n");
       break;
     }
 
     buf[ret] = '\0';
-    printf("%s", (char*)buf);
+    printf("%s", (char*)readBuf);
+    fflush(stdout);
+
+    // @MarkFix validate 101 response
+
+    // @MarkFix below doesn't work because websockets - read rfc6455
+    //int newLen = sprintf((char*) readBuf, "test\r\n");
+    //while ((ret = mbedtls_ssl_write(&ssl, readBuf, newLen)) <= 0) {
+    //  if (ret != 0) {
+    //    printf("failed to write \"test\" message");
+    //    return 1;
+    //  }
+    //}
   } while(1);
 
   // close
