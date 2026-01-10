@@ -10,3 +10,9 @@
 ```
 ./build_wasm.sh
 ```
+
+### Windows
+
+```
+build_win.bat
+```
