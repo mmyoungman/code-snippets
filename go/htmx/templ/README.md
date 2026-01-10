@@ -13,7 +13,6 @@ This will:
 - Install all go binaries used
 - Install all go dependencies
 - Create ./database/database.db and run all migrations
-- Create ./database/jet files
 
 ### To build
 
