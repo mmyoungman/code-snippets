@@ -6,7 +6,7 @@ int main(void) {
 	InitWindow(800, 600, "Raylib test window");
 
 	while(!WindowShouldClose()) {
-		UpdateDrawFrame();
+		main_render();
 	}
 
 	CloseWindow();

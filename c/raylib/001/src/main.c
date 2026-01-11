@@ -1,4 +1,6 @@
-void UpdateDrawFrame(void) {
+#include "../include/raylib.h"
+
+void main_render(void) {
 	BeginDrawing();
 
 	ClearBackground(RAYWHITE);
