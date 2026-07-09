@@ -16,7 +16,11 @@
 
 #include "procgen-lib.h"
 
-#define SCREEN_WIDTH 960 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+#define SCREEN_WIDTH 960
 #define SCREEN_HEIGHT 540
 
 const int GRID_BORDER = 10;
@@ -25,7 +29,8 @@ const int GRID_HEIGHT = 52;
 const int CELL_WIDTH = (SCREEN_WIDTH-(GRID_BORDER*2))/GRID_WIDTH;
 const int CELL_HEIGHT = (SCREEN_HEIGHT-(GRID_BORDER*2))/GRID_HEIGHT;
 
-struct framebuffer 
+
+struct framebuffer
 {
     uint8_t *data;
     int w, h;
@@ -38,7 +43,28 @@ struct gridstatus
     int w, h;
 };
 
-enum cellstatus 
+SDL_Window *window;
+SDL_Renderer *renderer;
+framebuffer buffer;
+SDL_Texture *texture;
+
+// Init gridstatus
+gridstatus grid;
+int currentX;
+int currentY;
+int hubBlobSize;
+int size;
+int status;
+
+// Pre loop stuff
+int running;
+int fullscreen;
+int newTime;
+int prevTime;
+int deltaTime;
+SDL_Event e;
+
+enum cellstatus
 {
     CELL_OFF,
     CELL_ON,
@@ -53,17 +79,17 @@ enum cellstatus
     CELL_AREA4,
     CELL_AREA5,
     CELL_END
-}; 
+};
 
 void clear(gridstatus *gs)
 {
-    for(int i = 0; i < GRID_WIDTH; i++) 
+    for(int i = 0; i < GRID_WIDTH; i++)
     {
-        for(int j = 0; j < GRID_HEIGHT; j++) 
+        for(int j = 0; j < GRID_HEIGHT; j++)
         {
             gs->cells[i][j] = CELL_OFF;
         }
-    }     
+    }
 }
 
 void fillGrid(framebuffer buffer, gridstatus gs)
@@ -71,10 +97,10 @@ void fillGrid(framebuffer buffer, gridstatus gs)
     int pitch = buffer.w * buffer.bytesperpixel;
     uint8_t *row = buffer.data;
 
-    for(int j = 0; j < buffer.h; j++) 
+    for(int j = 0; j < buffer.h; j++)
     {
         uint32_t *pixel = (uint32_t *)row;
-        for(int i = 0; i < buffer.w; i++) 
+        for(int i = 0; i < buffer.w; i++)
         {
             uint8_t blue = 0;
             uint8_t green = 0;
@@ -90,7 +116,7 @@ void fillGrid(framebuffer buffer, gridstatus gs)
                     red = 255;
                     alpha = 255;
                 }
-                
+
                 if(gs.cells[ ((i-GRID_BORDER)/CELL_WIDTH) ][ ((j-GRID_BORDER)/CELL_HEIGHT) ] == CELL_WALL)
                 {
                     blue = 0;
@@ -196,10 +222,10 @@ void drawGrid(framebuffer buffer)
         uint32_t *pixel = (uint32_t *)row;
         for(int x = 0; x < buffer.w; x++)
         {
-            if(((x+GRID_BORDER)%CELL_WIDTH == 0 && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER) || 
-               ((y+GRID_BORDER)%CELL_HEIGHT == 0 && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER) || 
-               (x == buffer.w-GRID_BORDER && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER) || 
-               (y == buffer.h-GRID_BORDER && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER)) 
+            if(((x+GRID_BORDER)%CELL_WIDTH == 0 && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER) ||
+               ((y+GRID_BORDER)%CELL_HEIGHT == 0 && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER) ||
+               (x == buffer.w-GRID_BORDER && y >= GRID_BORDER && y <= buffer.h-GRID_BORDER) ||
+               (y == buffer.h-GRID_BORDER && x >= GRID_BORDER && x <= buffer.w-GRID_BORDER))
             {
                 uint8_t blue = 255;
                 uint8_t green = 255;
@@ -230,7 +256,7 @@ bool checkAreaIsOff(gridstatus *gs, int x, int y, int w, int h)
     //     h = -h;
     //}
 
-    // Look for something that isn't CELL_OFF in area 
+    // Look for something that isn't CELL_OFF in area
     for(int i = x; i < x+w; i++)
         for(int j = y; j < y+h; j++)
         {
@@ -243,9 +269,9 @@ bool checkAreaIsOff(gridstatus *gs, int x, int y, int w, int h)
 
 void createExitCells(gridstatus *gs, cellstatus CS)
 {
-    for(int x = 0; x < GRID_WIDTH; x++) 
+    for(int x = 0; x < GRID_WIDTH; x++)
     {
-        for(int y = 0; y < GRID_HEIGHT; y++) 
+        for(int y = 0; y < GRID_HEIGHT; y++)
         {
             // Exit point must be able to accomodate corridor
             int corridorLen = 5;
@@ -280,7 +306,7 @@ void createExitCells(gridstatus *gs, cellstatus CS)
 // Creates a random blob of the size
 void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus CS)
 {
-    for(int i = 0; i < size; size--) 
+    for(int i = 0; i < size; size--)
     {
 
         // If can eat start cell, eat it
@@ -295,7 +321,7 @@ void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus C
 
             // Check what directions we can eat
             char array[4];
-            for(int i = 0; i < 4; i++) 
+            for(int i = 0; i < 4; i++)
                 array[i] = '0';
             int arraylen = 0;
 
@@ -329,13 +355,13 @@ void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus C
             if(arraylen == 0)
             {
                 int direction = stb_rand()%4;
-                if(direction == 0 && y-1 >= 0 && gs->cells[x][y-1] == CS) 
+                if(direction == 0 && y-1 >= 0 && gs->cells[x][y-1] == CS)
                     *inputY = y-1;
-                if(direction == 1 && y+1 < GRID_HEIGHT && gs->cells[x][y+1] == CS) 
+                if(direction == 1 && y+1 < GRID_HEIGHT && gs->cells[x][y+1] == CS)
                     *inputY = y+1;
-                if(direction == 2 && x-1 >= 0 && gs->cells[x-1][y] == CS) 
+                if(direction == 2 && x-1 >= 0 && gs->cells[x-1][y] == CS)
                     *inputX = x-1;
-                if(direction == 3 && x+1 < GRID_WIDTH && gs->cells[x+1][y] == CS) 
+                if(direction == 3 && x+1 < GRID_WIDTH && gs->cells[x+1][y] == CS)
                     *inputX = x+1;
             }
             // Else, choose a random cell to eat and size--
@@ -346,8 +372,8 @@ void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus C
                 if(gs->cells[x][y] == CELL_OFF)
                     gs->cells[x][y] = CS;
                 else
-                {   
-                    direction = stb_rand()%arraylen;     
+                {
+                    direction = stb_rand()%arraylen;
                     if(array[direction] == 'N')
                         gs->cells[x][y-1] = CS;
                     if(array[direction] == 'W')
@@ -360,14 +386,14 @@ void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus C
 
                 // Random chance to move
                 // If there is only 1 remaining, move
-                if(direction != -1 && stb_rand()%arraylen == 0) 
+                if(direction != -1 && stb_rand()%arraylen == 0)
                 {
                     if(array[direction] == 'N')
-                        *inputY = y-1; 
+                        *inputY = y-1;
                     if(array[direction] == 'W')
-                        *inputX = x-1; 
+                        *inputX = x-1;
                     if(array[direction] == 'E')
-                        *inputX = x+1; 
+                        *inputX = x+1;
                     if(array[direction] == 'S')
                         *inputY = y+1;
                 }
@@ -376,13 +402,13 @@ void createBlob(gridstatus *gs, int *inputX, int *inputY, int size, cellstatus C
     }
 }
 
-struct travelCell 
+struct travelCell
 {
     int x, y;
     int prevx, prevy;
 };
 
-struct travelCellList 
+struct travelCellList
 {
     travelCell *travelCells;
     int count;
@@ -400,7 +426,7 @@ travelCell makeTravelCell(int x, int y, int prevx, int prevy)
      return tc;
 }
 
-void addCell(travelCellList *list, int x, int y, int prevx, int prevy) 
+void addCell(travelCellList *list, int x, int y, int prevx, int prevy)
 {
     list->count += 1;
 
@@ -422,7 +448,7 @@ void addCell(travelCellList *list, int x, int y, int prevx, int prevy)
 
 travelCell findCell(travelCellList *list, int x, int y)
 {
-     for(int i = 0; i < list->count; i++) 
+     for(int i = 0; i < list->count; i++)
      {
          if(list->travelCells[i].x == x && list->travelCells[i].y == y)
              return list->travelCells[i];
@@ -433,7 +459,7 @@ travelCell findCell(travelCellList *list, int x, int y)
 
 bool inList(travelCellList *list, int x, int y)
 {
-     for(int i = 0; i < list->count; i++) 
+     for(int i = 0; i < list->count; i++)
      {
          if(list->travelCells[i].x == x && list->travelCells[i].y == y)
              return true;
@@ -449,10 +475,10 @@ bool canTravelBetween(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus
     list.travelCells = (travelCell *)malloc(list.mallocSize);
     list.count = 0;
     addCell(&list, x1, y1, -1, -1); // -1 for prevx/y means origin cell
-    
+
     travelCell current = list.travelCells[list.count-1];
 
-    do 
+    do
     {
         // If starting cell is not CS, return false
         //if(gs->cells[x1][y1] != CS)
@@ -468,11 +494,11 @@ bool canTravelBetween(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus
         {
             addCell(&list, current.x + 1, current.y, current.x, current.y);
             current = list.travelCells[list.count-1];
-        } 
+        }
         // If destination is to the left... etc.
         else if(x2 < current.x && gs->cells[current.x-1][current.y] == CS && !inList(&list, current.x-1, current.y))
         {
-            addCell(&list, current.x - 1, current.y, current.x, current.y); 
+            addCell(&list, current.x - 1, current.y, current.x, current.y);
             current = list.travelCells[list.count-1];
         }
         else if(y2 > current.y && gs->cells[current.x][current.y+1] == CS && !inList(&list, current.x, current.y+1))
@@ -511,23 +537,23 @@ bool canTravelBetween(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus
         {
             current = findCell(&list, current.prevx, current.prevy);
         }
-        // Continue while we're not at the origin... 
-    } while(current.prevx != -1 || 
+        // Continue while we're not at the origin...
+    } while(current.prevx != -1 ||
             // or we are at the origin but still have somewhere to move
             (current.x-1 >= 0 && gs->cells[current.x-1][current.y] == CS && !inList(&list, current.x-1, current.y)) ||
             (current.x+1 < GRID_WIDTH && gs->cells[current.x+1][current.y] == CS && !inList(&list, current.x+1, current.y)) ||
             (current.y-1 >= 0 && gs->cells[current.x][current.y-1] == CS && !inList(&list, current.x, current.y-1)) ||
             (current.y+1 < GRID_HEIGHT && gs->cells[current.x][current.y+1] == CS && !inList(&list, current.x, current.y+1)));
-    
+
     free(list.travelCells);
     return false;
 }
 
-void joinTwoCells(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus CS) 
+void joinTwoCells(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus CS)
 {
     // Pick a cell between the two points
-    int x, y; 
-    if(x1 > x2) 
+    int x, y;
+    if(x1 > x2)
         x = x2 + ((x1-x2)/2);
     else
         x = x1 + ((x2-x1)/2);
@@ -544,7 +570,7 @@ void joinTwoCells(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus CS)
         while(blobSize > 0)
         {
             // NOTE: This changes x and y, giving path some character
-            createBlob(gs, &x, &y, blobSize, CS); 
+            createBlob(gs, &x, &y, blobSize, CS);
         }
     }
 
@@ -559,13 +585,13 @@ void joinTwoCells(gridstatus *gs, int x1, int y1, int x2, int y2, cellstatus CS)
 
 void createWalls(gridstatus *gs, cellstatus cs)
 {
-     for(int i = 0; i < GRID_WIDTH; i++) 
+     for(int i = 0; i < GRID_WIDTH; i++)
      {
-         for(int j = 0; j < GRID_HEIGHT; j++) 
+         for(int j = 0; j < GRID_HEIGHT; j++)
          {
              if(gs->cells[i][j] == cs)
              {
-                  
+
                  if(j-1 >= 0 && gs->cells[i][j-1] == CELL_OFF)
                      gs->cells[i][j-1] = CELL_WALL;
                  if(i-1 >= 0 && gs->cells[i-1][j] == CELL_OFF)
@@ -579,7 +605,7 @@ void createWalls(gridstatus *gs, cellstatus cs)
      }
 }
 
-struct point 
+struct point
 {
     int x;
     int y;
@@ -617,7 +643,7 @@ void addPoint(pointList *pl, point p)
 
 bool canDrawLineBetween(gridstatus *gs, point a, point b, int maxLength)
 {
-     
+
 }
 
 point pickRandomCell(gridstatus *gs, point exitCell, int maxLength, cellstatus CS)
@@ -645,65 +671,69 @@ point pickRandomCell(gridstatus *gs, point exitCell, int maxLength, cellstatus C
     return result;
 }
 
-int main(int argc, char* args[])
+int init(void)
 {
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
     {
         printf("Vid/Sound init failed. SDL_Error: %s\n", SDL_GetError());
+        return 1;
     }
 
     // Create Window
-    SDL_Window *window = SDL_CreateWindow("Proc Gen",
+    window = SDL_CreateWindow("Proc Gen",
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED,
                                           SCREEN_WIDTH,
                                           SCREEN_HEIGHT,
                                           SDL_WINDOW_RESIZABLE);
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+    renderer = SDL_CreateRenderer(window, -1, 0);
 
-    framebuffer buffer;
     SDL_GetWindowSize(window, &buffer.w, &buffer.h);
     buffer.bytesperpixel = 4;
-
-    buffer.data = (uint8_t *)malloc(buffer.w * buffer.h * 
+    buffer.data = (uint8_t *)malloc(buffer.w * buffer.h *
                                     buffer.bytesperpixel);
-    
-    SDL_Texture *texture = SDL_CreateTexture(renderer,
+
+    texture = SDL_CreateTexture(renderer,
                                             SDL_PIXELFORMAT_ARGB8888,
                                             SDL_TEXTUREACCESS_STREAMING,
                                             buffer.w, buffer.h);
     // Init gridstatus
-    gridstatus grid;
     grid.w = GRID_WIDTH;
     grid.h = GRID_HEIGHT;
 
     clear(&grid);
 
-    int currentX = GRID_WIDTH/2;
-    int currentY = GRID_HEIGHT/2;
+    currentX = GRID_WIDTH/2;
+    currentY = GRID_HEIGHT/2;
     grid.cells[currentX][currentY] = CELL_HUB_START;
-    int hubBlobSize = 100;
-    int size = hubBlobSize;
-    int status = 0;
+    hubBlobSize = 100;
+    size = hubBlobSize;
+    status = 0;
 
     // Pre loop stuff
-    int running = 1;
-    int fullscreen = 0;
-    int newTime = 0;
-    int prevTime;
-    int deltaTime;
-    SDL_Event e;
+    running = 1;
+    fullscreen = 0;
+    newTime = 0;
 
-    while(running) 
+    return 0;
+}
+
+int main(int argc, char* args[])
+{
+    if(init() != 0) {
+        return 1;
+    }
+
+    while(running)
     {
-        while(SDL_PollEvent(&e) != 0) 
+        while(SDL_PollEvent(&e) != 0)
         {
-            switch(e.type) 
+            switch(e.type)
             {
                 case SDL_KEYDOWN:
                 //case SDL_KEYUP:
-                    switch(e.key.keysym.sym) 
+                    switch(e.key.keysym.sym)
                     {
                         case SDLK_q:
                             running = 0;
@@ -720,8 +750,8 @@ int main(int argc, char* args[])
                             fullscreen = !fullscreen;
                             break;
                         case SDLK_c:
-                            currentX = GRID_WIDTH/2; 
-                            currentY = GRID_HEIGHT/2; 
+                            currentX = GRID_WIDTH/2;
+                            currentY = GRID_HEIGHT/2;
                             //printf("size: %d\n", size);
                             size = hubBlobSize;
                             status = 0;
@@ -740,7 +770,7 @@ int main(int argc, char* args[])
                     //    printf("Left mouse button!\n");
                     break;
                 case SDL_WINDOWEVENT:
-                    switch(e.window.event) 
+                    switch(e.window.event)
                     {
                         case SDL_WINDOWEVENT_RESIZED:
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -770,42 +800,42 @@ int main(int argc, char* args[])
         //    //printf("canTravel0,0: %d\n", canTravelBetween(&grid, 0, 0, GRID_WIDTH-1, GRID_HEIGHT-1));
         //    //printf("canTravelnum,num: %d\n", canTravelBetween(&grid, num, num, GRID_WIDTH-1, GRID_HEIGHT-1));
         //}
-        
+
         // Do procedural generation
         if(status == 0)
         {
             createBlob(&grid, &currentX, &currentY, size, CELL_HUB);
             createExitCells(&grid, CELL_HUB);
-            createWalls(&grid, CELL_HUB); 
-            createWalls(&grid, CELL_HUB_START); 
+            createWalls(&grid, CELL_HUB);
+            createWalls(&grid, CELL_HUB_START);
 
             // Find all CELL_EXITs
             pointList pl;
             pl.count = 0;
             pl.mallocSize = 4096;
             pl.list = (point *)malloc(pl.mallocSize);
-            
-            for(int i = 0; i < GRID_WIDTH; i++) 
+
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
                 }
             }
 
-            // Chooses a random CELL_EXIT for area1 
+            // Chooses a random CELL_EXIT for area1
             point p = pl.list[stb_rand()%pl.count];
             grid.cells[p.x][p.y] = CELL_AREA1;
-            
+
             // Create area1
             createBlob(&grid, &p.x, &p.y, size*2, CELL_AREA1);
             createExitCells(&grid, CELL_AREA1);
-            createWalls(&grid, CELL_AREA1); 
+            createWalls(&grid, CELL_AREA1);
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                     {
@@ -824,9 +854,9 @@ int main(int argc, char* args[])
                 }
             }
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_WALL)
                         grid.cells[i][j] = CELL_OFF;
@@ -834,9 +864,9 @@ int main(int argc, char* args[])
             }
             createExitCells(&grid, CELL_HUB);
             createExitCells(&grid, CELL_AREA1);
-            createWalls(&grid, CELL_HUB); 
-            createWalls(&grid, CELL_HUB_START); 
-            createWalls(&grid, CELL_AREA1); 
+            createWalls(&grid, CELL_HUB);
+            createWalls(&grid, CELL_HUB_START);
+            createWalls(&grid, CELL_AREA1);
 
             // Empty pl.list
             free(pl.list);
@@ -845,27 +875,27 @@ int main(int argc, char* args[])
             pl.list = (point *)malloc(pl.mallocSize);
 
             // Add current CELL_EXITs to list
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
                 }
             }
-            
+
             // Choose a random CELL_EXIT for area2
             p = pl.list[stb_rand()%pl.count];
             grid.cells[p.x][p.y] = CELL_AREA2;
-            
+
             // Create area2
             createBlob(&grid, &p.x, &p.y, size*2, CELL_AREA2);
             createExitCells(&grid, CELL_AREA2);
-            createWalls(&grid, CELL_AREA2); 
+            createWalls(&grid, CELL_AREA2);
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                     {
@@ -884,9 +914,9 @@ int main(int argc, char* args[])
                 }
             }
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_WALL)
                         grid.cells[i][j] = CELL_OFF;
@@ -895,10 +925,10 @@ int main(int argc, char* args[])
             createExitCells(&grid, CELL_HUB);
             createExitCells(&grid, CELL_AREA1);
             createExitCells(&grid, CELL_AREA2);
-            createWalls(&grid, CELL_HUB); 
-            createWalls(&grid, CELL_HUB_START); 
-            createWalls(&grid, CELL_AREA1); 
-            createWalls(&grid, CELL_AREA2); 
+            createWalls(&grid, CELL_HUB);
+            createWalls(&grid, CELL_HUB_START);
+            createWalls(&grid, CELL_AREA1);
+            createWalls(&grid, CELL_AREA2);
 
             // Empty pl.list
             free(pl.list);
@@ -907,27 +937,27 @@ int main(int argc, char* args[])
             pl.list = (point *)malloc(pl.mallocSize);
 
             // Add current CELL_EXITs to list
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
                 }
             }
-            
+
             // Choose a random CELL_EXIT for area3
             p = pl.list[stb_rand()%pl.count];
             grid.cells[p.x][p.y] = CELL_AREA3;
-            
+
             // Create area2
             createBlob(&grid, &p.x, &p.y, size*2, CELL_AREA3);
             createExitCells(&grid, CELL_AREA3);
-            createWalls(&grid, CELL_AREA3); 
+            createWalls(&grid, CELL_AREA3);
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                     {
@@ -945,10 +975,10 @@ int main(int argc, char* args[])
                     }
                 }
             }
-            
-            for(int i = 0; i < GRID_WIDTH; i++) 
+
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_WALL)
                         grid.cells[i][j] = CELL_OFF;
@@ -958,11 +988,11 @@ int main(int argc, char* args[])
             createExitCells(&grid, CELL_AREA1);
             createExitCells(&grid, CELL_AREA2);
             createExitCells(&grid, CELL_AREA3);
-            createWalls(&grid, CELL_HUB); 
-            createWalls(&grid, CELL_HUB_START); 
-            createWalls(&grid, CELL_AREA1); 
-            createWalls(&grid, CELL_AREA2); 
-            createWalls(&grid, CELL_AREA3); 
+            createWalls(&grid, CELL_HUB);
+            createWalls(&grid, CELL_HUB_START);
+            createWalls(&grid, CELL_AREA1);
+            createWalls(&grid, CELL_AREA2);
+            createWalls(&grid, CELL_AREA3);
 
             // Empty pl.list
             free(pl.list);
@@ -971,27 +1001,27 @@ int main(int argc, char* args[])
             pl.list = (point *)malloc(pl.mallocSize);
 
             // Add current CELL_EXITs to list
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
                 }
             }
-            
+
             // Choose a random CELL_EXIT for area3
             p = pl.list[stb_rand()%pl.count];
             grid.cells[p.x][p.y] = CELL_AREA4;
-            
+
             // Create area2
             createBlob(&grid, &p.x, &p.y, size*2, CELL_AREA4);
             createExitCells(&grid, CELL_AREA4);
-            createWalls(&grid, CELL_AREA4); 
+            createWalls(&grid, CELL_AREA4);
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                     {
@@ -1010,9 +1040,9 @@ int main(int argc, char* args[])
                 }
             }
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_WALL)
                         grid.cells[i][j] = CELL_OFF;
@@ -1023,12 +1053,12 @@ int main(int argc, char* args[])
             createExitCells(&grid, CELL_AREA2);
             createExitCells(&grid, CELL_AREA3);
             createExitCells(&grid, CELL_AREA4);
-            createWalls(&grid, CELL_HUB); 
-            createWalls(&grid, CELL_HUB_START); 
-            createWalls(&grid, CELL_AREA1); 
-            createWalls(&grid, CELL_AREA2); 
-            createWalls(&grid, CELL_AREA3); 
-            createWalls(&grid, CELL_AREA4); 
+            createWalls(&grid, CELL_HUB);
+            createWalls(&grid, CELL_HUB_START);
+            createWalls(&grid, CELL_AREA1);
+            createWalls(&grid, CELL_AREA2);
+            createWalls(&grid, CELL_AREA3);
+            createWalls(&grid, CELL_AREA4);
 
             // Empty pl.list
             free(pl.list);
@@ -1037,27 +1067,27 @@ int main(int argc, char* args[])
             pl.list = (point *)malloc(pl.mallocSize);
 
             // Add current CELL_EXITs to list
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
                 }
             }
-            
+
             // Choose a random CELL_EXIT for area3
             p = pl.list[stb_rand()%pl.count];
             grid.cells[p.x][p.y] = CELL_AREA5;
-            
+
             // Create area2
             createBlob(&grid, &p.x, &p.y, size*2, CELL_AREA5);
             createExitCells(&grid, CELL_AREA5);
-            createWalls(&grid, CELL_AREA5); 
+            createWalls(&grid, CELL_AREA5);
 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                     {
@@ -1082,7 +1112,7 @@ int main(int argc, char* args[])
             //// Create path between EXIT and random point
             //joinTwoCells(&grid, area1.x, area1.y, p.x, p.y, CELL_AREA1);
             //createExitCells(&grid, CELL_AREA1);
-            //createWalls(&grid, CELL_AREA1); 
+            //createWalls(&grid, CELL_AREA1);
 
             //free(pl.list);
 
@@ -1101,10 +1131,10 @@ int main(int argc, char* args[])
             pl.mallocSize = 4096;
             pl.list = (point *)malloc(pl.mallocSize);
 
-            // Add new exit cells 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            // Add new exit cells
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
@@ -1114,7 +1144,7 @@ int main(int argc, char* args[])
             // Random Area2 cells
             point area2, p;
             int count = 0;
-            do 
+            do
             {
                 count++;
                 p = pl.list[stb_rand()%pl.count];
@@ -1125,25 +1155,25 @@ int main(int argc, char* args[])
                     if(grid.cells[area2.x][area2.y] == CELL_OFF)
                         break;
                 }
-                 
+
             // p.x and p.y is not CELL_OFF and therefore must be first canTravelBetween starting point
             } while(!canTravelBetween(&grid, p.x, p.y, area2.x, area2.y, CELL_OFF) && count < 30);
 
             if(count == 30)
             {
-                // We're done? 
+                // We're done?
                 size = -10;
             }
-            else 
+            else
             {
                 grid.cells[area2.x][area2.y] = CELL_AREA2;
                 grid.cells[p.x][p.y] = CELL_AREA2;
                 joinTwoCells(&grid, area2.x, area2.y, p.x, p.y, CELL_AREA2);
                 createExitCells(&grid, CELL_AREA2);
-                createWalls(&grid, CELL_AREA2); 
+                createWalls(&grid, CELL_AREA2);
                 size = -3;
             }
-        } 
+        }
 
         if(size == -3)
         {
@@ -1152,10 +1182,10 @@ int main(int argc, char* args[])
             pl.mallocSize = 4096;
             pl.list = (point *)malloc(pl.mallocSize);
 
-            // Add new exit cells 
-            for(int i = 0; i < GRID_WIDTH; i++) 
+            // Add new exit cells
+            for(int i = 0; i < GRID_WIDTH; i++)
             {
-                for(int j = 0; j < GRID_HEIGHT; j++) 
+                for(int j = 0; j < GRID_HEIGHT; j++)
                 {
                     if(grid.cells[i][j] == CELL_EXIT)
                        addPoint(&pl, makePoint(i, j));
@@ -1165,7 +1195,7 @@ int main(int argc, char* args[])
             // Random Area3 cells
             point area3, p;
             int count = 0;
-            do 
+            do
             {
                 count++;
                 p = pl.list[stb_rand()%pl.count];
@@ -1176,33 +1206,33 @@ int main(int argc, char* args[])
                     if(grid.cells[area3.x][area3.y] == CELL_OFF)
                         break;
                 }
-                 
+
             // p.x and p.y is not CELL_OFF and therefore must be canTravelBetween starting point
             // because if cTB() end point isn't CELL_OFF, it always fails
             } while(!canTravelBetween(&grid, p.x, p.y, area3.x, area3.y, CELL_OFF) && count < 30);
 
             if(count == 30)
             {
-                // We're done? 
+                // We're done?
                 size = -10;
             }
-            else 
+            else
             {
                 grid.cells[area3.x][area3.y] = CELL_AREA3;
                 grid.cells[p.x][p.y] = CELL_AREA3;
                 joinTwoCells(&grid, area3.x, area3.y, p.x, p.y, CELL_AREA3);
                 createExitCells(&grid, CELL_AREA3);
-                createWalls(&grid, CELL_AREA3); 
+                createWalls(&grid, CELL_AREA3);
                 size = -4;
             }
-        } 
+        }
 
         // Write to buffer
         fillGrid(buffer, grid);
         drawGrid(buffer);
 
         // Update the screen
-        SDL_UpdateTexture(texture, 0, buffer.data, 
+        SDL_UpdateTexture(texture, 0, buffer.data,
                           buffer.w * buffer.bytesperpixel);
         SDL_RenderCopy(renderer, texture, 0, 0);
         SDL_RenderPresent(renderer);
