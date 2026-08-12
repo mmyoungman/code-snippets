@@ -1,3 +1,3 @@
 #!/bin/bash
 
-clang++ -lSDL2 -lSDL2_mixer procgen.cpp -o procgen
+clang++ -lSDL2 procgen.cpp -o procgen

@@ -5,7 +5,6 @@ Created by Mark Youngman
 To build.run you need:
 - g++/clang++
 - SDL2
-- SDL2_mixer
 
 ### For linux
 ```
