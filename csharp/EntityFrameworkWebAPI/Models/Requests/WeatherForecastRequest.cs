@@ -1,32 +1,25 @@
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 namespace EntityFrameworkWebAPI.Models.Requests;
 
-public class WeatherForecastRequest : IValidatableObject
+public class WeatherForecastRequest
 {
-    [Required]
     public int? TemperatureC { get; set; }
 
     public string? Summary { get; set; }
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    public class Validator : AbstractValidator<WeatherForecastRequest>
     {
-        var validationErrors = new List<ValidationResult>();
-
-        if (TemperatureC < -273)
+        public Validator()
         {
-            validationErrors.Add(new ValidationResult(
-                "Cannot be below absolute zero",
-                new List<string> { nameof(TemperatureC), }));
-        }
+            RuleFor(request => request.TemperatureC)
+                .Cascade(CascadeMode.Stop)
+                .NotNull()
+                .GreaterThanOrEqualTo(-273).WithMessage("Cannot be below absolute zero");
 
-        if (Summary != null && !WeatherForecast.Summaries.Contains(Summary))
-        {
-            validationErrors.Add(new ValidationResult(
-                $"Must be one of these: {string.Join(' ', WeatherForecast.Summaries)}",
-                new List<string> { nameof(Summary), }));
+            RuleFor(request => request.Summary)
+                .Must(summary => summary is null || WeatherForecast.Summaries.Contains(summary))
+                .WithMessage($"Must be one of these: {string.Join(' ', WeatherForecast.Summaries)}");
         }
-
-        return validationErrors;
     }
 }

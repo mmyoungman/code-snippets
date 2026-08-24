@@ -1,13 +1,12 @@
 using EntityFrameworkWebAPI.Models.Requests;
+using EntityFrameworkWebAPI.Models.View;
 using EntityFrameworkWebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EntityFrameworkWebAPI.Controllers;
 
-[ApiController]
 [Route("api")]
-public class WeatherForecastController : ControllerBase
-
+public class WeatherForecastController : ApiControllerBase
 {
     private readonly IWeatherForecastService _weatherForecastService;
 
@@ -24,14 +23,22 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet("weather-forecast/{id:int}")]
-    public async Task<WeatherForecastView> Get(int id)
+    public async Task<ActionResult<WeatherForecastView>> Get(int id)
     {
-        return await _weatherForecastService.Get(id);
+        var result = await _weatherForecastService.Get(id);
+
+        return result.Match<ActionResult<WeatherForecastView>>(
+            forecast => Ok(forecast),
+            errors => Problem(errors));
     }
 
     [HttpPost("weather-forecast")]
-    public async Task<WeatherForecastView> Create(WeatherForecastRequest request)
+    public async Task<ActionResult<WeatherForecastView>> Create(WeatherForecastRequest request)
     {
-        return await _weatherForecastService.Create(request);
+        var result = await _weatherForecastService.Create(request);
+
+        return result.Match<ActionResult<WeatherForecastView>>(
+            forecast => Ok(forecast),
+            errors => Problem(errors));
     }
 }

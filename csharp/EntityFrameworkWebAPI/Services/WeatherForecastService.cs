@@ -1,7 +1,7 @@
-using System.Net;
-using EntityFrameworkWebAPI.Exceptions;
 using EntityFrameworkWebAPI.Models;
 using EntityFrameworkWebAPI.Models.Requests;
+using EntityFrameworkWebAPI.Models.View;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 
 namespace EntityFrameworkWebAPI.Services;
@@ -9,17 +9,13 @@ namespace EntityFrameworkWebAPI.Services;
 public interface IWeatherForecastService
 {
     Task<IEnumerable<WeatherForecastView>> List();
-    Task<WeatherForecastView> Get(int id);
-    Task<WeatherForecastView> Create(WeatherForecastRequest request);
+    Task<ErrorOr<WeatherForecastView>> Get(int id);
+    Task<ErrorOr<WeatherForecastView>> Create(WeatherForecastRequest request);
 }
 
-public class WeatherForecastService(
-    WeatherForecastContext context,
-    IValidationService validationService
-        ) : IWeatherForecastService
+public class WeatherForecastService(WeatherForecastContext context) : IWeatherForecastService
 {
     private readonly WeatherForecastContext _context = context;
-    private readonly IValidationService _validationService = validationService;
 
     public async Task<IEnumerable<WeatherForecastView>> List()
     {
@@ -28,41 +24,59 @@ public class WeatherForecastService(
             .ToArrayAsync();
     }
 
-    public async Task<WeatherForecastView> Get(int id)
+    public async Task<ErrorOr<WeatherForecastView>> Get(int id)
     {
         var forecast = await _context.Forecasts
             .SingleOrDefaultAsync(forecast => forecast.WeatherForecastId == id);
 
         if (id == 3)
         {
-            Random random = new();
+            List<Error> errors = [];
 
-            if(random.Next() < Int32.MaxValue / 2)
-                _validationService.AddModelError("YouDidThisWrong", "You did this wrong!");
-            if(random.Next() < Int32.MaxValue / 2)
-                _validationService.AddModelError("YouDidThisWrong", "And this!");
+            if (Random.Shared.Next(2) == 0)
+                errors.Add(Error.Validation("YouDidThisWrong", "You did this wrong!"));
+            if (Random.Shared.Next(2) == 0)
+                errors.Add(Error.Validation("YouDidThisWrong", "And this!"));
 
-            // If you cannot continue execution if errors exist, then do this
-            if(!_validationService.ModelIsValid())
-                throw new HttpResponseException(HttpStatusCode.BadRequest);
-            
-            if(random.Next() < Int32.MaxValue / 2)
-                _validationService.AddModelError("YouDidThatWrong", "You did that wrong!");
-            if(random.Next() < Int32.MaxValue / 2)
-                _validationService.AddModelError("YouDidThatWrong", "And that!");
-            
-            // If you can continue execution after errors, they will still be caught by ModelStateValidationFilter
+            // If you cannot continue execution while these errors exist, return here.
+            if (errors.Count > 0)
+                return errors;
+
+            if (Random.Shared.Next(2) == 0)
+                errors.Add(Error.Validation("YouDidThatWrong", "You did that wrong!"));
+            if (Random.Shared.Next(2) == 0)
+                errors.Add(Error.Validation("YouDidThatWrong", "And that!"));
+
+            // If you can continue, keep accumulating and return the whole list at the end.
+            if (errors.Count > 0)
+                return errors;
         }
 
-        if (forecast == null)
-            // Will be caught by HttpResponseExceptionFilter
-            throw new HttpResponseException(HttpStatusCode.NotFound, "Forecast not found");
+        if (forecast is null)
+            return Error.NotFound(description: "Forecast not found");
 
         return forecast.AsView();
     }
 
-    public async Task<WeatherForecastView> Create(WeatherForecastRequest request)
+    public async Task<ErrorOr<WeatherForecastView>> Create(WeatherForecastRequest request)
     {
+        List<Error> errors = [];
+
+        var today = DateTime.UtcNow.Date;
+        if (await _context.Forecasts.AnyAsync(f => f.Date.Date == today))
+            errors.Add(Error.Validation("Date", "A forecast already exists for today"));
+
+        if (request.Summary is not null
+            && !SummaryMatchesTemperature(request.Summary, request.TemperatureC!.Value))
+        {
+            errors.Add(Error.Validation(
+                "Summary",
+                $"'{request.Summary}' does not match {request.TemperatureC}C"));
+        }
+
+        if (errors.Count > 0)
+            return errors;
+
         var newForecast = new WeatherForecast
         {
             Date = DateTime.UtcNow,
@@ -74,4 +88,11 @@ public class WeatherForecastService(
 
         return newForecast.AsView();
     }
+
+    private static bool SummaryMatchesTemperature(string summary, int temperatureC) => summary switch
+    {
+        "Freezing" => temperatureC <= 0,
+        "Scorching" => temperatureC >= 35,
+        _ => true,
+    };
 }

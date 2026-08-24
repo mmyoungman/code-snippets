@@ -1,31 +1,37 @@
 using EntityFrameworkWebAPI;
+using EntityFrameworkWebAPI.Exceptions;
 using EntityFrameworkWebAPI.Filters;
 using EntityFrameworkWebAPI.Services;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
-services
-    .AddEntityFrameworkSqlite()
-    .AddDbContext<WeatherForecastContext>();
+services.AddDbContext<WeatherForecastContext>();
 
-services.AddControllers(options => 
+services.AddControllers(options =>
 {
-    options.Filters.Add<HttpResponseExceptionFilter>();
-    options.Filters.Add<ModelStateValidationFilter>();
+    options.Filters.Add<FluentValidationFilter>();
 });
 
-services.AddSingleton<IActionContextAccessor, ActionContextAccessor>(); // for ValidationService
-services.AddSingleton<IValidationService, ValidationService>();
+services.AddValidatorsFromAssemblyContaining<Program>();
 
-services.AddTransient<IWeatherForecastService, WeatherForecastService>();
+services.AddProblemDetails();
+services.AddExceptionHandler<GlobalExceptionHandler>();
+
+services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
+
+using (var scope = app.Services.CreateScope())
 {
+    var context = scope.ServiceProvider.GetRequiredService<WeatherForecastContext>();
+    await context.Database.MigrateAsync();
 }
+
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

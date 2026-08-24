@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EntityFrameworkWebAPI.Models.Requests;
+namespace EntityFrameworkWebAPI.Models.View;
 
 public class WeatherForecastView
 {

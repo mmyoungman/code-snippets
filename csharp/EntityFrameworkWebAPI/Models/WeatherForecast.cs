@@ -1,4 +1,4 @@
-using EntityFrameworkWebAPI.Models.Requests;
+using EntityFrameworkWebAPI.Models.View;
 
 namespace EntityFrameworkWebAPI.Models;
 
@@ -18,18 +18,15 @@ public class WeatherForecast
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
     public string? Summary { get; set; }
-}
 
-public static class WeatherForecastMappingExtensions
-{
-    public static WeatherForecastView AsView(this WeatherForecast forecast)
+    public WeatherForecastView AsView()
     {
         return new()
         {
-            WeatherForecastId = forecast.WeatherForecastId,
-            Date = forecast.Date,
-            TemperatureC = forecast.TemperatureC,
-            Summary = forecast.Summary,
+            WeatherForecastId = WeatherForecastId,
+            Date = Date,
+            TemperatureC = TemperatureC,
+            Summary = Summary,
         };
     }
 }
