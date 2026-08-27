@@ -2,13 +2,15 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 pthread_mutex_t mutexFuel;
 pthread_cond_t condFuel;
 int fuel = 0;
 
-void fuelFill() {
+void* fuelFill(void* arg) {
+  (void)arg;
   for(int i = 0; i < 5; i++) {
     pthread_mutex_lock(&mutexFuel);
 
@@ -18,13 +20,18 @@ void fuelFill() {
     pthread_mutex_unlock(&mutexFuel);
     pthread_cond_signal(&condFuel);
 
-    sleep (1);
+    sleep(1);
   }
+  return NULL;
 }
 
-void fuelUse() {
+void* fuelUse(void* arg) {
+  (void)arg;
   pthread_mutex_lock(&mutexFuel);
 
+  // NOTE: always wait in a loop on the predicate, never a bare if. Two reasons:
+  // the signal may arrive before we start waiting, and pthread_cond_wait is
+  // allowed to wake spuriously.
   while(fuel < 40) {
     printf("fuelUse: Not enough fuel. Waiting...\n");
 
@@ -38,23 +45,34 @@ void fuelUse() {
   printf("fuelUse: Used fuel. Fuel: %d\n", fuel);
 
   pthread_mutex_unlock(&mutexFuel);
+  return NULL;
 }
 
-int main(int argc, char* argv[]) {
+int main(void) {
   pthread_t threads[2];
+  int rc;
 
-  pthread_mutex_init(&mutexFuel, NULL);
-  pthread_cond_init(&condFuel, NULL);
-
-  if(pthread_create(&threads[0], NULL, (void*)&fuelFill, NULL)) {
+  if((rc = pthread_mutex_init(&mutexFuel, NULL))) {
+    fprintf(stderr, "pthread_mutex_init: %s\n", strerror(rc));
     return 1;
   }
-  if(pthread_create(&threads[1], NULL, (void*)&fuelUse, NULL)) {
+  if((rc = pthread_cond_init(&condFuel, NULL))) {
+    fprintf(stderr, "pthread_cond_init: %s\n", strerror(rc));
+    return 1;
+  }
+
+  if((rc = pthread_create(&threads[0], NULL, fuelFill, NULL))) {
+    fprintf(stderr, "pthread_create: %s\n", strerror(rc));
+    return 1;
+  }
+  if((rc = pthread_create(&threads[1], NULL, fuelUse, NULL))) {
+    fprintf(stderr, "pthread_create: %s\n", strerror(rc));
     return 1;
   }
 
   for(int i = 0; i < 2; i++) {
-    if(pthread_join(threads[i], NULL)) {
+    if((rc = pthread_join(threads[i], NULL))) {
+      fprintf(stderr, "pthread_join: %s\n", strerror(rc));
       return 1;
     }
   }
